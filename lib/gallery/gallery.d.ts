@@ -6,7 +6,7 @@ import { FileInfoModel, FileCollection } from '../collection';
 import { DropZone } from './dropzone';
 export interface GalleryViewOptions extends ViewOptions {
     client: IClient;
-    showDirectories: boolean;
+    showDirectories?: boolean;
 }
 export declare class GalleryView extends LayoutView<HTMLDivElement> {
     options: GalleryViewOptions;

@@ -11,7 +11,7 @@ import {DropZone} from './dropzone';
 
 export interface GalleryViewOptions extends ViewOptions {
     client: IClient;
-    showDirectories: boolean;
+    showDirectories?: boolean;
 }
 
 @attributes({
