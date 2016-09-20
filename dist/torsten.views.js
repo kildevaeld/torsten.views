@@ -1800,6 +1800,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	        _this.listenTo(_this.list, 'selected', _this._onFileInfoSelected);
 	        _this.listenTo(_this.list, 'remove', _this._onFileInfoRemoved);
+	        _this.listenTo(_this.list, 'dblclick', function () {
+	            _this.trigger('dblclick');
+	        });
 	        _this.listenTo(_this.drop, 'drop', _this._onFileDrop);
 	        return _this;
 	    }
@@ -1872,7 +1875,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        },
 	        set: function set(model) {
 	            this._selected = model;
-	            this.info.model = model.get('is_dir') ? null : model;
+	            if (model) {
+	                this.info.model = model.get('is_dir') ? null : model;
+	            } else {
+	                this.info.model = null;
+	            }
 	        }
 	    }]);
 
@@ -1882,7 +1889,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    template: function template() {
 	        return index_3.default['gallery'];
 	    },
-	    className: 'file-gallery'
+	    className: 'torsten-gallery gallery'
 	}), __metadata('design:paramtypes', [Object])], GalleryView);
 	exports.GalleryView = GalleryView;
 

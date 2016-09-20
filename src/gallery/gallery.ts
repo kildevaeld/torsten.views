@@ -16,7 +16,7 @@ export interface GalleryViewOptions extends ViewOptions {
 
 @attributes({
     template: () => templates['gallery'],
-    className: 'file-gallery'
+    className: 'torsten-gallery gallery'
 })
 export class GalleryView extends LayoutView<HTMLDivElement> {
     info: FileInfoView;
@@ -60,7 +60,11 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
 
     set selected(model:FileInfoModel) {
         this._selected = model;
-        this.info.model = model.get('is_dir') ? null : model;
+        if (model) {
+            this.info.model = model.get('is_dir') ? null : model;
+        } else {
+            this.info.model = null;
+        }
         
     }  
 
@@ -89,6 +93,9 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
 
         this.listenTo(this.list, 'selected', this._onFileInfoSelected);
         this.listenTo(this.list, 'remove', this._onFileInfoRemoved)
+        this.listenTo(this.list, 'dblclick', () => {
+            this.trigger('dblclick');
+        })
         this.listenTo(this.drop, 'drop', this._onFileDrop);
     }
 
