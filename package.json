@@ -59,7 +59,8 @@
       "views": "github:kildevaeld/views@master",
       "collection": "github:kildevaeld/collectionjs@master",
       "blazy": "npm:blazy@^1.6.2",
-      "cropperjs": "npm:cropperjs@^0.7.2"
+      "cropperjs": "npm:cropperjs@^0.7.2",
+      "torsten": "github:kildevaeld/torsten.client@master"
     }
   }
 }
