@@ -57,7 +57,7 @@
       "orange": "github:kildevaeld/orange@master",
       "orange.request": "github:kildevaeld/orange@master",
       "views": "github:kildevaeld/views@master",
-      "collection": "github:kildevaeld/collection@master",
+      "collection": "github:kildevaeld/collectionjs@master",
       "blazy": "npm:blazy@^1.6.2",
       "cropperjs": "npm:cropperjs@^0.7.2"
     }
