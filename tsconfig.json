@@ -1,0 +1,44 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "noImplicitAny": false,
+        "sourceMap": false,
+        "rootDir": "src",
+        "outDir": "lib",
+        "declaration": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "files": [
+        "typings/index.d.ts",
+
+        "src/index.ts",
+        "src/collection.ts",
+        "src/error.ts",
+        "src/types.ts",
+        "src/utils.ts",
+
+        "src/list/index.ts",
+        "src/list/list.ts",
+        "src/list/list-item.ts",
+        "src/list/circular-progress.ts",
+
+        "src/info/index.ts",
+        "src/info/file-info.ts",
+
+        "src/gallery/index.ts",
+        "src/gallery/gallery.ts",
+        "src/gallery/mimetypes.ts",
+        "src/gallery/dropzone.ts",
+
+        "src/crop/crop-view.ts",
+        "src/crop/crop-preview.ts",
+        "src/crop/index.ts",
+        "src/crop/types.ts",
+
+        "src/templates/index.ts"
+
+    ]
+}
