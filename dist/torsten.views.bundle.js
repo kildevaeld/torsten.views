@@ -166,7 +166,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var _this2 = _possibleConstructorReturn(this, (RestCollection.__proto__ || Object.getPrototypeOf(RestCollection)).call(this, models, options));
 
-	        _this2.state = { first: 1, last: -1, current: 1, size: 10 };
+	        options = options || {};
+	        if (!options.limit) options.limit = 50;
+	        console.log(options);
+	        _this2._options = options;
+	        _this2.state = { first: 1, last: -1, current: 1 };
 	        _this2._link = {};
 	        _this2.queryParams = {
 	            page: 'page',
@@ -266,7 +270,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (orange_1.has(params, this.queryParams.page)) delete params[this.queryParams.page];
 	            url = this._link[options.page];
 	            if (!url) {
-	                url = this._client.endpoint;
+	                url = this._client.endpoint + this.path;
 	            }
 	            if (!url) return Promise.reject(new Error("no url specified"));
 	            var idx = url.indexOf('?');
@@ -277,7 +281,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (!orange_1.has(params, this.queryParams.page)) {
 	                params[this.queryParams.page] = options.page;
 	            }
-	            params[this.queryParams.limit] = this.state.size;
+	            params[this.queryParams.limit] = this._options.limit;
 	            this._fetch = true;
 	            this.trigger('before:fetch');
 	            var request = new orange_request_1.HttpRequest(orange_request_1.HttpMethod.GET, url);
@@ -7337,10 +7341,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var _this = _possibleConstructorReturn(this, (FileListView.__proto__ || Object.getPrototypeOf(FileListView)).call(this, options));
 
-	        _this.options = options || {};
+	        _this.options = options || { client: null };
 	        _this.sort = false;
 	        _this._onSroll = throttle(orange_1.bind(_this._onSroll, _this), 0);
-	        _this._initBlazy();
+	        //this._initBlazy();
 	        return _this;
 	    }
 
@@ -7355,7 +7359,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_initEvents",
 	        value: function _initEvents() {
-	            var _this3 = this;
+	            var _this2 = this;
 
 	            this.listenTo(this, 'childview:click', function (view, model) {
 	                if (this._current) orange_dom_1.removeClass(this._current.el, 'active');
@@ -7385,23 +7389,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }*/
 	            });
 	            this.listenTo(this, 'childview:image', function (view) {
-	                var _this2 = this;
-
 	                var img = view.$('img')[0];
 	                if (img.src === img.getAttribute('data-src')) {
 	                    return;
 	                }
-	                setTimeout(function () {
-	                    if (elementInView(view.el, _this2.el)) {
-	                        _this2._blazy.load(view.$('img')[0]);
+	                /*setTimeout(() => {
+	                    if (elementInView(view.el, this.el)) {
+	                        this._blazy.load(view.$('img')[0]);
 	                    }
-	                }, 100);
+	                }, 100);*/
 	            });
 	            this.listenTo(this.collection, 'before:fetch', this._showLoaderView);
 	            this.listenTo(this.collection, 'fetch', this._hideLoaderView);
+	            this.listenTo(this, 'height', this._loadImages, this);
 	            this.listenTo(this.collection, 'fetch:progress', function (e) {
 	                if (!e.lengthComputable) return;
-	                if (_this3._progress) _this3._progress.setPercent(100 / e.total * e.loaded);
+	                if (_this2._progress) _this2._progress.setPercent(100 / e.total * e.loaded);
 	            });
 	        }
 	    }, {
@@ -7409,9 +7412,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function onRenderCollection() {
 	            if (this._blazy) {
 	                this._blazy.revalidate();
-	            } else {
-	                this._initBlazy();
-	            }
+	            } else {}
+	            this._loadImages();
 	        }
 	    }, {
 	        key: "onRenderChild",
@@ -7452,12 +7454,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    index = i;
 	                } else if (elementInView(img, this.el)) {
 	                    index = i;
-	                    this._blazy.load(img, true);
 	                }
 	            }
 	            this.index = index;
 	            var el = this.el;
-	            if (el.scrollTop < el.scrollHeight - el.clientHeight - el.clientHeight) {} else if (this.collection.hasNext()) {
+	            if (el.scrollTop < el.scrollHeight - el.clientHeight - el.clientHeight) {
+	                this._loadImages();
+	            } else if (this.collection.hasNext()) {
 	                this.collection.getNextPage({
 	                    params: {
 	                        show_hidden: true
@@ -7466,21 +7469,50 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	    }, {
-	        key: "_initBlazy",
-	        value: function _initBlazy() {
+	        key: "_loadImages",
+	        value: function _loadImages() {
+	            var _this3 = this;
+
+	            var loadImage = function loadImage(img) {
+	                var parent = img.parentElement;
+	                orange_dom_1.addClass(parent, 'loading');
+	                _this3.options.client.open(img.getAttribute('data-src'), {
+	                    thumbnail: true
+	                }).then(function (i) {
+	                    img.src = URL.createObjectURL(i);
+	                    orange_dom_1.addClass(parent, 'loaded');
+	                    orange_dom_1.removeClass(parent, 'loading');
+	                }).catch(function (e) {
+	                    orange_dom_1.removeClass(parent, 'loading loaded');
+	                    orange_dom_1.addClass(parent, "load-error");
+	                });
+	            };
+	            var images = this.el.querySelectorAll('img');
+	            for (var i = 0, ii = images.length; i < ii; i++) {
+	                var img = images[i];
+	                if (orange_dom_1.hasClass(img.parentElement, "loaded") || orange_dom_1.hasClass(img.parentElement, "loading")) {
+	                    continue;
+	                }
+	                if (elementInView(img, this.el)) {
+	                    loadImage(img);
+	                }
+	            }
+	        }
+	        /*private _initBlazy() {
 	            this._blazy = new Blazy({
 	                container: '.assets-list',
 	                selector: 'img',
-	                error: function error(img) {
+	                error: function (img) {
 	                    if (!img || !img.parentNode) return;
-	                    var m = img.parentNode.querySelector('.mime');
+	                    let m = img.parentNode.querySelector('.mime');
 	                    if (m) {
 	                        m.style.display = 'block';
 	                        img.style.display = 'none';
 	                    }
 	                }
 	            });
-	        }
+	        }*/
+
 	    }, {
 	        key: "_initHeight",
 	        value: function _initHeight() {
@@ -7500,6 +7532,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this._timer = void 0;
 	            }
 	            this.el.style.height = parent.clientHeight + 'px';
+	            this.trigger('height');
 	        }
 	    }, {
 	        key: "onShow",
@@ -10004,8 +10037,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _createClass(FileListItemView, [{
 	        key: "onRender",
 	        value: function onRender() {
-	            var _this2 = this;
-
 	            var model = this.model;
 	            var isDir = model.get('is_dir');
 	            orange_dom_1.removeClass(this.ui['mime'], 'mime-unknown');
@@ -10017,16 +10048,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            this.ui['name'].textContent = orange_1.truncate(model.get('name') || model.get('filename'), 25);
 	            if (/^image\/.*/.test(model.get('mime'))) {
-	                (function () {
-	                    var img = new Image();
-	                    img.src = utils_1.emptyImage;
-	                    _this2.model.open({ thumbnail: true }).then(function (blob) {
-	                        img.setAttribute('data-src', URL.createObjectURL(blob));
-	                        _this2.ui['mime'].parentNode.insertBefore(img, _this2.ui['mime']);
-	                        _this2.ui['mime'].style.display = 'none';
-	                        _this2.trigger('image');
-	                    });
-	                })();
+	                var img = new Image();
+	                img.src = utils_1.emptyImage;
+	                img.setAttribute('data-src', this.model.fullPath);
+	                this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
 	            }
 	            //let url = model.getURL();
 	            /*let img = new Image();
@@ -10046,6 +10071,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: "_onDblClick",
 	        value: function _onDblClick(e) {
 	            this.triggerMethod('dblclick', this.model);
+	        }
+	    }, {
+	        key: "downloadImage",
+	        value: function downloadImage() {
+	            var _this2 = this;
+
+	            var model = this.model;
+	            if (/^image\/.*/.test(model.get('mime'))) {
+	                (function () {
+	                    var img = _this2.el.querySelector('img');
+	                    _this2.model.open({ thumbnail: true }).then(function (blob) {
+	                        img.setAttribute('src', URL.createObjectURL(blob));
+	                        //this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
+	                        _this2.ui['mime'].style.display = 'none';
+	                        _this2.trigger('image');
+	                    });
+	                })();
+	            }
 	        }
 	    }]);
 
@@ -10796,7 +10839,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.collections = [];
 	        _this.client = options.client;
 	        _this.list = new index_1.FileListView({
-	            showDirectories: options.showDirectories || false
+	            showDirectories: options.showDirectories || false,
+	            client: _this.client
 	        });
 	        _this.info = new index_2.FileInfoView({
 	            client: _this.client
@@ -10862,7 +10906,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            this.collections = [new collection_1.FileCollection(null, {
 	                client: this.client,
-	                path: this._root
+	                path: this._root,
+	                limit: 100
 	            })];
 	            this._setCollection(this.collections[0]);
 	            this.collections[0].fetch({

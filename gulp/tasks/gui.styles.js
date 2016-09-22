@@ -41,8 +41,8 @@ gulp.task('gui:styles:mime:unzip', function () {
 
 gulp.task('gui:styles:mime', () => {
     let files = [
-        'mimetypes/icons/Faenza/mimetypes/96/*.png',
-        'mimetypes/icons/Faenza/places/96/folder.png'
+        'mimetypes/icons/Faenza/mimetypes/64/*.png',
+        'mimetypes/icons/Faenza/places/64/folder.png'
     ]   
     console.log(Path.resolve(__dirname, "../stylus.template.hbs"))
     var spriteData = gulp.src(files).pipe(spritesmith({
@@ -85,5 +85,5 @@ gulp.task('gui:styles', function () {
 });
 
 gulp.task('gui:styles:watch', function () {
-    gulp.watch('./src/gui/styles/*.styl', ['gui:styles']);
+    gulp.watch('./src/styles/*.styl', ['gui:styles']);
 });

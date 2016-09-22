@@ -9,7 +9,6 @@ export interface State {
     first: number;
     last: number;
     current: number;
-    size: number;
 }
 export interface FileInfoModelOptions {
     client: IClient;
@@ -30,6 +29,7 @@ export interface FileCollectionOptions<T extends IModel> extends CollectionOptio
     client: IClient;
     showHidden?: boolean;
     showDirectories?: boolean;
+    limit?: number;
 }
 export interface GetPageOptions extends FileCollectionFetchOptions {
     page?: number;
@@ -40,6 +40,7 @@ export declare abstract class RestCollection<T extends IModel> extends Collectio
     protected _link: {
         [key: number]: string;
     };
+    protected _options: FileCollectionOptions<T>;
     constructor(models: any, options: FileCollectionOptions<T>);
     hasNext(): boolean;
     hasPrevious(): boolean;

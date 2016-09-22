@@ -5,4 +5,5 @@ export declare class FileListItemView extends View<HTMLDivElement> {
     onRender(): void;
     private _onClick(e);
     private _onDblClick(e);
+    downloadImage(): void;
 }

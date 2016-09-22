@@ -25,7 +25,7 @@ export interface State {
     first: number
     last: number
     current: number
-    size: number
+    //size: number
 }
 
 function parseLinkHeaders(resp: Response): Link {
@@ -92,6 +92,7 @@ export interface FileCollectionOptions<T extends IModel> extends CollectionOptio
     client: IClient;
     showHidden?: boolean;
     showDirectories?: boolean;
+    limit?: number;
 }
 
 export interface GetPageOptions extends FileCollectionFetchOptions {
@@ -110,16 +111,22 @@ export abstract class RestCollection<T extends IModel> extends Collection<T> {
     protected state: State
     queryParams: QueryParameters;
     protected _link: { [key: number]: string };
-    
+    protected _options: FileCollectionOptions<T>
     constructor(models: any, options: FileCollectionOptions<T>) {
         super(models, options)
+        options = options||{};
+        if (!options.limit) options.limit = 50;
+        console.log(options)
+        this._options = options;
 
-        this.state = { first: 1, last: -1, current: 1, size: 10 }
+        this.state = { first: 1, last: -1, current: 1}
         this._link = {};
         this.queryParams = {
             page: 'page',
             limit: 'limit'
         };
+
+
     }
 
     public hasNext(): boolean {
@@ -226,7 +233,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
 
         url = this._link[options.page];
         if (!url) {
-            url = this._client.endpoint;
+            url = this._client.endpoint + this.path;
         }
 
         if (!url) return Promise.reject<FileInfoModel[]>(new Error("no url specified"));
@@ -241,7 +248,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
             params[this.queryParams.page] = options.page;
         }
 
-        params[this.queryParams.limit] = this.state.size;
+        params[this.queryParams.limit] = this._options.limit;
 
         this._fetch = true;
         this.trigger('before:fetch');

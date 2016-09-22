@@ -1,14 +1,14 @@
 declare var require: any;
 
 import {CollectionView, CollectionViewOptions, View, attributes} from 'views';
-import {removeClass, addClass} from 'orange.dom';
+import {removeClass, addClass, hasClass} from 'orange.dom';
 import {bind} from 'orange';
 import {FileListItemView} from './list-item';
 import {FileCollection} from '../collection';
 import {Progress} from './circular-progress';
 import {IProgress} from '../types';
 import templates from '../templates/index';
-
+import {IClient, OpenOptions} from 'torsten';
 
 //import {AssetsCollection} from '../../models/index';
 const Blazy = require('blazy');
@@ -17,6 +17,7 @@ const Blazy = require('blazy');
 export interface FileListOptions extends CollectionViewOptions {
     deleteable?: boolean;
     showDirectories?: boolean;
+    client: IClient
 }
 
 export const FileListEmptyView = View.extend({
@@ -46,11 +47,11 @@ export class FileListView extends CollectionView<HTMLDivElement> {
 
     constructor(options?: FileListOptions) {
         super(options);
-        this.options = options||{};
+        this.options = options || { client: null };
         this.sort = false;
 
         this._onSroll = throttle(bind(this._onSroll, this), 0);
-        this._initBlazy();
+        //this._initBlazy();
 
     }
 
@@ -61,7 +62,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         }
     }
 
-    private _initEvents () {
+    private _initEvents() {
         this.listenTo(this, 'childview:click', function (view, model) {
             if (this._current) removeClass(this._current.el, 'active');
             this._current = view
@@ -98,18 +99,18 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             if (img.src === img.getAttribute('data-src')) {
                 return;
             }
-            setTimeout(() => {
+            /*setTimeout(() => {
                 if (elementInView(view.el, this.el)) {
                     this._blazy.load(view.$('img')[0]);
                 }
-            }, 100);
+            }, 100);*/
 
         });
 
         this.listenTo(this.collection, 'before:fetch', this._showLoaderView);
         this.listenTo(this.collection, 'fetch', this._hideLoaderView);
-
-        this.listenTo(this.collection, 'fetch:progress', (e:ProgressEvent) => {
+        this.listenTo(this, 'height', this._loadImages, this);
+        this.listenTo(this.collection, 'fetch:progress', (e: ProgressEvent) => {
             if (!e.lengthComputable) return;
             if (this._progress) this._progress.setPercent(100 / e.total * e.loaded)
         })
@@ -120,19 +121,20 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         if (this._blazy) {
             this._blazy.revalidate();
         } else {
-            this._initBlazy();
+            //this._initBlazy();
+            
         }
-
+        this._loadImages()
     }
 
-    onRenderChild(view:FileListItemView, index:number) {
-        
+    onRenderChild(view: FileListItemView, index: number) {
+
         if (view.model.get('is_dir') && !this.options.showDirectories) {
             view.el.style.display = 'none';
         } else {
             view.el.style.opacity = 'block';
         }
-        
+
     }
 
     private _showLoaderView() {
@@ -164,14 +166,14 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 index = i;
             } else if (elementInView(img, this.el)) {
                 index = i
-                this._blazy.load(img, true);
+                //this._blazy.load(img, true);
             }
         }
         this.index = index;
         let el = this.el;
 
         if (el.scrollTop < (el.scrollHeight - el.clientHeight) - el.clientHeight) {
-
+            this._loadImages()
         } else if (this.collection.hasNext()) {
 
             this.collection.getNextPage({
@@ -182,7 +184,39 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         }
     }
 
-    private _initBlazy() {
+    private _loadImages() {
+
+        const loadImage = (img: HTMLImageElement) => {
+            var parent = img.parentElement
+            addClass(parent, 'loading')
+        
+            this.options.client.open(img.getAttribute('data-src'), {
+                thumbnail: true
+            })
+                .then(i => {
+                    img.src = URL.createObjectURL(i)
+                    addClass(parent, 'loaded')
+                    removeClass(parent, 'loading')
+                }).catch(e => {
+                    removeClass(parent, 'loading loaded')
+                    addClass(parent, "load-error")
+                })
+        }
+
+        let images = this.el.querySelectorAll('img');
+        for (let i = 0, ii = images.length; i < ii; i++) {
+            let img = <HTMLImageElement>images[i];
+            if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
+                continue;
+            }
+            if (elementInView(img, this.el))  {
+                loadImage(img)
+            }
+            
+        }
+    }
+
+    /*private _initBlazy() {
         this._blazy = new Blazy({
             container: '.assets-list',
             selector: 'img',
@@ -195,7 +229,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 }
             }
         });
-    }
+    }*/
 
     private _initHeight() {
         let parent = this.el.parentElement;
@@ -212,12 +246,13 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         }
 
         this.el.style.height = parent.clientHeight + 'px';
-
+        this.trigger('height')
     }
 
 
-    onShow () {
+    onShow() {
         this._initHeight();
+
     }
 
 }

@@ -1,9 +1,11 @@
 import { CollectionView, CollectionViewOptions } from 'views';
 import { FileListItemView } from './list-item';
 import { FileCollection } from '../collection';
+import { IClient } from 'torsten';
 export interface FileListOptions extends CollectionViewOptions {
     deleteable?: boolean;
     showDirectories?: boolean;
+    client: IClient;
 }
 export declare const FileListEmptyView: {};
 export declare class FileListView extends CollectionView<HTMLDivElement> {
@@ -22,7 +24,7 @@ export declare class FileListView extends CollectionView<HTMLDivElement> {
     private _showLoaderView();
     private _hideLoaderView();
     private _onSroll(e);
-    private _initBlazy();
+    private _loadImages();
     private _initHeight();
     onShow(): void;
 }

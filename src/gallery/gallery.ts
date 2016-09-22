@@ -39,7 +39,8 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
 
         this.collections = [new FileCollection(null, {
             client: this.client,
-            path: this._root
+            path: this._root,
+            limit: 100
             
         })];
 
@@ -80,7 +81,8 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this.client = options.client;
 
         this.list = new FileListView({
-            showDirectories: options.showDirectories||false
+            showDirectories: options.showDirectories||false,
+            client: this.client
         });
 
         this.info = new FileInfoView({

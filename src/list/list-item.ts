@@ -41,22 +41,16 @@ export class FileListItemView extends View<HTMLDivElement> {
 
         this.ui['name'].textContent = truncate(model.get('name') || model.get('filename'), 25)
 
+
+
         if (/^image\/.*/.test(model.get('mime'))) {
             let img = new Image();
             img.src = emptyImage;
-
-            this.model.open({ thumbnail: true })
-                .then(blob => {
-                    img.setAttribute('data-src', URL.createObjectURL(blob));
-                    this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
-                    this.ui['mime'].style.display = 'none'
-                    this.trigger('image')
-                })
-
-
+            img.setAttribute('data-src', this.model.fullPath);
+            
+            this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
+            
         }
-
-
 
 
         //let url = model.getURL();
@@ -78,6 +72,25 @@ export class FileListItemView extends View<HTMLDivElement> {
 
     private _onDblClick(e) {
         this.triggerMethod('dblclick', this.model);
+    }
+
+    downloadImage() {
+        var model = this.model
+        
+        if (/^image\/.*/.test(model.get('mime'))) {
+
+            let img = <HTMLImageElement>this.el.querySelector('img');
+        
+            this.model.open({ thumbnail: true })
+                .then(blob => {
+                    img.setAttribute('src', URL.createObjectURL(blob));
+                    //this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
+                    this.ui['mime'].style.display = 'none'
+                    this.trigger('image')
+                })
+
+
+        }
     }
 
 }
