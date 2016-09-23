@@ -288,7 +288,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._fetch = true;
 	            this.trigger('before:fetch');
 	            var request = new orange_request_1.HttpRequest(orange_request_1.HttpMethod.GET, url);
-	            return request.params(params).downloadProgress(function (e) {
+	            return request.params(params).header('Authorization', 'Bearer ' + this._client.token).downloadProgress(function (e) {
 	                if (e.lengthComputable) {
 	                    _this4.trigger('fetch:progress', e);
 	                }
@@ -2993,8 +2993,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var url = this._toUrl(path);
 	            return request.request(orange_request_1.HttpMethod.GET, url, {
 	                progress: options.progress,
-	                params: { stat: true }
-	            }).then(function (res) {
+	                params: { stat: true },
+	                token: this._token
+	            }).then(getResponse).then(function (res) {
 	                return res.json();
 	            }).then(function (i) {
 	                return new file_info_1.FileInfo(i.data);
@@ -3007,8 +3008,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            return request.request(orange_request_1.HttpMethod.GET, this.endpoint, {
 	                progress: options.progress,
-	                params: { stat: true, id: id }
-	            }).then(function (res) {
+	                params: { stat: true, id: id },
+	                token: this._token
+	            }).then(getResponse).then(function (res) {
 	                return res.json();
 	            }).then(function (i) {
 	                return new file_info_1.FileInfo(i.data);
@@ -3019,9 +3021,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function list(path) {
 	            var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-	            var req = request.request(orange_request_1.HttpMethod.GET, this._toUrl(path), options);
-	            return req.then(function (res) {
+	            var req = request.request(orange_request_1.HttpMethod.GET, this._toUrl(path), orange_1.extend({}, options, {
+	                token: this._token
+	            }));
+	            var getResponse = function getResponse(res) {
+	                if (!res.isValid) {
+	                    if (/text\/plain/.test(res.headers.get('Content-Type'))) {
+	                        return res.text().then(function (t) {
+	                            return Promise.reject(new Error(t));
+	                        });
+	                    } else if (/application\/json/.test(res.headers.get('Content-Type'))) {
+	                        return res.json().then(function (json) {
+	                            return Promise.reject(new Error(json));
+	                        });
+	                    }
+	                }
 	                return res.json();
+	            };
+	            return req.then(function (res) {
+	                return getResponse(res);
 	            }).then(function (infos) {
 	                if (infos.message != 'ok') return [];
 	                return infos.data.map(function (i) {
@@ -3036,13 +3054,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-	            return this.stat(path, options).then(function (info) {
-	                var r = { progress: options.progress };
+	            return this.stat(path, orange_1.extend({}, options, {
+	                token: this._token
+	            })).then(function (info) {
+	                var r = {
+	                    progress: options.progress,
+	                    token: _this.token
+	                };
 	                if (options.thumbnail) {
 	                    r.params = r.params || {};
 	                    r.params.thumbnail = true;
 	                }
-	                if (utils_1.isNode && options.stream) {}
 	                return request.request(orange_request_1.HttpMethod.GET, _this._toUrl(path), r).then(function (r) {
 	                    return r.blob();
 	                });
@@ -3052,7 +3074,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: 'remove',
 	        value: function remove(path) {
 	            var url = this._toUrl(path);
-	            return request.request(orange_request_1.HttpMethod.DELETE, url, {}).then(function (res) {
+	            return request.request(orange_request_1.HttpMethod.DELETE, url, {
+	                token: this.token
+	            }).then(function (res) {
 	                return res.json();
 	            });
 	        }
@@ -3065,6 +3089,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return this._options.endpoint + path;
 	        }
 	    }, {
+	        key: 'token',
+	        set: function set(token) {
+	            this._token = token;
+	        },
+	        get: function get() {
+	            return this._token;
+	        }
+	    }, {
 	        key: 'endpoint',
 	        get: function get() {
 	            return this._options.endpoint;
@@ -3075,6 +3107,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	}();
 
 	exports.TorstenClient = TorstenClient;
+	function getResponse(res) {
+	    if (!res.isValid) {
+	        if (/text\/plain/.test(res.headers.get('Content-Type'))) {
+	            return res.text().then(function (t) {
+	                return Promise.reject(new Error(t));
+	            });
+	        } else if (/application\/json/.test(res.headers.get('Content-Type'))) {
+	            return res.json().then(function (json) {
+	                return Promise.reject(new error_1.TorstenJSONError("response", json));
+	            });
+	        }
+	    }
+	    return Promise.resolve(res); //.json<{ data: FileInfo[]; message: string; }>();
+	}
 
 /***/ },
 /* 21 */
@@ -4019,7 +4065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 
-	var self = window || global;
+	var self = typeof window === 'undefined' ? global : window;
 	var iterable = 'Symbol' in self && 'iterator' in Symbol;
 	// Build a destructive iterator for the value list
 	function iteratorFor(items) {
@@ -4295,6 +4341,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    path_1.dir = dir;
 	})(path = exports.path || (exports.path = {}));
+	var filemode;
+	(function (filemode) {
+	    function toString(m) {
+	        var str = "dalTLDpSugct";
+	        var buf = new Array(32);
+	        //var buf [32]byte // Mode is uint32.
+	        var w = 0;
+	        for (var i = 0, ii = str.length; i < ii; i++) {
+	            var c = str[i];
+	            if ((m & 1 << 32 - 1 - i) != 0) {
+	                buf[w] = c;
+	                w++;
+	            }
+	        }
+	        /*for i, c := range str {
+	            if m&(1<<uint(32-1-i)) != 0 {
+	                buf[w] = byte(c)
+	                w++
+	            }
+	        }*/
+	        if (w == 0) {
+	            buf[w] = '-';
+	            w++;
+	        }
+	        var rwx = "rwxrwxrwx";
+	        for (var _i = 0, _ii = rwx.length; _i < _ii; _i++) {
+	            var _c = str[_i];
+	            if ((m & 1 << 9 - 1 - _i) != 0) {
+	                buf[w] = _c;
+	            } else {
+	                buf[w] = '-';
+	            }
+	            w++;
+	        }
+	        return buf.slice(0, w).join('');
+	    }
+	    filemode.toString = toString;
+	})(filemode = exports.filemode || (exports.filemode = {}));
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(30).Buffer))
 
 /***/ },
@@ -6046,7 +6130,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	exports.byteLength = byteLength;
 	exports.toByteArray = toByteArray;
 	exports.fromByteArray = fromByteArray;
 
@@ -6054,17 +6137,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	var revLookup = [];
 	var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array;
 
-	var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-	for (var i = 0, len = code.length; i < len; ++i) {
-	  lookup[i] = code[i];
-	  revLookup[code.charCodeAt(i)] = i;
+	function init() {
+	  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+	  for (var i = 0, len = code.length; i < len; ++i) {
+	    lookup[i] = code[i];
+	    revLookup[code.charCodeAt(i)] = i;
+	  }
+
+	  revLookup['-'.charCodeAt(0)] = 62;
+	  revLookup['_'.charCodeAt(0)] = 63;
 	}
 
-	revLookup['-'.charCodeAt(0)] = 62;
-	revLookup['_'.charCodeAt(0)] = 63;
+	init();
 
-	function placeHoldersCount(b64) {
+	function toByteArray(b64) {
+	  var i, j, l, tmp, placeHolders, arr;
 	  var len = b64.length;
+
 	  if (len % 4 > 0) {
 	    throw new Error('Invalid string. Length must be a multiple of 4');
 	  }
@@ -6074,19 +6163,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // represent one byte
 	  // if there is only one, then the three characters before it represent 2 bytes
 	  // this is just a cheap hack to not do indexOf twice
-	  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0;
-	}
+	  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0;
 
-	function byteLength(b64) {
 	  // base64 is 4/3 + up to two characters of the original data
-	  return b64.length * 3 / 4 - placeHoldersCount(b64);
-	}
-
-	function toByteArray(b64) {
-	  var i, j, l, tmp, placeHolders, arr;
-	  var len = b64.length;
-	  placeHolders = placeHoldersCount(b64);
-
 	  arr = new Arr(len * 3 / 4 - placeHolders);
 
 	  // if there are placeholders, only get up to the last complete 4 chars
@@ -6336,6 +6415,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(Error);
 
 	exports.TorstenClientError = TorstenClientError;
+
+	var TorstenJSONError = function (_TorstenClientError) {
+	    _inherits(TorstenJSONError, _TorstenClientError);
+
+	    function TorstenJSONError(message, json) {
+	        _classCallCheck(this, TorstenJSONError);
+
+	        var _this2 = _possibleConstructorReturn(this, (TorstenJSONError.__proto__ || Object.getPrototypeOf(TorstenJSONError)).call(this, message));
+
+	        _this2.json = json;
+	        return _this2;
+	    }
+
+	    return TorstenJSONError;
+	}(TorstenClientError);
+
+	exports.TorstenJSONError = TorstenJSONError;
 	function createError(msg) {
 	    return new TorstenClientError(msg);
 	}
@@ -6349,13 +6445,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var orange_request_1 = __webpack_require__(37);
 	var utils_1 = __webpack_require__(29);
-	function request(method, url) {
-	    var r = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
+	function request(method, url, r) {
 	    var req = new orange_request_1.HttpRequest(method, url);
 	    if (r.params) req.params(r.params);
 	    if (r.headers) req.header(r.headers);
 	    req.header("User-Agent", "torsten-client/0.0.1");
+	    req.header("Authorization", "Bearer " + r.token);
 	    return req.downloadProgress(r.progress).end(r.data).then(function (res) {
 	        return res;
 	    });
@@ -6462,6 +6557,7 @@ return /******/ (function(modules) { // webpackBootstrap
 				}
 				var utils_1 = __webpack_require__(1);
 				exports.queryStringToParams = utils_1.queryStringToParams;
+				exports.isValid = utils_1.isValid;
 				__export(__webpack_require__(2));
 				__export(__webpack_require__(9));
 				__export(__webpack_require__(8));
@@ -6499,9 +6595,15 @@ return /******/ (function(modules) { // webpackBootstrap
 					}, []).join('&');
 				}
 				exports.queryParam = queryParam;
-				var fileProto = /^file:/;
-				function isValid(xhr, url) {
-					return xhr.status >= 200 && xhr.status < 300 || xhr.status === 304 || xhr.status === 0 && fileProto.test(url) || xhr.status === 0 && window.location.protocol === 'file:';
+				/*const fileProto = /^file:/;
+	   export function isValid(xhr, url) {
+	       return (xhr.status >= 200 && xhr.status < 300) ||
+	           (xhr.status === 304) ||
+	           (xhr.status === 0 && fileProto.test(url)) ||
+	           (xhr.status === 0 && window.location.protocol === 'file:')
+	   };*/
+				function isValid(status) {
+					return status >= 200 && status < 300 || status === 304;
 				}
 				exports.isValid = isValid;
 				;
@@ -6557,7 +6659,9 @@ return /******/ (function(modules) { // webpackBootstrap
 						this._params = {};
 						this._headers = new header_1.Headers();
 						this._request = {};
-						this._headers.append('X-Requested-With', 'XMLHttpRequest');
+						if (!utils_1.isNode) {
+							this._headers.append('X-Requested-With', 'XMLHttpRequest');
+						}
 						this._request.method = HttpMethod[this._method];
 					}
 
@@ -6629,10 +6733,8 @@ return /******/ (function(modules) { // webpackBootstrap
 								this._request.body = data;
 							}
 							url = this._apply_params(url);
+							this._request.headers = this._headers;
 							return fetch(url, this._request).then(function (res) {
-								if (!res.ok && throwOnInvalid) {
-									throw new Error(res.statusText);
-								}
 								return res;
 							});
 						}
@@ -7180,7 +7282,7 @@ return /******/ (function(modules) { // webpackBootstrap
 						key: '_streamToBuffer',
 						value: function _streamToBuffer() {
 							if (!isNaN) return orange_1.Promise.reject(new TypeError("not node!"));
-							__webpack_require__(6).toBuffer(this._body);
+							return __webpack_require__(6).toBuffer(this._body);
 						}
 					}, {
 						key: 'blob',
@@ -7240,6 +7342,11 @@ return /******/ (function(modules) { // webpackBootstrap
 						key: 'bodyType',
 						get: function get() {
 							return this._bodyType;
+						}
+					}, {
+						key: 'isValid',
+						get: function get() {
+							return utils_1.isValid(this.status);
 						}
 					}], [{
 						key: 'error',
@@ -8105,7 +8212,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var loadImage = function loadImage(img) {
 	                var parent = img.parentElement;
 	                orange_dom_1.addClass(parent, 'loading');
-	                download_1.Downloader.instance.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
+	                download_1.Downloader.instance.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: false }).then(function (i) {
 	                    img.src = URL.createObjectURL(i);
 	                    orange_dom_1.addClass(parent, 'loaded');
 	                    orange_dom_1.removeClass(parent, 'loading');
@@ -10226,7 +10333,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (/^image\/.*/.test(model.get('mime'))) {
 	                (function () {
 	                    var img = _this2.el.querySelector('img');
-	                    _this2.model.open({ thumbnail: true }).then(function (blob) {
+	                    _this2.model.open({ thumbnail: false }).then(function (blob) {
 	                        img.setAttribute('src', URL.createObjectURL(blob));
 	                        //this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
 	                        _this2.ui['mime'].style.display = 'none';

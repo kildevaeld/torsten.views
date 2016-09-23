@@ -288,7 +288,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._fetch = true;
 	            this.trigger('before:fetch');
 	            var request = new orange_request_1.HttpRequest(orange_request_1.HttpMethod.GET, url);
-	            return request.params(params).downloadProgress(function (e) {
+	            return request.params(params).header('Authorization', 'Bearer ' + this._client.token).downloadProgress(function (e) {
 	                if (e.lengthComputable) {
 	                    _this4.trigger('fetch:progress', e);
 	                }
@@ -1543,7 +1543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var loadImage = function loadImage(img) {
 	                var parent = img.parentElement;
 	                orange_dom_1.addClass(parent, 'loading');
-	                download_1.Downloader.instance.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
+	                download_1.Downloader.instance.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: false }).then(function (i) {
 	                    img.src = URL.createObjectURL(i);
 	                    orange_dom_1.addClass(parent, 'loaded');
 	                    orange_dom_1.removeClass(parent, 'loading');
@@ -2308,7 +2308,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (/^image\/.*/.test(model.get('mime'))) {
 	                (function () {
 	                    var img = _this2.el.querySelector('img');
-	                    _this2.model.open({ thumbnail: true }).then(function (blob) {
+	                    _this2.model.open({ thumbnail: false }).then(function (blob) {
 	                        img.setAttribute('src', URL.createObjectURL(blob));
 	                        //this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
 	                        _this2.ui['mime'].style.display = 'none';

@@ -82,7 +82,7 @@ export class FileListItemView extends View<HTMLDivElement> {
 
             let img = <HTMLImageElement>this.el.querySelector('img');
            
-            this.model.open({ thumbnail: true })
+            this.model.open({ thumbnail: false })
                 .then(blob => {
                     img.setAttribute('src', URL.createObjectURL(blob));
                     //this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);

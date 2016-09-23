@@ -61,7 +61,9 @@
 
         var client = torsten.views.createClient({
             endpoint: 'http://localhost:3000'
-        })
+        });
+
+        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI5MDlkMzdhNC1kMTI4LTRmOGQtYjFlMS0wYWVmMWY2MGEwMzUiLCJnaWQiOiIwZjUwMmRlZi0zMTljLTQ4MTUtODVmNS0wYWEwMGEwZDUxMWIiLCJpYXQiOjE0NzQ2NTgyMjB9.1vVC1eqXmTMP6k_erzMOAQIF_N3aiqm6PKk6BIqOVeI'
 
         let gallery = new torsten.views.GalleryView({
             client: client,
@@ -72,7 +74,7 @@
 
         body.appendChild(gallery.render().el);
 
-        gallery.root = "/croppings"
+        gallery.root = "/images"
     </script>
 
 </body>

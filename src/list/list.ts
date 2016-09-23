@@ -190,7 +190,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             var parent = img.parentElement
             addClass(parent, 'loading')
         
-            Downloader.instance.download(this.options.client, img.getAttribute('data-src'), { thumbnail: true})
+            Downloader.instance.download(this.options.client, img.getAttribute('data-src'), { thumbnail: false})
 
             /*this.options.client.open(img.getAttribute('data-src'), {
                 thumbnail: true

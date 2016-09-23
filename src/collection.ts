@@ -259,6 +259,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
         let request = new HttpRequest(HttpMethod.GET, url)
 
         return request.params(params)
+            .header('Authorization', 'Bearer ' + this._client.token)
             .downloadProgress(e => {
                 if (e.lengthComputable) {
                     this.trigger('fetch:progress', e)
