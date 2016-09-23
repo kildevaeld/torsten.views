@@ -20,6 +20,8 @@
         "src/types.ts",
         "src/utils.ts",
 
+        "src/download.ts",
+
         "src/list/index.ts",
         "src/list/list.ts",
         "src/list/list-item.ts",

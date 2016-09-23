@@ -6,6 +6,7 @@ import templates from '../templates/index';
 import {FileInfoModel} from '../collection'
 import {getMimeIcon} from '../gallery/mimetypes';
 import {emptyImage} from '../utils';
+
 @attributes({
     template: () => templates['list-item'],
     tagName: 'div',
@@ -80,7 +81,7 @@ export class FileListItemView extends View<HTMLDivElement> {
         if (/^image\/.*/.test(model.get('mime'))) {
 
             let img = <HTMLImageElement>this.el.querySelector('img');
-        
+           
             this.model.open({ thumbnail: true })
                 .then(blob => {
                     img.setAttribute('src', URL.createObjectURL(blob));

@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require("collection"), require("torsten"), require("orange"), require(undefined), require("views"), require("blazy"), require("cropperjs"));
+		module.exports = factory(require("collection"), require("torsten"), require("orange"), require(undefined), require("tty"), require("util"), require("fs"), require("net"), require("views"), require("blazy"), require("cropperjs"));
 	else if(typeof define === 'function' && define.amd)
-		define(["collection", "torsten", "orange", , "views", "blazy", "cropperjs"], factory);
+		define(["collection", "torsten", "orange", , "tty", "util", "fs", "net", "views", "blazy", "cropperjs"], factory);
 	else if(typeof exports === 'object')
-		exports["views"] = factory(require("collection"), require("torsten"), require("orange"), require(undefined), require("views"), require("blazy"), require("cropperjs"));
+		exports["views"] = factory(require("collection"), require("torsten"), require("orange"), require(undefined), require("tty"), require("util"), require("fs"), require("net"), require("views"), require("blazy"), require("cropperjs"));
 	else
-		root["torsten"] = root["torsten"] || {}, root["torsten"]["views"] = factory(root["collection"], root["torsten"], root["orange"], root[undefined], root["views"], root["blazy"], root["cropperjs"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_9__, __WEBPACK_EXTERNAL_MODULE_19__, __WEBPACK_EXTERNAL_MODULE_29__) {
+		root["torsten"] = root["torsten"] || {}, root["torsten"]["views"] = factory(root["collection"], root["torsten"], root["orange"], root[undefined], root["tty"], root["util"], root["fs"], root["net"], root["views"], root["blazy"], root["cropperjs"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_10__, __WEBPACK_EXTERNAL_MODULE_11__, __WEBPACK_EXTERNAL_MODULE_14__, __WEBPACK_EXTERNAL_MODULE_15__, __WEBPACK_EXTERNAL_MODULE_18__, __WEBPACK_EXTERNAL_MODULE_28__, __WEBPACK_EXTERNAL_MODULE_38__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -62,9 +62,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 	__export(__webpack_require__(1));
-	__export(__webpack_require__(7));
-	__export(__webpack_require__(20));
-	__export(__webpack_require__(25));
+	__export(__webpack_require__(16));
+	__export(__webpack_require__(29));
+	__export(__webpack_require__(34));
 	var torsten_1 = __webpack_require__(4);
 	function createClient(options) {
 	    return new torsten_1.TorstenClient(options);
@@ -92,6 +92,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var orange_1 = __webpack_require__(5);
 	var torsten_1 = __webpack_require__(4);
 	var orange_request_1 = __webpack_require__(6);
+	var download_1 = __webpack_require__(7);
 	var PARAM_TRIM_RE = /[\s'"]/g;
 	var URL_TRIM_RE = /[<>\s'"]/g;
 	function parseLinkHeaders(resp) {
@@ -130,9 +131,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _createClass(FileInfoModel, [{
 	        key: 'open',
 	        value: function open(o) {
-	            return this._client.open(this.fullPath, o).then(function (blob) {
-	                return blob;
-	            });
+	            return download_1.Downloader.instance.download(this._client, this.fullPath, o);
+	            /*Øreturn this._client.open(this.fullPath, o)
+	                .then(blob => {
+	                    return blob;
+	                })*/
 	        }
 	    }, {
 	        key: 'fullPath',
@@ -445,17 +448,921 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var eventsjs_1 = __webpack_require__(8);
+	var orange_1 = __webpack_require__(5);
+	var Debug = __webpack_require__(9);
+	var debug = Debug("torsten:downloader");
+
+	var CancelError = function (_Error) {
+	    _inherits(CancelError, _Error);
+
+	    function CancelError() {
+	        _classCallCheck(this, CancelError);
+
+	        return _possibleConstructorReturn(this, (CancelError.__proto__ || Object.getPrototypeOf(CancelError)).apply(this, arguments));
+	    }
+
+	    return CancelError;
+	}(Error);
+
+	exports.CancelError = CancelError;
+
+	var Downloader = function (_eventsjs_1$EventEmit) {
+	    _inherits(Downloader, _eventsjs_1$EventEmit);
+
+	    function Downloader() {
+	        _classCallCheck(this, Downloader);
+
+	        var _this2 = _possibleConstructorReturn(this, (Downloader.__proto__ || Object.getPrototypeOf(Downloader)).call(this));
+
+	        _this2._queue = [];
+	        _this2._downloading = 0;
+	        _this2.size = 20;
+	        _this2.listenTo(_this2, 'ready', _this2._onReady);
+	        return _this2;
+	    }
+
+	    _createClass(Downloader, [{
+	        key: 'download',
+	        value: function download(client, path, options) {
+	            if (this._downloading > this.size) {
+	                var defer = orange_1.deferred();
+	                debug("enqueue %i : %s", this._queue.length, path);
+	                this._queue.push([path, defer, options, client]);
+	                return defer.promise;
+	            }
+	            return this._download(client, path, options);
+	        }
+	    }, {
+	        key: '_cancel',
+	        value: function _cancel(path) {
+	            var index = -1;
+	            for (var i = 0, ii = this._queue.length; i < ii; i++) {
+	                if (this._queue[i][0] === path) {
+	                    index = i;
+	                    break;
+	                }
+	            }
+	            if (index == -1) return;
+	            var item = this._queue[index];
+	            debug('cancel %s', item[0]);
+	            item[1].reject(new CancelError("cancel"));
+	            this._queue.splice(index, 1);
+	        }
+	    }, {
+	        key: '_download',
+	        value: function _download(client, path, options) {
+	            var _this3 = this;
+
+	            var emit = function emit() {
+	                _this3._downloading--;
+	                debug('download ready %s', path);
+	                _this3.trigger('ready');
+	            };
+	            this._downloading++;
+	            return client.open(path, options).then(function (blob) {
+	                emit();
+	                return blob;
+	            }).catch(function (e) {
+	                emit();
+	                return orange_1.Promise.reject(e);
+	            });
+	        }
+	    }, {
+	        key: '_onReady',
+	        value: function _onReady() {
+	            if (!this._queue.length || this._downloading > this.size) {
+	                return;
+	            }
+
+	            var _queue$shift = this._queue.shift();
+
+	            var _queue$shift2 = _slicedToArray(_queue$shift, 4);
+
+	            var path = _queue$shift2[0];
+	            var defer = _queue$shift2[1];
+	            var options = _queue$shift2[2];
+	            var client = _queue$shift2[3];
+
+	            this._download(client, path, options).then(defer.resolve).catch(defer.reject);
+	        }
+	    }], [{
+	        key: 'cancel',
+	        value: function cancel(path) {
+	            return this.instance._cancel(path);
+	        }
+	    }, {
+	        key: 'instance',
+	        get: function get() {
+	            if (!this._instance) {
+	                this._instance = new Downloader();
+	            }
+	            return this._instance;
+	        }
+	    }]);
+
+	    return Downloader;
+	}(eventsjs_1.EventEmitter);
+
+	exports.Downloader = Downloader;
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	var __extends = undefined && undefined.__extends || function (d, b) {
+	    for (var p in b) {
+	        if (b.hasOwnProperty(p)) d[p] = b[p];
+	    }function __() {
+	        this.constructor = d;
+	    }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var idCounter = 0;
+	function getID() {
+	    return "" + ++idCounter;
+	}
+	var EventEmitterError = function (_super) {
+	    __extends(EventEmitterError, _super);
+	    function EventEmitterError(message, method, klass, ctx) {
+	        _super.call(this, message);
+	        this.message = message;
+	        this.method = method;
+	        this.klass = klass;
+	        this.ctx = ctx;
+	    }
+	    EventEmitterError.prototype.toString = function () {
+	        var prefix = "EventEmitterError";
+	        if (this.method && this.method != "") {
+	            prefix = "EventEmitter#" + this.method;
+	        }
+	        return prefix + ": " + this.message;
+	    };
+	    return EventEmitterError;
+	}(Error);
+	exports.EventEmitterError = EventEmitterError;
+	function callFunc(fn, args) {
+	    if (args === void 0) {
+	        args = [];
+	    }
+	    var l = fn.length,
+	        i = -1,
+	        a1 = args[0],
+	        a2 = args[1],
+	        a3 = args[2],
+	        a4 = args[3];
+	    switch (args.length) {
+	        case 0:
+	            while (++i < l) {
+	                fn[i].handler.call(fn[i].ctx);
+	            }return;
+	        case 1:
+	            while (++i < l) {
+	                fn[i].handler.call(fn[i].ctx, a1);
+	            }return;
+	        case 2:
+	            while (++i < l) {
+	                fn[i].handler.call(fn[i].ctx, a1, a2);
+	            }return;
+	        case 3:
+	            while (++i < l) {
+	                fn[i].handler.call(fn[i].ctx, a1, a2, a3);
+	            }return;
+	        case 4:
+	            while (++i < l) {
+	                fn[i].handler.call(fn[i].ctx, a1, a2, a3, a4);
+	            }return;
+	        default:
+	            while (++i < l) {
+	                fn[i].handler.apply(fn[i].ctx, args);
+	            }return;
+	    }
+	}
+	exports.callFunc = callFunc;
+	function isFunction(a) {
+	    return typeof a === 'function';
+	}
+	exports.isFunction = isFunction;
+	function isEventEmitter(a) {
+	    return a && (a instanceof EventEmitter || isFunction(a.on) && isFunction(a.once) && isFunction(a.off) && isFunction(a.trigger));
+	}
+	exports.isEventEmitter = isEventEmitter;
+	var EventEmitter = function () {
+	    function EventEmitter() {}
+	    Object.defineProperty(EventEmitter.prototype, "listeners", {
+	        get: function get() {
+	            return this._listeners;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    EventEmitter.prototype.on = function (event, fn, ctx, once) {
+	        if (once === void 0) {
+	            once = false;
+	        }
+	        var events = (this._listeners || (this._listeners = {}))[event] || (this._listeners[event] = []);
+	        events.push({
+	            name: event,
+	            once: once,
+	            handler: fn,
+	            ctx: ctx || this
+	        });
+	        return this;
+	    };
+	    EventEmitter.prototype.once = function (event, fn, ctx) {
+	        return this.on(event, fn, ctx, true);
+	    };
+	    EventEmitter.prototype.off = function (eventName, fn) {
+	        this._listeners = this._listeners || {};
+	        if (eventName == null) {
+	            this._listeners = {};
+	        } else if (this._listeners[eventName]) {
+	            var events = this._listeners[eventName];
+	            if (fn == null) {
+	                this._listeners[eventName] = [];
+	            } else {
+	                for (var i = 0; i < events.length; i++) {
+	                    var event_1 = events[i];
+	                    if (events[i].handler == fn) {
+	                        this._listeners[eventName].splice(i, 1);
+	                    }
+	                }
+	            }
+	        }
+	        return this;
+	    };
+	    EventEmitter.prototype.trigger = function (eventName) {
+	        var args = [];
+	        for (var _i = 1; _i < arguments.length; _i++) {
+	            args[_i - 1] = arguments[_i];
+	        }
+	        this._listeners = this._listeners || {};
+	        var events = (this._listeners[eventName] || []).concat(this._listeners['all'] || []).concat(this._listeners["*"] || []);
+	        if (EventEmitter.debugCallback) EventEmitter.debugCallback(this.constructor.name, this.name, eventName, args, events);
+	        var event,
+	            a,
+	            len = events.length,
+	            index;
+	        var calls = [];
+	        var alls = [];
+	        for (var i = 0, ii = events.length; i < ii; i++) {
+	            event = events[i];
+	            a = args;
+	            if (events[i].name == 'all' || events[i].name == '*') {
+	                alls.push(events[i]);
+	            } else {
+	                calls.push(events[i]);
+	            }
+	            if (events[i].once === true) {
+	                index = this._listeners[events[i].name].indexOf(events[i]);
+	                this._listeners[events[i].name].splice(index, 1);
+	            }
+	        }
+	        if (alls.length) {
+	            var a_1 = [eventName].concat(args);
+	            this._executeListener(alls, a_1);
+	        }
+	        if (calls.length) this._executeListener(calls, args);
+	        return this;
+	    };
+	    EventEmitter.prototype._executeListener = function (func, args) {
+	        EventEmitter.executeListenerFunction(func, args);
+	    };
+	    EventEmitter.prototype.listenTo = function (obj, event, fn, ctx, once) {
+	        if (once === void 0) {
+	            once = false;
+	        }
+	        if (!isEventEmitter(obj)) {
+	            if (EventEmitter.throwOnError) throw new EventEmitterError("obj is not an EventEmitter", once ? "listenToOnce" : "listenTo", this, obj);
+	            return this;
+	        }
+	        var listeningTo, id, meth;
+	        listeningTo = this._listeningTo || (this._listeningTo = {});
+	        id = obj.listenId || (obj.listenId = getID());
+	        listeningTo[id] = obj;
+	        meth = once ? 'once' : 'on';
+	        obj[meth](event, fn, this);
+	        return this;
+	    };
+	    EventEmitter.prototype.listenToOnce = function (obj, event, fn, ctx) {
+	        return this.listenTo(obj, event, fn, ctx, true);
+	    };
+	    EventEmitter.prototype.stopListening = function (obj, event, callback) {
+	        if (obj && !isEventEmitter(obj)) {
+	            if (EventEmitter.throwOnError) throw new EventEmitterError("obj is not an EventEmitter", "stopListening", this, obj);
+	            return this;
+	        }
+	        var listeningTo = this._listeningTo;
+	        if (!listeningTo) return this;
+	        var remove = !event && !callback;
+	        if (!callback && (typeof event === "undefined" ? "undefined" : _typeof(event)) === 'object') callback = this;
+	        if (obj) (listeningTo = {})[obj.listenId] = obj;
+	        for (var id in listeningTo) {
+	            obj = listeningTo[id];
+	            obj.off(event, callback, this);
+	            if (remove || !Object.keys(obj.listeners).length) delete this._listeningTo[id];
+	        }
+	        return this;
+	    };
+	    EventEmitter.prototype.destroy = function () {
+	        this.stopListening();
+	        this.off();
+	    };
+	    EventEmitter.throwOnError = true;
+	    EventEmitter.executeListenerFunction = function (func, args) {
+	        callFunc(func, args);
+	    };
+	    return EventEmitter;
+	}();
+	exports.EventEmitter = EventEmitter;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	/**
+	 * Module dependencies.
+	 */
+
+	var tty = __webpack_require__(10);
+	var util = __webpack_require__(11);
+
+	/**
+	 * This is the Node.js implementation of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
+	 */
+
+	exports = module.exports = __webpack_require__(12);
+	exports.log = log;
+	exports.formatArgs = formatArgs;
+	exports.save = save;
+	exports.load = load;
+	exports.useColors = useColors;
+
+	/**
+	 * Colors.
+	 */
+
+	exports.colors = [6, 2, 3, 4, 5, 1];
+
+	/**
+	 * The file descriptor to write the `debug()` calls to.
+	 * Set the `DEBUG_FD` env variable to override with another value. i.e.:
+	 *
+	 *   $ DEBUG_FD=3 node script.js 3>debug.log
+	 */
+
+	var fd = parseInt(process.env.DEBUG_FD, 10) || 2;
+	var stream = 1 === fd ? process.stdout : 2 === fd ? process.stderr : createWritableStdioStream(fd);
+
+	/**
+	 * Is stdout a TTY? Colored output is enabled when `true`.
+	 */
+
+	function useColors() {
+	  var debugColors = (process.env.DEBUG_COLORS || '').trim().toLowerCase();
+	  if (0 === debugColors.length) {
+	    return tty.isatty(fd);
+	  } else {
+	    return '0' !== debugColors && 'no' !== debugColors && 'false' !== debugColors && 'disabled' !== debugColors;
+	  }
+	}
+
+	/**
+	 * Map %o to `util.inspect()`, since Node doesn't do that out of the box.
+	 */
+
+	var inspect = 4 === util.inspect.length ?
+	// node <= 0.8.x
+	function (v, colors) {
+	  return util.inspect(v, void 0, void 0, colors);
+	} :
+	// node > 0.8.x
+	function (v, colors) {
+	  return util.inspect(v, { colors: colors });
+	};
+
+	exports.formatters.o = function (v) {
+	  return inspect(v, this.useColors).replace(/\s*\n\s*/g, ' ');
+	};
+
+	/**
+	 * Adds ANSI color escape codes if enabled.
+	 *
+	 * @api public
+	 */
+
+	function formatArgs() {
+	  var args = arguments;
+	  var useColors = this.useColors;
+	  var name = this.namespace;
+
+	  if (useColors) {
+	    var c = this.color;
+
+	    args[0] = '  \u001b[3' + c + ';1m' + name + ' ' + '\u001b[0m' + args[0] + '\u001b[3' + c + 'm' + ' +' + exports.humanize(this.diff) + '\u001b[0m';
+	  } else {
+	    args[0] = new Date().toUTCString() + ' ' + name + ' ' + args[0];
+	  }
+	  return args;
+	}
+
+	/**
+	 * Invokes `console.error()` with the specified arguments.
+	 */
+
+	function log() {
+	  return stream.write(util.format.apply(this, arguments) + '\n');
+	}
+
+	/**
+	 * Save `namespaces`.
+	 *
+	 * @param {String} namespaces
+	 * @api private
+	 */
+
+	function save(namespaces) {
+	  if (null == namespaces) {
+	    // If you set a process.env field to null or undefined, it gets cast to the
+	    // string 'null' or 'undefined'. Just delete instead.
+	    delete process.env.DEBUG;
+	  } else {
+	    process.env.DEBUG = namespaces;
+	  }
+	}
+
+	/**
+	 * Load `namespaces`.
+	 *
+	 * @return {String} returns the previously persisted debug modes
+	 * @api private
+	 */
+
+	function load() {
+	  return process.env.DEBUG;
+	}
+
+	/**
+	 * Copied from `node/src/node.js`.
+	 *
+	 * XXX: It's lame that node doesn't expose this API out-of-the-box. It also
+	 * relies on the undocumented `tty_wrap.guessHandleType()` which is also lame.
+	 */
+
+	function createWritableStdioStream(fd) {
+	  var stream;
+	  var tty_wrap = process.binding('tty_wrap');
+
+	  // Note stream._type is used for test-module-load-list.js
+
+	  switch (tty_wrap.guessHandleType(fd)) {
+	    case 'TTY':
+	      stream = new tty.WriteStream(fd);
+	      stream._type = 'tty';
+
+	      // Hack to have stream not keep the event loop alive.
+	      // See https://github.com/joyent/node/issues/1726
+	      if (stream._handle && stream._handle.unref) {
+	        stream._handle.unref();
+	      }
+	      break;
+
+	    case 'FILE':
+	      var fs = __webpack_require__(14);
+	      stream = new fs.SyncWriteStream(fd, { autoClose: false });
+	      stream._type = 'fs';
+	      break;
+
+	    case 'PIPE':
+	    case 'TCP':
+	      var net = __webpack_require__(15);
+	      stream = new net.Socket({
+	        fd: fd,
+	        readable: false,
+	        writable: true
+	      });
+
+	      // FIXME Should probably have an option in net.Socket to create a
+	      // stream from an existing fd which is writable only. But for now
+	      // we'll just add this hack and set the `readable` member to false.
+	      // Test: ./node test/fixtures/echo.js < /etc/passwd
+	      stream.readable = false;
+	      stream.read = null;
+	      stream._type = 'pipe';
+
+	      // FIXME Hack to have stream not keep the event loop alive.
+	      // See https://github.com/joyent/node/issues/1726
+	      if (stream._handle && stream._handle.unref) {
+	        stream._handle.unref();
+	      }
+	      break;
+
+	    default:
+	      // Probably an error on in uv_guess_handle()
+	      throw new Error('Implement me. Unknown stream file type!');
+	  }
+
+	  // For supporting legacy API we put the FD here.
+	  stream.fd = fd;
+
+	  stream._isStdio = true;
+
+	  return stream;
+	}
+
+	/**
+	 * Enable namespaces listed in `process.env.DEBUG` initially.
+	 */
+
+	exports.enable(load());
+
+/***/ },
+/* 10 */
+/***/ function(module, exports) {
+
+	module.exports = require("tty");
+
+/***/ },
+/* 11 */
+/***/ function(module, exports) {
+
+	module.exports = require("util");
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	/**
+	 * This is the common logic for both the Node.js and web browser
+	 * implementations of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
+	 */
+
+	exports = module.exports = debug;
+	exports.coerce = coerce;
+	exports.disable = disable;
+	exports.enable = enable;
+	exports.enabled = enabled;
+	exports.humanize = __webpack_require__(13);
+
+	/**
+	 * The currently active debug mode names, and names to skip.
+	 */
+
+	exports.names = [];
+	exports.skips = [];
+
+	/**
+	 * Map of special "%n" handling functions, for the debug "format" argument.
+	 *
+	 * Valid key names are a single, lowercased letter, i.e. "n".
+	 */
+
+	exports.formatters = {};
+
+	/**
+	 * Previously assigned color.
+	 */
+
+	var prevColor = 0;
+
+	/**
+	 * Previous log timestamp.
+	 */
+
+	var prevTime;
+
+	/**
+	 * Select a color.
+	 *
+	 * @return {Number}
+	 * @api private
+	 */
+
+	function selectColor() {
+	  return exports.colors[prevColor++ % exports.colors.length];
+	}
+
+	/**
+	 * Create a debugger with the given `namespace`.
+	 *
+	 * @param {String} namespace
+	 * @return {Function}
+	 * @api public
+	 */
+
+	function debug(namespace) {
+
+	  // define the `disabled` version
+	  function disabled() {}
+	  disabled.enabled = false;
+
+	  // define the `enabled` version
+	  function enabled() {
+
+	    var self = enabled;
+
+	    // set `diff` timestamp
+	    var curr = +new Date();
+	    var ms = curr - (prevTime || curr);
+	    self.diff = ms;
+	    self.prev = prevTime;
+	    self.curr = curr;
+	    prevTime = curr;
+
+	    // add the `color` if not set
+	    if (null == self.useColors) self.useColors = exports.useColors();
+	    if (null == self.color && self.useColors) self.color = selectColor();
+
+	    var args = Array.prototype.slice.call(arguments);
+
+	    args[0] = exports.coerce(args[0]);
+
+	    if ('string' !== typeof args[0]) {
+	      // anything else let's inspect with %o
+	      args = ['%o'].concat(args);
+	    }
+
+	    // apply any `formatters` transformations
+	    var index = 0;
+	    args[0] = args[0].replace(/%([a-z%])/g, function (match, format) {
+	      // if we encounter an escaped % then don't increase the array index
+	      if (match === '%%') return match;
+	      index++;
+	      var formatter = exports.formatters[format];
+	      if ('function' === typeof formatter) {
+	        var val = args[index];
+	        match = formatter.call(self, val);
+
+	        // now we need to remove `args[index]` since it's inlined in the `format`
+	        args.splice(index, 1);
+	        index--;
+	      }
+	      return match;
+	    });
+
+	    if ('function' === typeof exports.formatArgs) {
+	      args = exports.formatArgs.apply(self, args);
+	    }
+	    var logFn = enabled.log || exports.log || console.log.bind(console);
+	    logFn.apply(self, args);
+	  }
+	  enabled.enabled = true;
+
+	  var fn = exports.enabled(namespace) ? enabled : disabled;
+
+	  fn.namespace = namespace;
+
+	  return fn;
+	}
+
+	/**
+	 * Enables a debug mode by namespaces. This can include modes
+	 * separated by a colon and wildcards.
+	 *
+	 * @param {String} namespaces
+	 * @api public
+	 */
+
+	function enable(namespaces) {
+	  exports.save(namespaces);
+
+	  var split = (namespaces || '').split(/[\s,]+/);
+	  var len = split.length;
+
+	  for (var i = 0; i < len; i++) {
+	    if (!split[i]) continue; // ignore empty strings
+	    namespaces = split[i].replace(/\*/g, '.*?');
+	    if (namespaces[0] === '-') {
+	      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+	    } else {
+	      exports.names.push(new RegExp('^' + namespaces + '$'));
+	    }
+	  }
+	}
+
+	/**
+	 * Disable debug output.
+	 *
+	 * @api public
+	 */
+
+	function disable() {
+	  exports.enable('');
+	}
+
+	/**
+	 * Returns true if the given mode name is enabled, false otherwise.
+	 *
+	 * @param {String} name
+	 * @return {Boolean}
+	 * @api public
+	 */
+
+	function enabled(name) {
+	  var i, len;
+	  for (i = 0, len = exports.skips.length; i < len; i++) {
+	    if (exports.skips[i].test(name)) {
+	      return false;
+	    }
+	  }
+	  for (i = 0, len = exports.names.length; i < len; i++) {
+	    if (exports.names[i].test(name)) {
+	      return true;
+	    }
+	  }
+	  return false;
+	}
+
+	/**
+	 * Coerce `val`.
+	 *
+	 * @param {Mixed} val
+	 * @return {Mixed}
+	 * @api private
+	 */
+
+	function coerce(val) {
+	  if (val instanceof Error) return val.stack || val.message;
+	  return val;
+	}
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	/**
+	 * Helpers.
+	 */
+
+	var s = 1000;
+	var m = s * 60;
+	var h = m * 60;
+	var d = h * 24;
+	var y = d * 365.25;
+
+	/**
+	 * Parse or format the given `val`.
+	 *
+	 * Options:
+	 *
+	 *  - `long` verbose formatting [false]
+	 *
+	 * @param {String|Number} val
+	 * @param {Object} options
+	 * @return {String|Number}
+	 * @api public
+	 */
+
+	module.exports = function (val, options) {
+	  options = options || {};
+	  if ('string' == typeof val) return parse(val);
+	  return options.long ? long(val) : short(val);
+	};
+
+	/**
+	 * Parse the given `str` and return milliseconds.
+	 *
+	 * @param {String} str
+	 * @return {Number}
+	 * @api private
+	 */
+
+	function parse(str) {
+	  str = '' + str;
+	  if (str.length > 10000) return;
+	  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+	  if (!match) return;
+	  var n = parseFloat(match[1]);
+	  var type = (match[2] || 'ms').toLowerCase();
+	  switch (type) {
+	    case 'years':
+	    case 'year':
+	    case 'yrs':
+	    case 'yr':
+	    case 'y':
+	      return n * y;
+	    case 'days':
+	    case 'day':
+	    case 'd':
+	      return n * d;
+	    case 'hours':
+	    case 'hour':
+	    case 'hrs':
+	    case 'hr':
+	    case 'h':
+	      return n * h;
+	    case 'minutes':
+	    case 'minute':
+	    case 'mins':
+	    case 'min':
+	    case 'm':
+	      return n * m;
+	    case 'seconds':
+	    case 'second':
+	    case 'secs':
+	    case 'sec':
+	    case 's':
+	      return n * s;
+	    case 'milliseconds':
+	    case 'millisecond':
+	    case 'msecs':
+	    case 'msec':
+	    case 'ms':
+	      return n;
+	  }
+	}
+
+	/**
+	 * Short format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function short(ms) {
+	  if (ms >= d) return Math.round(ms / d) + 'd';
+	  if (ms >= h) return Math.round(ms / h) + 'h';
+	  if (ms >= m) return Math.round(ms / m) + 'm';
+	  if (ms >= s) return Math.round(ms / s) + 's';
+	  return ms + 'ms';
+	}
+
+	/**
+	 * Long format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function long(ms) {
+	  return plural(ms, d, 'day') || plural(ms, h, 'hour') || plural(ms, m, 'minute') || plural(ms, s, 'second') || ms + ' ms';
+	}
+
+	/**
+	 * Pluralization helper.
+	 */
+
+	function plural(ms, n, name) {
+	  if (ms < n) return;
+	  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+	  return Math.ceil(ms / n) + ' ' + name + 's';
+	}
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	module.exports = require("fs");
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	module.exports = require("net");
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
 	function __export(m) {
 	    for (var p in m) {
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(8));
-	__export(__webpack_require__(14));
-	__export(__webpack_require__(18));
+	__export(__webpack_require__(17));
+	__export(__webpack_require__(23));
+	__export(__webpack_require__(27));
 
 /***/ },
-/* 8 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -481,13 +1388,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
-	var orange_dom_1 = __webpack_require__(10);
+	var views_1 = __webpack_require__(18);
+	var orange_dom_1 = __webpack_require__(19);
 	var orange_1 = __webpack_require__(5);
-	var list_item_1 = __webpack_require__(14);
-	var circular_progress_1 = __webpack_require__(18);
+	var list_item_1 = __webpack_require__(23);
+	var circular_progress_1 = __webpack_require__(27);
+	var download_1 = __webpack_require__(7);
 	//import {AssetsCollection} from '../../models/index';
-	var Blazy = __webpack_require__(19);
+	var Blazy = __webpack_require__(28);
 	exports.FileListEmptyView = views_1.View.extend({
 	    className: 'file-list-empty-view',
 	    template: 'No files uploaded yet.'
@@ -635,9 +1543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var loadImage = function loadImage(img) {
 	                var parent = img.parentElement;
 	                orange_dom_1.addClass(parent, 'loading');
-	                _this3.options.client.open(img.getAttribute('data-src'), {
-	                    thumbnail: true
-	                }).then(function (i) {
+	                download_1.Downloader.instance.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
 	                    img.src = URL.createObjectURL(i);
 	                    orange_dom_1.addClass(parent, 'loaded');
 	                    orange_dom_1.removeClass(parent, 'loading');
@@ -650,6 +1556,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var i = 0, ii = images.length; i < ii; i++) {
 	                var img = images[i];
 	                if (orange_dom_1.hasClass(img.parentElement, "loaded") || orange_dom_1.hasClass(img.parentElement, "loading")) {
+	                    if (!elementInView(img, this.el) && orange_dom_1.hasClass(img, 'loading')) {
+	                        download_1.Downloader.cancel(img.getAttribute('data-src'));
+	                        orange_dom_1.removeClass(img, 'loading');
+	                    }
 	                    continue;
 	                }
 	                if (elementInView(img, this.el)) {
@@ -741,13 +1651,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 9 */
+/* 18 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_9__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_18__;
 
 /***/ },
-/* 10 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -757,12 +1667,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(11));
-	__export(__webpack_require__(12));
-	__export(__webpack_require__(13));
+	__export(__webpack_require__(20));
+	__export(__webpack_require__(21));
+	__export(__webpack_require__(22));
 
 /***/ },
-/* 11 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -966,7 +1876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.createElement = createElement;
 
 /***/ },
-/* 12 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -996,7 +1906,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	var orange_1 = __webpack_require__(5);
-	var dom = __webpack_require__(11);
+	var dom = __webpack_require__(20);
 	var domEvents;
 	var singleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	function parseHTML(html) {
@@ -1188,7 +2098,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Html = Html;
 
 /***/ },
-/* 13 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1210,7 +2120,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	var orange_1 = __webpack_require__(5);
-	var dom_1 = __webpack_require__(11);
+	var dom_1 = __webpack_require__(20);
 
 	var LoadedImage = function () {
 	    function LoadedImage(img) {
@@ -1310,7 +2220,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.imageLoaded = imageLoaded;
 
 /***/ },
-/* 14 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1336,12 +2246,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
+	var views_1 = __webpack_require__(18);
 	var orange_1 = __webpack_require__(5);
-	var orange_dom_1 = __webpack_require__(10);
-	var index_1 = __webpack_require__(15);
-	var mimetypes_1 = __webpack_require__(16);
-	var utils_1 = __webpack_require__(17);
+	var orange_dom_1 = __webpack_require__(19);
+	var index_1 = __webpack_require__(24);
+	var mimetypes_1 = __webpack_require__(25);
+	var utils_1 = __webpack_require__(26);
 	var FileListItemView = function (_views_1$View) {
 	    _inherits(FileListItemView, _views_1$View);
 
@@ -1433,7 +2343,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.FileListItemView = FileListItemView;
 
 /***/ },
-/* 15 */
+/* 24 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1447,7 +2357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 16 */
+/* 25 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1600,7 +2510,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	;
 
 /***/ },
-/* 17 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1649,7 +2559,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.emptyImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
 
 /***/ },
-/* 18 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1677,7 +2587,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
+	var views_1 = __webpack_require__(18);
 	var orange_1 = __webpack_require__(5);
 	var Progress = function (_views_1$View) {
 	    _inherits(Progress, _views_1$View);
@@ -1764,13 +2674,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Progress = Progress;
 
 /***/ },
-/* 19 */
+/* 28 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_19__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_28__;
 
 /***/ },
-/* 20 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1780,10 +2690,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(21));
+	__export(__webpack_require__(30));
 
 /***/ },
-/* 21 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1809,13 +2719,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
+	var views_1 = __webpack_require__(18);
 	var orange_1 = __webpack_require__(5);
-	var index_1 = __webpack_require__(7);
-	var index_2 = __webpack_require__(22);
-	var index_3 = __webpack_require__(15);
+	var index_1 = __webpack_require__(16);
+	var index_2 = __webpack_require__(31);
+	var index_3 = __webpack_require__(24);
 	var collection_1 = __webpack_require__(1);
-	var dropzone_1 = __webpack_require__(24);
+	var dropzone_1 = __webpack_require__(33);
 	var GalleryView = function (_views_1$LayoutView) {
 	    _inherits(GalleryView, _views_1$LayoutView);
 
@@ -1939,7 +2849,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.GalleryView = GalleryView;
 
 /***/ },
-/* 22 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1949,10 +2859,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(23));
+	__export(__webpack_require__(32));
 
 /***/ },
-/* 23 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1978,8 +2888,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
-	var index_1 = __webpack_require__(15);
+	var views_1 = __webpack_require__(18);
+	var index_1 = __webpack_require__(24);
 	var orange_1 = __webpack_require__(5);
 	var FileInfoView = function (_views_1$View) {
 	    _inherits(FileInfoView, _views_1$View);
@@ -2052,7 +2962,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.FileInfoView = FileInfoView;
 
 /***/ },
-/* 24 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2078,8 +2988,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
-	var orange_dom_1 = __webpack_require__(10);
+	var views_1 = __webpack_require__(18);
+	var orange_dom_1 = __webpack_require__(19);
 	var DropZone = function (_views_1$View) {
 	    _inherits(DropZone, _views_1$View);
 
@@ -2129,7 +3039,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.DropZone = DropZone;
 
 /***/ },
-/* 25 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2139,12 +3049,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(26));
-	__export(__webpack_require__(28));
-	__export(__webpack_require__(27));
+	__export(__webpack_require__(35));
+	__export(__webpack_require__(37));
+	__export(__webpack_require__(36));
 
 /***/ },
-/* 26 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2170,9 +3080,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
-	var types_1 = __webpack_require__(27);
-	var utils_1 = __webpack_require__(17);
+	var views_1 = __webpack_require__(18);
+	var types_1 = __webpack_require__(36);
+	var utils_1 = __webpack_require__(26);
 	var CropPreView = function (_views_1$View) {
 	    _inherits(CropPreView, _views_1$View);
 
@@ -2261,7 +3171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropPreView = CropPreView;
 
 /***/ },
-/* 27 */
+/* 36 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -2289,7 +3199,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getCropping = getCropping;
 
 /***/ },
-/* 28 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2317,11 +3227,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(9);
-	var cropperjs_1 = __webpack_require__(29);
-	var types_1 = __webpack_require__(27);
-	var utils_1 = __webpack_require__(17);
-	var orange_dom_1 = __webpack_require__(10);
+	var views_1 = __webpack_require__(18);
+	var cropperjs_1 = __webpack_require__(38);
+	var types_1 = __webpack_require__(36);
+	var utils_1 = __webpack_require__(26);
+	var orange_dom_1 = __webpack_require__(19);
 	var orange_1 = __webpack_require__(5);
 	function isFunction(a) {
 	    return typeof a === 'function';
@@ -2503,10 +3413,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropView = CropView;
 
 /***/ },
-/* 29 */
+/* 38 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_29__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_38__;
 
 /***/ }
 /******/ ])

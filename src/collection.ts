@@ -5,6 +5,7 @@ import {TorstenGuiError} from './error';
 import {extend, IPromise, isObject, has} from 'orange';
 import {path} from 'torsten'
 import {Response, queryStringToParams, HttpRequest, HttpMethod} from 'orange.request'
+import {Downloader} from './download';
 
 const PARAM_TRIM_RE = /[\s'"]/g;
 const URL_TRIM_RE = /[<>\s'"]/g;
@@ -76,10 +77,12 @@ export class FileInfoModel extends Model {
     }
 
     open(o?: OpenOptions): IPromise<Blob> {
-        return this._client.open(this.fullPath, o)
+        return Downloader.instance.download(this._client, this.fullPath, o)
+
+        /*Øreturn this._client.open(this.fullPath, o)
             .then(blob => {
                 return blob;
-            })
+            })*/
     }
 }
 

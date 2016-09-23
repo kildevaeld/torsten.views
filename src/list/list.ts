@@ -9,7 +9,7 @@ import {Progress} from './circular-progress';
 import {IProgress} from '../types';
 import templates from '../templates/index';
 import {IClient, OpenOptions} from 'torsten';
-
+import {Downloader} from '../download';
 //import {AssetsCollection} from '../../models/index';
 const Blazy = require('blazy');
 
@@ -190,9 +190,11 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             var parent = img.parentElement
             addClass(parent, 'loading')
         
-            this.options.client.open(img.getAttribute('data-src'), {
+            Downloader.instance.download(this.options.client, img.getAttribute('data-src'), { thumbnail: true})
+
+            /*this.options.client.open(img.getAttribute('data-src'), {
                 thumbnail: true
-            })
+            })*/
                 .then(i => {
                     img.src = URL.createObjectURL(i)
                     addClass(parent, 'loaded')
@@ -207,11 +209,15 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         for (let i = 0, ii = images.length; i < ii; i++) {
             let img = <HTMLImageElement>images[i];
             if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
+                if (!elementInView(img, this.el) && hasClass(img, 'loading')) {
+                    Downloader.cancel(img.getAttribute('data-src'));
+                    removeClass(img, 'loading');
+                }
                 continue;
             }
             if (elementInView(img, this.el))  {
                 loadImage(img)
-            }
+            } 
             
         }
     }

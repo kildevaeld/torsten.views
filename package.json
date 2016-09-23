@@ -44,10 +44,11 @@
     "blazy": "^1.6.2",
     "collection": "git+https://github.com/kildevaeld/collectionjs.git",
     "cropperjs": "^0.8.1",
+    "debug": "^2.2.0",
     "orange": "git+https://github.com/kildevaeld/orange.git",
     "orange.request": "git+https://github.com/kildevaeld/orange.request.git",
-    "views": "git+https://github.com/kildevaeld/views.git",
-    "torsten": "git+https://github.com/kildevaeld/torsten.client.git"
+    "torsten": "git+https://github.com/kildevaeld/torsten.client.git",
+    "views": "git+https://github.com/kildevaeld/views.git"
   },
   "typings": "lib/index",
   "jspm": {
@@ -60,7 +61,8 @@
       "collection": "github:kildevaeld/collectionjs@master",
       "blazy": "npm:blazy@^1.6.2",
       "cropperjs": "npm:cropperjs@^0.7.2",
-      "torsten": "github:kildevaeld/torsten.client@master"
+      "torsten": "github:kildevaeld/torsten.client@master",
+      "debug": "npm:debug@^2.2.0"
     }
   }
 }
