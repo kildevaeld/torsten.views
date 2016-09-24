@@ -62,7 +62,8 @@
       "collection": "github:kildevaeld/collectionjs@master",
       "cropperjs": "npm:cropperjs@^0.7.2",
       "torsten": "github:kildevaeld/torsten.client@master",
-      "debug": "npm:debug@^2.2.0"
+      "debug": "npm:debug@^2.2.0",
+      "eventsjs": "github:kildevaeld/eventsjs@master"
     }
   }
 }

@@ -3,7 +3,7 @@ import {View, attributes, ViewOptions} from 'views';
 import {createElement, hasClass, addClass, removeClass, animationEnd,addEventListener,removeEventListener, transitionEnd} from 'orange.dom'
 import {bind} from 'orange';
 export interface ModalOptions extends ViewOptions {
-    template: string;
+    
 }
 
 @attributes({
@@ -25,11 +25,12 @@ export class Modal extends View<HTMLDivElement> {
     }
 
     open() {
+        
         let body = document.body
         if (hasClass(body, "torsten-modal-open")) {
             return;
         }
-
+        this.triggerMethod('before:open')
         let overlay = createElement('div', {})
         addClass(overlay, 'torsten-modal-overlay')
         body.appendChild(overlay);
@@ -41,11 +42,13 @@ export class Modal extends View<HTMLDivElement> {
         
         addEventListener(overlay, 'click', this._onClose)
 
-
+        animationEnd(this.el, () => {
+            this.triggerMethod('open');
+        })
+        
     }
 
     _onClose () {
-        console.log('close')
         this.close();
     }
 
@@ -54,6 +57,7 @@ export class Modal extends View<HTMLDivElement> {
         if (!hasClass(body, "torsten-modal-open")) {
             return;
         }
+        this.triggerMethod('before:close')
         let overlay = body.querySelector('.torsten-modal-overlay');
         removeEventListener(overlay, 'click', this._onClose)
         
@@ -63,9 +67,20 @@ export class Modal extends View<HTMLDivElement> {
         transitionEnd(overlay, (e) => {
             body.removeChild(overlay);
         }, null);
+        animationEnd(this.el, () => {
+           
+            this.triggerMethod('close');
+        })
 
-        
+    }
 
+    toggle () {
+        let body = document.body
+        if (!hasClass(body, "torsten-modal-open")) {
+            this.open();
+        } else {
+            this.close();
+        }
     }
 
     onDestroy() {

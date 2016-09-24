@@ -8,10 +8,14 @@ import {FileInfoView} from '../info/index'
 import templates from '../templates/index';
 import {FileInfoModel, FileCollection} from '../collection';
 import {DropZone} from './dropzone';
+import {Uploader, UploaderOptions} from '../uploader';
 
-export interface GalleryViewOptions extends ViewOptions {
+export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     client: IClient;
     showDirectories?: boolean;
+    showHidden?: boolean;
+    root?: string;
+    uploader?: Uploader;
 }
 
 @attributes({
@@ -22,10 +26,10 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     info: FileInfoView;
     list: FileListView;
     drop: DropZone;
+    uploader: Uploader;
 
     client: IClient;
     collections: FileCollection[] = [];
-
     
 
     private _root: string;
@@ -92,6 +96,12 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this.drop = new DropZone({
             el: this.el
         });
+    
+        this.uploader = options.uploader||(new Uploader({
+            client: this.client,
+            maxSize: options.maxSize||2048,
+            accept: options.accept||['*']
+        }));
 
         this.listenTo(this.list, 'selected', this._onFileInfoSelected);
         this.listenTo(this.list, 'remove', this._onFileInfoRemoved)
@@ -123,13 +133,13 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     private _onFileDrop(file:File) {
         console.log(file);
         let collection = this.collections[this.collections.length - 1];
-
-        collection.upload(file.name, file, {
+        
+        this.uploader.upload(collection.path, file, {
             progress: (e) => {
-                let pc = 100 / e.total * e.loaded;
-                console.log(pc);
+                if (!e.lengthComputable)  return;
+
             }
-        });
+        })
     }
 
     onRender() {

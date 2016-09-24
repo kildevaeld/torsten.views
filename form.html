@@ -5,25 +5,75 @@
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/dist/css/torsten.views.css" />
     <!--script src="dist/torsten-.bundle.js"></script-->
-    <script src="dist/torsten.views.bundle.js"></script>
+
+    <script src="/node_modules/eventsjs/dist/eventsjs.js"></script>
+    <script src="/node_modules/orange/dist/orange.js"></script>
+    <script src="/node_modules/orange.dom/dist/orange.dom.js"></script>
+    <script src="/node_modules/orange.request/dist/orange.request.js"></script>
+    <script src="/node_modules/collection/dist/collection.js"></script>
+    <script src="/node_modules/views/dist/views.js"></script>
+    <script src="/node_modules/views.form/dist/views.form.js"></script>
+    <script src="/node_modules/torsten/dist/torsten.js"></script>
+    <script src="dist/torsten.views.js"></script>
+    <style>
+        div[form-editor="torsten.crop"] .crop-preview {
+            width: 300px;
+            height: 200px;
+        }
+    </style>
 </head>
 
 <body>
     <div id="main">
-        <h1>Hello, World</h1>
     </div>
+    <form>
+        <div class="field">
+            <div form-editor="torsten.crop" name="image" cropping ratio="1.5"></div>
+        </div>
+    </form>
+    <textarea id="result"></textarea>
     <button id="open">Open</button>
     <script>
-        let view = new torsten.views.Modal({
-            el: document.querySelector('#main')
+        
+        var client = torsten.views.createClient({
+            endpoint: 'http://localhost:3000'
         });
 
-        view.render();
+        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI5MDlkMzdhNC1kMTI4LTRmOGQtYjFlMS0wYWVmMWY2MGEwMzUiLCJnaWQiOlsiMGY1MDJkZWYtMzE5Yy00ODE1LTg1ZjUtMGFhMDBhMGQ1MTFiIiwiMTM2YTAzYzUtZDcyNi00Y2I5LWI3M2YtZTYyODFjMjM0YmJhIl0sImlhdCI6MTQ3NDcxMTI2M30.CcWXVT967IAR77wiEhBR3WxNUduBwg9JQLQv9OfjjQc'
+        
 
+        /*let view = new torsten.views.GalleryModal({
+            el: document.querySelector('#main'),
+            client: client
+        });
+
+        view.root = "/images"
+
+        view.render();
+        view.on('select', (model) => {
+            console.log('SELECT');
+            document.querySelector('#result').innerHTML = JSON.stringify(model.toJSON(), null, 2);
+        })
         document.querySelector('#open').addEventListener('click', () => {
             view.open()
-        })
+        })*/
+
+        let form = new views.form.Form({
+            el: document.querySelector('form'),
+            fieldOptions: {
+                image: {
+                    editorOptions: {
+                        client: client,
+                        showDirectories: true,
+                        root: '/croppings'
+                    }
+                }
+            }
+        });
+
+        form.render()
         
+        console.log(form)
 
 
     </script>

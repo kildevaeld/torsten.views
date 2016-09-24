@@ -4,5 +4,6 @@ declare var _default: {
     "gallery": string;
     "list-item": string;
     "list": string;
+    "modal-gallery": string;
 };
 export default _default;

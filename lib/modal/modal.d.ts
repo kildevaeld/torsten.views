@@ -1,6 +1,5 @@
 import { View, ViewOptions } from 'views';
 export interface ModalOptions extends ViewOptions {
-    template: string;
 }
 export declare class Modal extends View<HTMLDivElement> {
     private __rendered;
@@ -9,5 +8,6 @@ export declare class Modal extends View<HTMLDivElement> {
     open(): void;
     _onClose(): void;
     close(): void;
+    toggle(): void;
     onDestroy(): void;
 }

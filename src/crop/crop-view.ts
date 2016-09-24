@@ -60,9 +60,13 @@ export class CropView extends View<HTMLDivElement> {
 
         let image = <HTMLImageElement>this.ui['image'];
 
+        if (image.src) {
+            window.URL.revokeObjectURL(image.src);
+        }
+        image.src = emptyImage;
+
        // image.style.display = 'none';
         if (model == null) {
-            image.src = null;
             if (this.model) this.stopListening(this.model);
             this._model = model;
             return;
@@ -71,7 +75,8 @@ export class CropView extends View<HTMLDivElement> {
         super.setModel(model);
 
         //image.src = model.getURL();
-
+        //let isCropping = model.get('meta').cropping;
+        console.log(model)
 
         this._updateImage()
             .then((loaded) => {
@@ -188,21 +193,20 @@ export class CropView extends View<HTMLDivElement> {
 
     private _updateImage() {
         let img = <HTMLImageElement>this.el.querySelector('img');
+        removeClass(img, 'loaded');
         if (this.model === null) {
             img.src = emptyImage;
             return Promise.resolve(false);
         }
 
         let progress = new Progress({
-            size: 64,
-            lineWidth: 6
+            size: 52,
+            lineWidth: 5
         });
 
         addClass(progress.el, 'loader')
-
         this.el.appendChild(progress.render().el)
         
-
         return this.model.open({
             progress: (e) => {
                 let pc = 100 / e.total * e.loaded

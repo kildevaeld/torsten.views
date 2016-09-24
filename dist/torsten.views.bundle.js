@@ -64,8 +64,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	__export(__webpack_require__(1));
 	__export(__webpack_require__(43));
 	__export(__webpack_require__(65));
-	__export(__webpack_require__(70));
-	__export(__webpack_require__(75));
+	__export(__webpack_require__(74));
+	__export(__webpack_require__(72));
+	__export(__webpack_require__(88));
 	var torsten_1 = __webpack_require__(19);
 	function createClient(options) {
 	    return new torsten_1.TorstenClient(options);
@@ -2924,6 +2925,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(torsten_1.TorstenClientError);
 
 	exports.TorstenGuiError = TorstenGuiError;
+
+	var TorstenValidateError = function (_torsten_1$TorstenCli2) {
+	  _inherits(TorstenValidateError, _torsten_1$TorstenCli2);
+
+	  function TorstenValidateError() {
+	    _classCallCheck(this, TorstenValidateError);
+
+	    return _possibleConstructorReturn(this, (TorstenValidateError.__proto__ || Object.getPrototypeOf(TorstenValidateError)).apply(this, arguments));
+	  }
+
+	  return TorstenValidateError;
+	}(torsten_1.TorstenClientError);
+
+	exports.TorstenValidateError = TorstenValidateError;
 
 /***/ },
 /* 19 */
@@ -6132,7 +6147,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	exports.byteLength = byteLength;
 	exports.toByteArray = toByteArray;
 	exports.fromByteArray = fromByteArray;
 
@@ -6140,17 +6154,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	var revLookup = [];
 	var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array;
 
-	var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-	for (var i = 0, len = code.length; i < len; ++i) {
-	  lookup[i] = code[i];
-	  revLookup[code.charCodeAt(i)] = i;
+	function init() {
+	  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+	  for (var i = 0, len = code.length; i < len; ++i) {
+	    lookup[i] = code[i];
+	    revLookup[code.charCodeAt(i)] = i;
+	  }
+
+	  revLookup['-'.charCodeAt(0)] = 62;
+	  revLookup['_'.charCodeAt(0)] = 63;
 	}
 
-	revLookup['-'.charCodeAt(0)] = 62;
-	revLookup['_'.charCodeAt(0)] = 63;
+	init();
 
-	function placeHoldersCount(b64) {
+	function toByteArray(b64) {
+	  var i, j, l, tmp, placeHolders, arr;
 	  var len = b64.length;
+
 	  if (len % 4 > 0) {
 	    throw new Error('Invalid string. Length must be a multiple of 4');
 	  }
@@ -6160,19 +6180,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  // represent one byte
 	  // if there is only one, then the three characters before it represent 2 bytes
 	  // this is just a cheap hack to not do indexOf twice
-	  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0;
-	}
+	  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0;
 
-	function byteLength(b64) {
 	  // base64 is 4/3 + up to two characters of the original data
-	  return b64.length * 3 / 4 - placeHoldersCount(b64);
-	}
-
-	function toByteArray(b64) {
-	  var i, j, l, tmp, placeHolders, arr;
-	  var len = b64.length;
-	  placeHolders = placeHoldersCount(b64);
-
 	  arr = new Arr(len * 3 / 4 - placeHolders);
 
 	  // if there are placeholders, only get up to the last complete 4 chars
@@ -6456,7 +6466,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var req = new orange_request_1.HttpRequest(method, url);
 	    if (r.params) req.params(r.params);
 	    if (r.headers) req.header(r.headers);
-	    //req.header("User-Agent", "torsten-client/0.0.1");
+	    if (utils_1.isNode) {
+	        req.header("User-Agent", "torsten-client/0.0.1");
+	    }
 	    req.header("Authorization", "Bearer " + r.token);
 	    return req.downloadProgress(r.progress).end(r.data).then(function (res) {
 	        return res;
@@ -6469,7 +6481,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (r.params) req.params(r.params);
 	    if (r.headers) req.header(r.headers);
 	    var mimeType = void 0;
-	    //req.header("User-Agent", "torsten-client/0.0.1");
+	    if (utils_1.isNode) {
+	        req.header("User-Agent", "torsten-client/0.0.1");
+	    }
 	    if (utils_1.isString(data)) {
 	        req.header('Content-Length', "" + data.length);
 	        mimeType = r.mime || "text/plain";
@@ -8149,7 +8163,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	            this.listenTo(this.collection, 'before:fetch', this._showLoaderView);
 	            this.listenTo(this.collection, 'fetch', this._hideLoaderView);
-	            this.listenTo(this, 'height', this._loadImages, this);
+	            this.listenTo(this, 'height', this.loadImages, this);
 	            this.listenTo(this.collection, 'fetch:progress', function (e) {
 	                if (!e.lengthComputable) return;
 	                if (_this2._progress) _this2._progress.setPercent(100 / e.total * e.loaded);
@@ -8161,7 +8175,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (this._blazy) {
 	                this._blazy.revalidate();
 	            } else {}
-	            this._loadImages();
+	            this.loadImages();
 	        }
 	    }, {
 	        key: "onRenderChild",
@@ -8207,7 +8221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.index = index;
 	            var el = this.el;
 	            if (el.scrollTop < el.scrollHeight - el.clientHeight - el.clientHeight) {
-	                this._loadImages();
+	                this.loadImages();
 	            } else if (this.collection.hasNext()) {
 	                this.collection.getNextPage({
 	                    params: {
@@ -8217,8 +8231,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	    }, {
-	        key: "_loadImages",
-	        value: function _loadImages() {
+	        key: "loadImages",
+	        value: function loadImages() {
 	            var _this3 = this;
 
 	            var loadImage = function loadImage(img) {
@@ -10376,7 +10390,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    "file-info": "<div class=\"preview-region\">\n</div>\n<div class=\"info-region\">  <table class=\"info\">  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  </td>  </tr>  </table>\n</div>",
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
-	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n"
+	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n",
+	    "modal-gallery": "<div class=\"torsten-modal-header\">\n</div>\n<div class=\"torsten-modal-content\">  </div>\n<div class=\"torsten-modal-footer\">  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>\n</div>\n"
 	};
 
 /***/ },
@@ -11037,6 +11052,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 	__export(__webpack_require__(66));
+	__export(__webpack_require__(71));
 
 /***/ },
 /* 66 */
@@ -11072,6 +11088,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var index_3 = __webpack_require__(60);
 	var collection_1 = __webpack_require__(1);
 	var dropzone_1 = __webpack_require__(69);
+	var uploader_1 = __webpack_require__(70);
 	var GalleryView = function (_views_1$LayoutView) {
 	    _inherits(GalleryView, _views_1$LayoutView);
 
@@ -11097,6 +11114,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	        _this.drop = new dropzone_1.DropZone({
 	            el: _this.el
+	        });
+	        _this.uploader = options.uploader || new uploader_1.Uploader({
+	            client: _this.client,
+	            maxSize: options.maxSize || 2048,
+	            accept: options.accept || ['*']
 	        });
 	        _this.listenTo(_this.list, 'selected', _this._onFileInfoSelected);
 	        _this.listenTo(_this.list, 'remove', _this._onFileInfoRemoved);
@@ -11132,10 +11154,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _onFileDrop(file) {
 	            console.log(file);
 	            var collection = this.collections[this.collections.length - 1];
-	            collection.upload(file.name, file, {
+	            this.uploader.upload(collection.path, file, {
 	                progress: function progress(e) {
-	                    var pc = 100 / e.total * e.loaded;
-	                    console.log(pc);
+	                    if (!e.lengthComputable) return;
 	                }
 	            });
 	        }
@@ -11412,17 +11433,400 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var eventsjs_1 = __webpack_require__(5);
+	var torsten_1 = __webpack_require__(19);
+	var orange_1 = __webpack_require__(21);
+	var collection_1 = __webpack_require__(1);
+	var error_1 = __webpack_require__(18);
+	var Debug = __webpack_require__(40);
+	var Path = torsten_1.path;
+	var debug = Debug('torsten:uploader');
+
+	var Uploader = function (_eventsjs_1$EventEmit) {
+	    _inherits(Uploader, _eventsjs_1$EventEmit);
+
+	    function Uploader() {
+	        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	        _classCallCheck(this, Uploader);
+
+	        var _this = _possibleConstructorReturn(this, (Uploader.__proto__ || Object.getPrototypeOf(Uploader)).call(this));
+
+	        _this._queue = [];
+	        _this._uploading = 0;
+	        _this.accept = ["*"];
+	        _this.maxSize = 2048;
+	        _this.queueSize = 10;
+	        orange_1.extend(_this, options);
+	        return _this;
+	    }
+
+	    _createClass(Uploader, [{
+	        key: '_validateFile',
+	        value: function _validateFile(file) {
+	            if (file.size > this.maxSize) {
+	                return new error_1.TorstenValidateError("file to large");
+	            }
+	            var mimeValid = false;
+	            for (var i = 0, ii = this.accept.length; i < ii; i++) {
+	                var r = new RegExp(this.accept[i]);
+	                if (r.test(file.type)) {
+	                    mimeValid = true;
+	                    break;
+	                }
+	            }
+	            if (!mimeValid) throw new error_1.TorstenValidateError("file wrong type");
+	        }
+	    }, {
+	        key: 'upload',
+	        value: function upload(path, file, options) {
+	            try {
+	                this._validateFile(file);
+	            } catch (e) {
+	                return Promise.reject(e);
+	            }
+	            if (this._uploading > this.queueSize || this._client == null) {
+	                var defer = orange_1.deferred();
+	                debug("enqueue %i : %s", this._queue.length, path);
+	                this._queue.push([path, file, defer, options]);
+	                this.trigger('queue', file.name);
+	                return defer.promise;
+	            }
+	            return this._upload(path, file, options);
+	        }
+	    }, {
+	        key: '_upload',
+	        value: function _upload(path, file) {
+	            var _this2 = this;
+
+	            var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+	            var emit = function emit() {
+	                _this2._uploading--;
+	                debug('upload ready %s', path);
+	                _this2.trigger('ready', file.name);
+	                _this2._onReady();
+	            };
+	            path = Path.join(path, file.name);
+	            var o = orange_1.extend({}, options, {
+	                progress: function progress(e) {
+	                    _this2.trigger('progress', file, e);
+	                    if (options.progress) {
+	                        options.progress(e);
+	                    }
+	                }
+	            });
+	            this.trigger('started', file);
+	            this._uploading++;
+	            return this._client.create(path, file, o).then(function (info) {
+	                emit();
+	                return new collection_1.FileInfoModel(info, { client: _this2._client });
+	            }).catch(function (e) {
+	                emit();
+	                return Promise.reject(e);
+	            });
+	        }
+	    }, {
+	        key: '_onReady',
+	        value: function _onReady() {
+	            if (!this._queue.length || this._uploading > this.queueSize) {
+	                return;
+	            }
+
+	            var _queue$shift = this._queue.shift();
+
+	            var _queue$shift2 = _slicedToArray(_queue$shift, 4);
+
+	            var path = _queue$shift2[0];
+	            var file = _queue$shift2[1];
+	            var defer = _queue$shift2[2];
+	            var options = _queue$shift2[3];
+
+	            this._upload(path, file, options).then(defer.resolve).catch(defer.reject);
+	        }
+	    }, {
+	        key: 'client',
+	        set: function set(client) {
+	            var _this3 = this;
+
+	            if (this._client == null && this._queue.length > 0) {
+	                orange_1.nextTick(function () {
+	                    return _this3._onReady();
+	                });
+	            }
+	            this._client = client;
+	        }
+	    }]);
+
+	    return Uploader;
+	}(eventsjs_1.EventEmitter);
+
+	exports.Uploader = Uploader;
+
+/***/ },
+/* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+	    var c = arguments.length,
+	        r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+	        d;
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = undefined && undefined.__metadata || function (k, v) {
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var index_1 = __webpack_require__(72);
+	var gallery_1 = __webpack_require__(66);
+	var views_1 = __webpack_require__(45);
+	var index_2 = __webpack_require__(60);
+	var orange_dom_1 = __webpack_require__(48);
+	var GalleryModal = function (_index_1$Modal) {
+	    _inherits(GalleryModal, _index_1$Modal);
+
+	    function GalleryModal(options) {
+	        _classCallCheck(this, GalleryModal);
+
+	        var _this = _possibleConstructorReturn(this, (GalleryModal.__proto__ || Object.getPrototypeOf(GalleryModal)).call(this, options));
+
+	        delete options.el;
+	        _this._gallery = new gallery_1.GalleryView(options);
+	        _this.listenTo(_this._gallery, 'dblclick', function () {
+	            _this.trigger('selected', _this.selected);
+	            _this.close();
+	        });
+	        return _this;
+	    }
+
+	    _createClass(GalleryModal, [{
+	        key: "onOpen",
+	        value: function onOpen() {
+	            this.gallery.list.loadImages();
+	        }
+	    }, {
+	        key: "onRender",
+	        value: function onRender() {
+	            this._gallery.render();
+	            this.ui['content'].appendChild(this._gallery.el);
+	            orange_dom_1.addClass(this.el, 'gallery-modal');
+	        }
+	    }, {
+	        key: "_onSelect",
+	        value: function _onSelect(e) {
+	            e.preventDefault();
+	            console.log('on select');
+	        }
+	    }, {
+	        key: "gallery",
+	        get: function get() {
+	            return this._gallery;
+	        }
+	    }, {
+	        key: "selected",
+	        get: function get() {
+	            return this.gallery.selected;
+	        }
+	    }, {
+	        key: "root",
+	        set: function set(root) {
+	            this._gallery.root = root;
+	        }
+	    }]);
+
+	    return GalleryModal;
+	}(index_1.Modal);
+	GalleryModal = __decorate([views_1.attributes({
+	    template: function template() {
+	        return index_2.default['modal-gallery'];
+	    },
+	    ui: {
+	        content: '.torsten-modal-content'
+	    },
+	    events: {
+	        'click .btn-close': function clickBtnClose() {
+	            this.close();
+	        },
+	        'click .btn-select': '_onSelect'
+	    }
+	}), __metadata('design:paramtypes', [Object])], GalleryModal);
+	exports.GalleryModal = GalleryModal;
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
 	function __export(m) {
 	    for (var p in m) {
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(71));
 	__export(__webpack_require__(73));
-	__export(__webpack_require__(72));
 
 /***/ },
-/* 71 */
+/* 73 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+	    var c = arguments.length,
+	        r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+	        d;
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = undefined && undefined.__metadata || function (k, v) {
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var views_1 = __webpack_require__(45);
+	var orange_dom_1 = __webpack_require__(48);
+	var orange_1 = __webpack_require__(21);
+	var Modal = function (_views_1$View) {
+	    _inherits(Modal, _views_1$View);
+
+	    function Modal(options) {
+	        _classCallCheck(this, Modal);
+
+	        var _this = _possibleConstructorReturn(this, (Modal.__proto__ || Object.getPrototypeOf(Modal)).call(this, options));
+
+	        _this.__rendered = false;
+	        if (options.el) {
+	            orange_dom_1.addClass(_this.el, _this.className);
+	        }
+	        _this._onClose = orange_1.bind(_this._onClose, _this);
+	        return _this;
+	    }
+
+	    _createClass(Modal, [{
+	        key: "onRender",
+	        value: function onRender() {
+	            this.__rendered = true;
+	        }
+	    }, {
+	        key: "open",
+	        value: function open() {
+	            var _this2 = this;
+
+	            var body = document.body;
+	            if (orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	                return;
+	            }
+	            this.triggerMethod('before:open');
+	            var overlay = orange_dom_1.createElement('div', {});
+	            orange_dom_1.addClass(overlay, 'torsten-modal-overlay');
+	            body.appendChild(overlay);
+	            requestAnimationFrame(function () {
+	                orange_dom_1.addClass(body, 'torsten-modal-open');
+	            });
+	            orange_dom_1.addEventListener(overlay, 'click', this._onClose);
+	            orange_dom_1.animationEnd(this.el, function () {
+	                _this2.triggerMethod('open');
+	            });
+	        }
+	    }, {
+	        key: "_onClose",
+	        value: function _onClose() {
+	            this.close();
+	        }
+	    }, {
+	        key: "close",
+	        value: function close() {
+	            var _this3 = this;
+
+	            var body = document.body;
+	            if (!orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	                return;
+	            }
+	            this.triggerMethod('before:close');
+	            var overlay = body.querySelector('.torsten-modal-overlay');
+	            orange_dom_1.removeEventListener(overlay, 'click', this._onClose);
+	            orange_dom_1.removeClass(body, 'torsten-modal-open');
+	            orange_dom_1.transitionEnd(overlay, function (e) {
+	                body.removeChild(overlay);
+	            }, null);
+	            orange_dom_1.animationEnd(this.el, function () {
+	                _this3.triggerMethod('close');
+	            });
+	        }
+	    }, {
+	        key: "toggle",
+	        value: function toggle() {
+	            var body = document.body;
+	            if (!orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	                this.open();
+	            } else {
+	                this.close();
+	            }
+	        }
+	    }, {
+	        key: "onDestroy",
+	        value: function onDestroy() {
+	            this.remove();
+	        }
+	    }]);
+
+	    return Modal;
+	}(views_1.View);
+	Modal = __decorate([views_1.attributes({
+	    tagName: 'div',
+	    className: 'torsten modal'
+	}), __metadata('design:paramtypes', [Object])], Modal);
+	exports.Modal = Modal;
+
+/***/ },
+/* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	function __export(m) {
+	    for (var p in m) {
+	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	    }
+	}
+	__export(__webpack_require__(75));
+	__export(__webpack_require__(77));
+	__export(__webpack_require__(76));
+
+/***/ },
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11449,7 +11853,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(45);
-	var types_1 = __webpack_require__(72);
+	var types_1 = __webpack_require__(76);
 	var utils_1 = __webpack_require__(62);
 	var orange_dom_1 = __webpack_require__(48);
 
@@ -11596,7 +12000,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropPreView = CropPreView;
 
 /***/ },
-/* 72 */
+/* 76 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -11624,7 +12028,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getCropping = getCropping;
 
 /***/ },
-/* 73 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11653,8 +12057,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(45);
-	var cropperjs_1 = __webpack_require__(74);
-	var types_1 = __webpack_require__(72);
+	var cropperjs_1 = __webpack_require__(78);
+	var types_1 = __webpack_require__(76);
 	var collection_1 = __webpack_require__(1);
 	var utils_1 = __webpack_require__(62);
 	var orange_1 = __webpack_require__(21);
@@ -11688,15 +12092,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (this.ui['image'] == null) return this;
 	            this.deactivate();
 	            var image = this.ui['image'];
+	            if (image.src) {
+	                window.URL.revokeObjectURL(image.src);
+	            }
+	            image.src = utils_1.emptyImage;
 	            // image.style.display = 'none';
 	            if (model == null) {
-	                image.src = null;
 	                if (this.model) this.stopListening(this.model);
 	                this._model = model;
 	                return;
 	            }
 	            _get(CropView.prototype.__proto__ || Object.getPrototypeOf(CropView.prototype), "setModel", this).call(this, model);
 	            //image.src = model.getURL();
+	            var isCropping = model.has('meta.cropping');
+	            console.log(isCropping);
 	            this._updateImage().then(function (loaded) {
 	                //if (loaded) image.style.display = 'block';
 	                return loaded;
@@ -11794,13 +12203,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var _this4 = this;
 
 	            var img = this.el.querySelector('img');
+	            orange_dom_1.removeClass(img, 'loaded');
 	            if (this.model === null) {
 	                img.src = utils_1.emptyImage;
 	                return Promise.resolve(false);
 	            }
 	            var _progress = new circular_progress_1.Progress({
-	                size: 64,
-	                lineWidth: 6
+	                size: 52,
+	                lineWidth: 5
 	            });
 	            orange_dom_1.addClass(_progress.el, 'loader');
 	            this.el.appendChild(_progress.render().el);
@@ -11854,250 +12264,3605 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropView = CropView;
 
 /***/ },
-/* 74 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {'use strict';var _typeof2=typeof Symbol==="function"&&typeof Symbol.iterator==="symbol"?function(obj){return typeof obj;}:function(obj){return obj&&typeof Symbol==="function"&&obj.constructor===Symbol?"symbol":typeof obj;};/*!
-	 * Cropper.js v0.8.1
-	 * https://github.com/fengyuanchen/cropperjs
-	 *
-	 * Copyright (c) 2015-2016 Fengyuan Chen
-	 * Released under the MIT license
-	 *
-	 * Date: 2016-09-03T04:55:16.458Z
-	 */(function webpackUniversalModuleDefinition(root,factory){if(( false?'undefined':_typeof2(exports))==='object'&&( false?'undefined':_typeof2(module))==='object')module.exports=factory();else if(true)!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));else{var a=factory();for(var i in a){((typeof exports==='undefined'?'undefined':_typeof2(exports))==='object'?exports:root)[i]=a[i];}}})(undefined,function(){return(/******/function(modules){// webpackBootstrap
-	/******/// The module cache
-	/******/var installedModules={};/******//******/// The require function
-	/******/function __webpack_require__(moduleId){/******//******/// Check if module is in cache
-	/******/if(installedModules[moduleId])/******/return installedModules[moduleId].exports;/******//******/// Create a new module (and put it into the cache)
-	/******/var module=installedModules[moduleId]={/******/exports:{},/******/id:moduleId,/******/loaded:false/******/};/******//******/// Execute the module function
-	/******/modules[moduleId].call(module.exports,module,module.exports,__webpack_require__);/******//******/// Flag the module as loaded
-	/******/module.loaded=true;/******//******/// Return the exports of the module
-	/******/return module.exports;/******/}/******//******//******/// expose the modules object (__webpack_modules__)
-	/******/__webpack_require__.m=modules;/******//******/// expose the module cache
-	/******/__webpack_require__.c=installedModules;/******//******/// __webpack_public_path__
-	/******/__webpack_require__.p="";/******//******/// Load entry module and return exports
-	/******/return __webpack_require__(0);/******/}(/************************************************************************//******/[/* 0 *//***/function(module,exports,__webpack_require__){'use strict';Object.defineProperty(exports,"__esModule",{value:true});var _createClass=function(){function defineProperties(target,props){for(var i=0;i<props.length;i++){var descriptor=props[i];descriptor.enumerable=descriptor.enumerable||false;descriptor.configurable=true;if("value"in descriptor)descriptor.writable=true;Object.defineProperty(target,descriptor.key,descriptor);}}return function(Constructor,protoProps,staticProps){if(protoProps)defineProperties(Constructor.prototype,protoProps);if(staticProps)defineProperties(Constructor,staticProps);return Constructor;};}();var _defaults=__webpack_require__(1);var _defaults2=_interopRequireDefault(_defaults);var _template=__webpack_require__(2);var _template2=_interopRequireDefault(_template);var _render=__webpack_require__(3);var _render2=_interopRequireDefault(_render);var _preview=__webpack_require__(5);var _preview2=_interopRequireDefault(_preview);var _events=__webpack_require__(6);var _events2=_interopRequireDefault(_events);var _handlers=__webpack_require__(7);var _handlers2=_interopRequireDefault(_handlers);var _change=__webpack_require__(8);var _change2=_interopRequireDefault(_change);var _methods=__webpack_require__(9);var _methods2=_interopRequireDefault(_methods);var _utilities=__webpack_require__(4);var $=_interopRequireWildcard(_utilities);function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{var newObj={};if(obj!=null){for(var key in obj){if(Object.prototype.hasOwnProperty.call(obj,key))newObj[key]=obj[key];}}newObj.default=obj;return newObj;}}function _interopRequireDefault(obj){return obj&&obj.__esModule?obj:{default:obj};}function _classCallCheck(instance,Constructor){if(!(instance instanceof Constructor)){throw new TypeError("Cannot call a class as a function");}}// Constants
-	var NAMESPACE='cropper';// Classes
-	var CLASS_HIDDEN=NAMESPACE+'-hidden';// Events
-	var EVENT_ERROR='error';var EVENT_LOAD='load';var EVENT_READY='ready';var EVENT_CROP='crop';// RegExps
-	var REGEXP_DATA_URL=/^data:/;var REGEXP_DATA_URL_JPEG=/^data:image\/jpeg.*;base64,/;var AnotherCropper=void 0;var Cropper=function(){function Cropper(element,options){_classCallCheck(this,Cropper);var self=this;self.element=element;self.options=$.extend({},_defaults2.default,$.isPlainObject(options)&&options);self.loaded=false;self.ready=false;self.complete=false;self.rotated=false;self.cropped=false;self.disabled=false;self.replaced=false;self.limited=false;self.wheeling=false;self.isImg=false;self.originalUrl='';self.canvasData=null;self.cropBoxData=null;self.previews=null;self.init();}_createClass(Cropper,[{key:'init',value:function init(){var self=this;var element=self.element;var tagName=element.tagName.toLowerCase();var url=void 0;if($.getData(element,NAMESPACE)){return;}$.setData(element,NAMESPACE,self);if(tagName==='img'){self.isImg=true;// e.g.: "img/picture.jpg"
-	self.originalUrl=url=element.getAttribute('src');// Stop when it's a blank image
-	if(!url){return;}// e.g.: "http://example.com/img/picture.jpg"
-	url=element.src;}else if(tagName==='canvas'&&window.HTMLCanvasElement){url=element.toDataURL();}self.load(url);}},{key:'load',value:function load(url){var self=this;var options=self.options;var element=self.element;if(!url){return;}self.url=url;self.imageData={};if(!options.checkOrientation||!window.ArrayBuffer){self.clone();return;}// XMLHttpRequest disallows to open a Data URL in some browsers like IE11 and Safari
-	if(REGEXP_DATA_URL.test(url)){if(REGEXP_DATA_URL_JPEG){self.read($.dataURLToArrayBuffer(url));}else{self.clone();}return;}var xhr=new XMLHttpRequest();xhr.onerror=xhr.onabort=function(){self.clone();};xhr.onload=function(){self.read(xhr.response);};if(options.checkCrossOrigin&&$.isCrossOriginURL(url)&&element.crossOrigin){url=$.addTimestamp(url);}xhr.open('get',url);xhr.responseType='arraybuffer';xhr.send();}},{key:'read',value:function read(arrayBuffer){var self=this;var options=self.options;var orientation=$.getOrientation(arrayBuffer);var imageData=self.imageData;var rotate=0;var scaleX=1;var scaleY=1;if(orientation>1){self.url=$.arrayBufferToDataURL(arrayBuffer);switch(orientation){// flip horizontal
-	case 2:scaleX=-1;break;// rotate left 180°
-	case 3:rotate=-180;break;// flip vertical
-	case 4:scaleY=-1;break;// flip vertical + rotate right 90°
-	case 5:rotate=90;scaleY=-1;break;// rotate right 90°
-	case 6:rotate=90;break;// flip horizontal + rotate right 90°
-	case 7:rotate=90;scaleX=-1;break;// rotate left 90°
-	case 8:rotate=-90;break;}}if(options.rotatable){imageData.rotate=rotate;}if(options.scalable){imageData.scaleX=scaleX;imageData.scaleY=scaleY;}self.clone();}},{key:'clone',value:function clone(){var self=this;var element=self.element;var url=self.url;var crossOrigin=void 0;var crossOriginUrl=void 0;var start=void 0;var stop=void 0;if(self.options.checkCrossOrigin&&$.isCrossOriginURL(url)){crossOrigin=element.crossOrigin;if(crossOrigin){crossOriginUrl=url;}else{crossOrigin='anonymous';// Bust cache when there is not a "crossOrigin" property
-	crossOriginUrl=$.addTimestamp(url);}}self.crossOrigin=crossOrigin;self.crossOriginUrl=crossOriginUrl;var image=$.createElement('img');if(crossOrigin){image.crossOrigin=crossOrigin;}image.src=crossOriginUrl||url;self.image=image;self.onStart=start=$.proxy(self.start,self);self.onStop=stop=$.proxy(self.stop,self);if(self.isImg){if(element.complete){self.start();}else{$.addListener(element,EVENT_LOAD,start);}}else{$.addListener(image,EVENT_LOAD,start);$.addListener(image,EVENT_ERROR,stop);$.addClass(image,'cropper-hide');element.parentNode.insertBefore(image,element.nextSibling);}}},{key:'start',value:function start(event){var self=this;var image=self.isImg?self.element:self.image;if(event){$.removeListener(image,EVENT_LOAD,self.onStart);$.removeListener(image,EVENT_ERROR,self.onStop);}$.getImageSize(image,function(naturalWidth,naturalHeight){$.extend(self.imageData,{naturalWidth:naturalWidth,naturalHeight:naturalHeight,aspectRatio:naturalWidth/naturalHeight});self.loaded=true;self.build();});}},{key:'stop',value:function stop(){var self=this;var image=self.image;$.removeListener(image,EVENT_LOAD,self.onStart);$.removeListener(image,EVENT_ERROR,self.onStop);$.removeChild(image);self.image=null;}},{key:'build',value:function build(){var self=this;var options=self.options;var element=self.element;var image=self.image;var container=void 0;var cropper=void 0;var canvas=void 0;var dragBox=void 0;var cropBox=void 0;var face=void 0;if(!self.loaded){return;}// Unbuild first when replace
-	if(self.ready){self.unbuild();}var template=$.createElement('div');template.innerHTML=_template2.default;// Create cropper elements
-	self.container=container=element.parentNode;self.cropper=cropper=$.getByClass(template,'cropper-container')[0];self.canvas=canvas=$.getByClass(cropper,'cropper-canvas')[0];self.dragBox=dragBox=$.getByClass(cropper,'cropper-drag-box')[0];self.cropBox=cropBox=$.getByClass(cropper,'cropper-crop-box')[0];self.viewBox=$.getByClass(cropper,'cropper-view-box')[0];self.face=face=$.getByClass(cropBox,'cropper-face')[0];$.appendChild(canvas,image);// Hide the original image
-	$.addClass(element,CLASS_HIDDEN);// Inserts the cropper after to the current image
-	container.insertBefore(cropper,element.nextSibling);// Show the image if is hidden
-	if(!self.isImg){$.removeClass(image,'cropper-hide');}self.initPreview();self.bind();options.aspectRatio=Math.max(0,options.aspectRatio)||NaN;options.viewMode=Math.max(0,Math.min(3,Math.round(options.viewMode)))||0;if(options.autoCrop){self.cropped=true;if(options.modal){$.addClass(dragBox,'cropper-modal');}}else{$.addClass(cropBox,CLASS_HIDDEN);}if(!options.guides){$.addClass($.getByClass(cropBox,'cropper-dashed'),CLASS_HIDDEN);}if(!options.center){$.addClass($.getByClass(cropBox,'cropper-center'),CLASS_HIDDEN);}if(options.background){$.addClass(cropper,'cropper-bg');}if(!options.highlight){$.addClass(face,'cropper-invisible');}if(options.cropBoxMovable){$.addClass(face,'cropper-move');$.setData(face,'action','all');}if(!options.cropBoxResizable){$.addClass($.getByClass(cropBox,'cropper-line'),CLASS_HIDDEN);$.addClass($.getByClass(cropBox,'cropper-point'),CLASS_HIDDEN);}self.setDragMode(options.dragMode);self.render();self.ready=true;self.setData(options.data);// Call the "ready" option asynchronously to keep "image.cropper" is defined
-	self.completing=setTimeout(function(){if($.isFunction(options.ready)){$.addListener(element,EVENT_READY,options.ready,true);}$.dispatchEvent(element,EVENT_READY);$.dispatchEvent(element,EVENT_CROP,self.getData());self.complete=true;},0);}},{key:'unbuild',value:function unbuild(){var self=this;if(!self.ready){return;}if(!self.complete){clearTimeout(self.completing);}self.ready=false;self.complete=false;self.initialImageData=null;// Clear `initialCanvasData` is necessary when replace
-	self.initialCanvasData=null;self.initialCropBoxData=null;self.containerData=null;self.canvasData=null;// Clear `cropBoxData` is necessary when replace
-	self.cropBoxData=null;self.unbind();self.resetPreview();self.previews=null;self.viewBox=null;self.cropBox=null;self.dragBox=null;self.canvas=null;self.container=null;$.removeChild(self.cropper);self.cropper=null;}}],[{key:'noConflict',value:function noConflict(){window.Cropper=AnotherCropper;return Cropper;}},{key:'setDefaults',value:function setDefaults(options){$.extend(_defaults2.default,$.isPlainObject(options)&&options);}}]);return Cropper;}();$.extend(Cropper.prototype,_render2.default);$.extend(Cropper.prototype,_preview2.default);$.extend(Cropper.prototype,_events2.default);$.extend(Cropper.prototype,_handlers2.default);$.extend(Cropper.prototype,_change2.default);$.extend(Cropper.prototype,_methods2.default);if(typeof window!=='undefined'){AnotherCropper=window.Cropper;window.Cropper=Cropper;}exports.default=Cropper;/***/},/* 1 *//***/function(module,exports){'use strict';Object.defineProperty(exports,"__esModule",{value:true});exports.default={// Define the view mode of the cropper
-	viewMode:0,// 0, 1, 2, 3
-	// Define the dragging mode of the cropper
-	dragMode:'crop',// 'crop', 'move' or 'none'
-	// Define the aspect ratio of the crop box
-	aspectRatio:NaN,// An object with the previous cropping result data
-	data:null,// A selector for adding extra containers to preview
-	preview:'',// Re-render the cropper when resize the window
-	responsive:true,// Restore the cropped area after resize the window
-	restore:true,// Check if the current image is a cross-origin image
-	checkCrossOrigin:true,// Check the current image's Exif Orientation information
-	checkOrientation:true,// Show the black modal
-	modal:true,// Show the dashed lines for guiding
-	guides:true,// Show the center indicator for guiding
-	center:true,// Show the white modal to highlight the crop box
-	highlight:true,// Show the grid background
-	background:true,// Enable to crop the image automatically when initialize
-	autoCrop:true,// Define the percentage of automatic cropping area when initializes
-	autoCropArea:0.8,// Enable to move the image
-	movable:true,// Enable to rotate the image
-	rotatable:true,// Enable to scale the image
-	scalable:true,// Enable to zoom the image
-	zoomable:true,// Enable to zoom the image by dragging touch
-	zoomOnTouch:true,// Enable to zoom the image by wheeling mouse
-	zoomOnWheel:true,// Define zoom ratio when zoom the image by wheeling mouse
-	wheelZoomRatio:0.1,// Enable to move the crop box
-	cropBoxMovable:true,// Enable to resize the crop box
-	cropBoxResizable:true,// Toggle drag mode between "crop" and "move" when click twice on the cropper
-	toggleDragModeOnDblclick:true,// Size limitation
-	minCanvasWidth:0,minCanvasHeight:0,minCropBoxWidth:0,minCropBoxHeight:0,minContainerWidth:200,minContainerHeight:100,// Shortcuts of events
-	ready:null,cropstart:null,cropmove:null,cropend:null,crop:null,zoom:null};/***/},/* 2 *//***/function(module,exports){'use strict';Object.defineProperty(exports,"__esModule",{value:true});exports.default='<div class="cropper-container">'+'<div class="cropper-wrap-box">'+'<div class="cropper-canvas"></div>'+'</div>'+'<div class="cropper-drag-box"></div>'+'<div class="cropper-crop-box">'+'<span class="cropper-view-box"></span>'+'<span class="cropper-dashed dashed-h"></span>'+'<span class="cropper-dashed dashed-v"></span>'+'<span class="cropper-center"></span>'+'<span class="cropper-face"></span>'+'<span class="cropper-line line-e" data-action="e"></span>'+'<span class="cropper-line line-n" data-action="n"></span>'+'<span class="cropper-line line-w" data-action="w"></span>'+'<span class="cropper-line line-s" data-action="s"></span>'+'<span class="cropper-point point-e" data-action="e"></span>'+'<span class="cropper-point point-n" data-action="n"></span>'+'<span class="cropper-point point-w" data-action="w"></span>'+'<span class="cropper-point point-s" data-action="s"></span>'+'<span class="cropper-point point-ne" data-action="ne"></span>'+'<span class="cropper-point point-nw" data-action="nw"></span>'+'<span class="cropper-point point-sw" data-action="sw"></span>'+'<span class="cropper-point point-se" data-action="se"></span>'+'</div>'+'</div>';/***/},/* 3 *//***/function(module,exports,__webpack_require__){'use strict';Object.defineProperty(exports,"__esModule",{value:true});var _utilities=__webpack_require__(4);var $=_interopRequireWildcard(_utilities);function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{var newObj={};if(obj!=null){for(var key in obj){if(Object.prototype.hasOwnProperty.call(obj,key))newObj[key]=obj[key];}}newObj.default=obj;return newObj;}}exports.default={render:function render(){var self=this;self.initContainer();self.initCanvas();self.initCropBox();self.renderCanvas();if(self.cropped){self.renderCropBox();}},initContainer:function initContainer(){var self=this;var options=self.options;var element=self.element;var container=self.container;var cropper=self.cropper;var containerData=void 0;$.addClass(cropper,'cropper-hidden');$.removeClass(element,'cropper-hidden');self.containerData=containerData={width:Math.max(container.offsetWidth,Number(options.minContainerWidth)||200),height:Math.max(container.offsetHeight,Number(options.minContainerHeight)||100)};$.setStyle(cropper,{width:containerData.width,height:containerData.height});$.addClass(element,'cropper-hidden');$.removeClass(cropper,'cropper-hidden');},// Canvas (image wrapper)
-	initCanvas:function initCanvas(){var self=this;var viewMode=self.options.viewMode;var containerData=self.containerData;var imageData=self.imageData;var rotated=Math.abs(imageData.rotate)===90;var naturalWidth=rotated?imageData.naturalHeight:imageData.naturalWidth;var naturalHeight=rotated?imageData.naturalWidth:imageData.naturalHeight;var aspectRatio=naturalWidth/naturalHeight;var canvasWidth=containerData.width;var canvasHeight=containerData.height;if(containerData.height*aspectRatio>containerData.width){if(viewMode===3){canvasWidth=containerData.height*aspectRatio;}else{canvasHeight=containerData.width/aspectRatio;}}else if(viewMode===3){canvasHeight=containerData.width/aspectRatio;}else{canvasWidth=containerData.height*aspectRatio;}var canvasData={naturalWidth:naturalWidth,naturalHeight:naturalHeight,aspectRatio:aspectRatio,width:canvasWidth,height:canvasHeight};canvasData.oldLeft=canvasData.left=(containerData.width-canvasWidth)/2;canvasData.oldTop=canvasData.top=(containerData.height-canvasHeight)/2;self.canvasData=canvasData;self.limited=viewMode===1||viewMode===2;self.limitCanvas(true,true);self.initialImageData=$.extend({},imageData);self.initialCanvasData=$.extend({},canvasData);},limitCanvas:function limitCanvas(sizeLimited,positionLimited){var self=this;var options=self.options;var viewMode=options.viewMode;var containerData=self.containerData;var canvasData=self.canvasData;var aspectRatio=canvasData.aspectRatio;var cropBoxData=self.cropBoxData;var cropped=self.cropped&&cropBoxData;var minCanvasWidth=void 0;var minCanvasHeight=void 0;var newCanvasLeft=void 0;var newCanvasTop=void 0;if(sizeLimited){minCanvasWidth=Number(options.minCanvasWidth)||0;minCanvasHeight=Number(options.minCanvasHeight)||0;if(viewMode>1){minCanvasWidth=Math.max(minCanvasWidth,containerData.width);minCanvasHeight=Math.max(minCanvasHeight,containerData.height);if(viewMode===3){if(minCanvasHeight*aspectRatio>minCanvasWidth){minCanvasWidth=minCanvasHeight*aspectRatio;}else{minCanvasHeight=minCanvasWidth/aspectRatio;}}}else if(viewMode>0){if(minCanvasWidth){minCanvasWidth=Math.max(minCanvasWidth,cropped?cropBoxData.width:0);}else if(minCanvasHeight){minCanvasHeight=Math.max(minCanvasHeight,cropped?cropBoxData.height:0);}else if(cropped){minCanvasWidth=cropBoxData.width;minCanvasHeight=cropBoxData.height;if(minCanvasHeight*aspectRatio>minCanvasWidth){minCanvasWidth=minCanvasHeight*aspectRatio;}else{minCanvasHeight=minCanvasWidth/aspectRatio;}}}if(minCanvasWidth&&minCanvasHeight){if(minCanvasHeight*aspectRatio>minCanvasWidth){minCanvasHeight=minCanvasWidth/aspectRatio;}else{minCanvasWidth=minCanvasHeight*aspectRatio;}}else if(minCanvasWidth){minCanvasHeight=minCanvasWidth/aspectRatio;}else if(minCanvasHeight){minCanvasWidth=minCanvasHeight*aspectRatio;}canvasData.minWidth=minCanvasWidth;canvasData.minHeight=minCanvasHeight;canvasData.maxWidth=Infinity;canvasData.maxHeight=Infinity;}if(positionLimited){if(viewMode){newCanvasLeft=containerData.width-canvasData.width;newCanvasTop=containerData.height-canvasData.height;canvasData.minLeft=Math.min(0,newCanvasLeft);canvasData.minTop=Math.min(0,newCanvasTop);canvasData.maxLeft=Math.max(0,newCanvasLeft);canvasData.maxTop=Math.max(0,newCanvasTop);if(cropped&&self.limited){canvasData.minLeft=Math.min(cropBoxData.left,cropBoxData.left+(cropBoxData.width-canvasData.width));canvasData.minTop=Math.min(cropBoxData.top,cropBoxData.top+(cropBoxData.height-canvasData.height));canvasData.maxLeft=cropBoxData.left;canvasData.maxTop=cropBoxData.top;if(viewMode===2){if(canvasData.width>=containerData.width){canvasData.minLeft=Math.min(0,newCanvasLeft);canvasData.maxLeft=Math.max(0,newCanvasLeft);}if(canvasData.height>=containerData.height){canvasData.minTop=Math.min(0,newCanvasTop);canvasData.maxTop=Math.max(0,newCanvasTop);}}}}else{canvasData.minLeft=-canvasData.width;canvasData.minTop=-canvasData.height;canvasData.maxLeft=containerData.width;canvasData.maxTop=containerData.height;}}},renderCanvas:function renderCanvas(changed){var self=this;var canvasData=self.canvasData;var imageData=self.imageData;var rotate=imageData.rotate;var aspectRatio=void 0;var rotatedData=void 0;if(self.rotated){self.rotated=false;// Computes rotated sizes with image sizes
-	rotatedData=$.getRotatedSizes({width:imageData.width,height:imageData.height,degree:rotate});aspectRatio=rotatedData.width/rotatedData.height;if(aspectRatio!==canvasData.aspectRatio){canvasData.left-=(rotatedData.width-canvasData.width)/2;canvasData.top-=(rotatedData.height-canvasData.height)/2;canvasData.width=rotatedData.width;canvasData.height=rotatedData.height;canvasData.aspectRatio=aspectRatio;canvasData.naturalWidth=imageData.naturalWidth;canvasData.naturalHeight=imageData.naturalHeight;// Computes rotated sizes with natural image sizes
-	if(rotate%180){rotatedData=$.getRotatedSizes({width:imageData.naturalWidth,height:imageData.naturalHeight,degree:rotate});canvasData.naturalWidth=rotatedData.width;canvasData.naturalHeight=rotatedData.height;}self.limitCanvas(true,false);}}if(canvasData.width>canvasData.maxWidth||canvasData.width<canvasData.minWidth){canvasData.left=canvasData.oldLeft;}if(canvasData.height>canvasData.maxHeight||canvasData.height<canvasData.minHeight){canvasData.top=canvasData.oldTop;}canvasData.width=Math.min(Math.max(canvasData.width,canvasData.minWidth),canvasData.maxWidth);canvasData.height=Math.min(Math.max(canvasData.height,canvasData.minHeight),canvasData.maxHeight);self.limitCanvas(false,true);canvasData.oldLeft=canvasData.left=Math.min(Math.max(canvasData.left,canvasData.minLeft),canvasData.maxLeft);canvasData.oldTop=canvasData.top=Math.min(Math.max(canvasData.top,canvasData.minTop),canvasData.maxTop);$.setStyle(self.canvas,{width:canvasData.width,height:canvasData.height,left:canvasData.left,top:canvasData.top});self.renderImage();if(self.cropped&&self.limited){self.limitCropBox(true,true);}if(changed){self.output();}},renderImage:function renderImage(changed){var self=this;var canvasData=self.canvasData;var imageData=self.imageData;var newImageData=void 0;var reversedData=void 0;var reversedWidth=void 0;var reversedHeight=void 0;if(imageData.rotate){reversedData=$.getRotatedSizes({width:canvasData.width,height:canvasData.height,degree:imageData.rotate,aspectRatio:imageData.aspectRatio},true);reversedWidth=reversedData.width;reversedHeight=reversedData.height;newImageData={width:reversedWidth,height:reversedHeight,left:(canvasData.width-reversedWidth)/2,top:(canvasData.height-reversedHeight)/2};}$.extend(imageData,newImageData||{width:canvasData.width,height:canvasData.height,left:0,top:0});var transform=$.getTransform(imageData);$.setStyle(self.image,{width:imageData.width,height:imageData.height,marginLeft:imageData.left,marginTop:imageData.top,WebkitTransform:transform,msTransform:transform,transform:transform});if(changed){self.output();}},initCropBox:function initCropBox(){var self=this;var options=self.options;var aspectRatio=options.aspectRatio;var autoCropArea=Number(options.autoCropArea)||0.8;var canvasData=self.canvasData;var cropBoxData={width:canvasData.width,height:canvasData.height};if(aspectRatio){if(canvasData.height*aspectRatio>canvasData.width){cropBoxData.height=cropBoxData.width/aspectRatio;}else{cropBoxData.width=cropBoxData.height*aspectRatio;}}self.cropBoxData=cropBoxData;self.limitCropBox(true,true);// Initialize auto crop area
-	cropBoxData.width=Math.min(Math.max(cropBoxData.width,cropBoxData.minWidth),cropBoxData.maxWidth);cropBoxData.height=Math.min(Math.max(cropBoxData.height,cropBoxData.minHeight),cropBoxData.maxHeight);// The width/height of auto crop area must large than "minWidth/Height"
-	cropBoxData.width=Math.max(cropBoxData.minWidth,cropBoxData.width*autoCropArea);cropBoxData.height=Math.max(cropBoxData.minHeight,cropBoxData.height*autoCropArea);cropBoxData.oldLeft=cropBoxData.left=canvasData.left+(canvasData.width-cropBoxData.width)/2;cropBoxData.oldTop=cropBoxData.top=canvasData.top+(canvasData.height-cropBoxData.height)/2;self.initialCropBoxData=$.extend({},cropBoxData);},limitCropBox:function limitCropBox(sizeLimited,positionLimited){var self=this;var options=self.options;var aspectRatio=options.aspectRatio;var containerData=self.containerData;var canvasData=self.canvasData;var cropBoxData=self.cropBoxData;var limited=self.limited;var minCropBoxWidth=void 0;var minCropBoxHeight=void 0;var maxCropBoxWidth=void 0;var maxCropBoxHeight=void 0;if(sizeLimited){minCropBoxWidth=Number(options.minCropBoxWidth)||0;minCropBoxHeight=Number(options.minCropBoxHeight)||0;// The min/maxCropBoxWidth/Height must be less than containerWidth/Height
-	minCropBoxWidth=Math.min(minCropBoxWidth,containerData.width);minCropBoxHeight=Math.min(minCropBoxHeight,containerData.height);maxCropBoxWidth=Math.min(containerData.width,limited?canvasData.width:containerData.width);maxCropBoxHeight=Math.min(containerData.height,limited?canvasData.height:containerData.height);if(aspectRatio){if(minCropBoxWidth&&minCropBoxHeight){if(minCropBoxHeight*aspectRatio>minCropBoxWidth){minCropBoxHeight=minCropBoxWidth/aspectRatio;}else{minCropBoxWidth=minCropBoxHeight*aspectRatio;}}else if(minCropBoxWidth){minCropBoxHeight=minCropBoxWidth/aspectRatio;}else if(minCropBoxHeight){minCropBoxWidth=minCropBoxHeight*aspectRatio;}if(maxCropBoxHeight*aspectRatio>maxCropBoxWidth){maxCropBoxHeight=maxCropBoxWidth/aspectRatio;}else{maxCropBoxWidth=maxCropBoxHeight*aspectRatio;}}// The minWidth/Height must be less than maxWidth/Height
-	cropBoxData.minWidth=Math.min(minCropBoxWidth,maxCropBoxWidth);cropBoxData.minHeight=Math.min(minCropBoxHeight,maxCropBoxHeight);cropBoxData.maxWidth=maxCropBoxWidth;cropBoxData.maxHeight=maxCropBoxHeight;}if(positionLimited){if(limited){cropBoxData.minLeft=Math.max(0,canvasData.left);cropBoxData.minTop=Math.max(0,canvasData.top);cropBoxData.maxLeft=Math.min(containerData.width,canvasData.left+canvasData.width)-cropBoxData.width;cropBoxData.maxTop=Math.min(containerData.height,canvasData.top+canvasData.height)-cropBoxData.height;}else{cropBoxData.minLeft=0;cropBoxData.minTop=0;cropBoxData.maxLeft=containerData.width-cropBoxData.width;cropBoxData.maxTop=containerData.height-cropBoxData.height;}}},renderCropBox:function renderCropBox(){var self=this;var options=self.options;var containerData=self.containerData;var cropBoxData=self.cropBoxData;if(cropBoxData.width>cropBoxData.maxWidth||cropBoxData.width<cropBoxData.minWidth){cropBoxData.left=cropBoxData.oldLeft;}if(cropBoxData.height>cropBoxData.maxHeight||cropBoxData.height<cropBoxData.minHeight){cropBoxData.top=cropBoxData.oldTop;}cropBoxData.width=Math.min(Math.max(cropBoxData.width,cropBoxData.minWidth),cropBoxData.maxWidth);cropBoxData.height=Math.min(Math.max(cropBoxData.height,cropBoxData.minHeight),cropBoxData.maxHeight);self.limitCropBox(false,true);cropBoxData.oldLeft=cropBoxData.left=Math.min(Math.max(cropBoxData.left,cropBoxData.minLeft),cropBoxData.maxLeft);cropBoxData.oldTop=cropBoxData.top=Math.min(Math.max(cropBoxData.top,cropBoxData.minTop),cropBoxData.maxTop);if(options.movable&&options.cropBoxMovable){// Turn to move the canvas when the crop box is equal to the container
-	$.setData(self.face,'action',cropBoxData.width===containerData.width&&cropBoxData.height===containerData.height?'move':'all');}$.setStyle(self.cropBox,{width:cropBoxData.width,height:cropBoxData.height,left:cropBoxData.left,top:cropBoxData.top});if(self.cropped&&self.limited){self.limitCanvas(true,true);}if(!self.disabled){self.output();}},output:function output(){var self=this;self.preview();if(self.complete){$.dispatchEvent(self.element,'crop',self.getData());}}};/***/},/* 4 *//***/function(module,exports){'use strict';Object.defineProperty(exports,"__esModule",{value:true});var _typeof=typeof Symbol==="function"&&_typeof2(Symbol.iterator)==="symbol"?function(obj){return typeof obj==='undefined'?'undefined':_typeof2(obj);}:function(obj){return obj&&typeof Symbol==="function"&&obj.constructor===Symbol?"symbol":typeof obj==='undefined'?'undefined':_typeof2(obj);};exports.typeOf=typeOf;exports.isNumber=isNumber;exports.isUndefined=isUndefined;exports.isObject=isObject;exports.isPlainObject=isPlainObject;exports.isFunction=isFunction;exports.isArray=isArray;exports.toArray=toArray;exports.trim=trim;exports.each=each;exports.extend=extend;exports.proxy=proxy;exports.setStyle=setStyle;exports.hasClass=hasClass;exports.addClass=addClass;exports.removeClass=removeClass;exports.toggleClass=toggleClass;exports.hyphenate=hyphenate;exports.getData=getData;exports.setData=setData;exports.removeData=removeData;exports.removeListener=removeListener;exports.dispatchEvent=dispatchEvent;exports.getEvent=getEvent;exports.getOffset=getOffset;exports.getTouchesCenter=getTouchesCenter;exports.getByTag=getByTag;exports.getByClass=getByClass;exports.createElement=createElement;exports.appendChild=appendChild;exports.removeChild=removeChild;exports.empty=empty;exports.isCrossOriginURL=isCrossOriginURL;exports.addTimestamp=addTimestamp;exports.getImageSize=getImageSize;exports.getTransform=getTransform;exports.getRotatedSizes=getRotatedSizes;exports.getSourceCanvas=getSourceCanvas;exports.getStringFromCharCode=getStringFromCharCode;exports.getOrientation=getOrientation;exports.dataURLToArrayBuffer=dataURLToArrayBuffer;exports.arrayBufferToDataURL=arrayBufferToDataURL;// RegExps
-	var REGEXP_DATA_URL_HEAD=/^data:([^;]+);base64,/;var REGEXP_HYPHENATE=/([a-z\d])([A-Z])/g;var REGEXP_ORIGINS=/^(https?:)\/\/([^:\/\?#]+):?(\d*)/i;var REGEXP_SPACES=/\s+/;var REGEXP_SUFFIX=/^(width|height|left|top|marginLeft|marginTop)$/;var REGEXP_TRIM=/^\s+(.*)\s+$/;var REGEXP_USERAGENT=/(Macintosh|iPhone|iPod|iPad).*AppleWebKit/i;var navigator=window.navigator;var IS_SAFARI_OR_UIWEBVIEW=navigator&&REGEXP_USERAGENT.test(navigator.userAgent);// Utilities
-	var objectProto=Object.prototype;var toString=objectProto.toString;var hasOwnProperty=objectProto.hasOwnProperty;var slice=Array.prototype.slice;var fromCharCode=String.fromCharCode;function typeOf(obj){return toString.call(obj).slice(8,-1).toLowerCase();}function isNumber(num){return typeof num==='number'&&!isNaN(num);}function isUndefined(obj){return typeof obj==='undefined';}function isObject(obj){return(typeof obj==='undefined'?'undefined':_typeof(obj))==='object'&&obj!==null;}function isPlainObject(obj){if(!isObject(obj)){return false;}try{var _constructor=obj.constructor;var prototype=_constructor.prototype;return _constructor&&prototype&&hasOwnProperty.call(prototype,'isPrototypeOf');}catch(e){return false;}}function isFunction(fn){return typeOf(fn)==='function';}function isArray(arr){return Array.isArray?Array.isArray(arr):typeOf(arr)==='array';}function toArray(obj,offset){offset=offset>=0?offset:0;if(Array.from){return Array.from(obj).slice(offset);}return slice.call(obj,offset);}function trim(str){if(typeof str==='string'){str=str.trim?str.trim():str.replace(REGEXP_TRIM,'$1');}return str;}function each(obj,callback){if(obj&&isFunction(callback)){var i=void 0;if(isArray(obj)||isNumber(obj.length)/* array-like */){var length=obj.length;for(i=0;i<length;i++){if(callback.call(obj,obj[i],i,obj)===false){break;}}}else if(isObject(obj)){Object.keys(obj).forEach(function(key){callback.call(obj,obj[key],key,obj);});}}return obj;}function extend(){for(var _len=arguments.length,args=Array(_len),_key=0;_key<_len;_key++){args[_key]=arguments[_key];}var deep=args[0]===true;var data=deep?args[1]:args[0];if(args.length>1){// if (Object.assign) {
-	//   return Object.assign.apply(Object, args);
-	// }
-	args.shift();args.forEach(function(arg){if(isObject(arg)){Object.keys(arg).forEach(function(key){if(deep&&isObject(data[key])){extend(true,data[key],arg[key]);}else{data[key]=arg[key];}});}});}return data;}function proxy(fn,context){for(var _len2=arguments.length,args=Array(_len2>2?_len2-2:0),_key2=2;_key2<_len2;_key2++){args[_key2-2]=arguments[_key2];}return function(){for(var _len3=arguments.length,args2=Array(_len3),_key3=0;_key3<_len3;_key3++){args2[_key3]=arguments[_key3];}return fn.apply(context,args.concat(args2));};}function setStyle(element,styles){var style=element.style;each(styles,function(value,property){if(REGEXP_SUFFIX.test(property)&&isNumber(value)){value+='px';}style[property]=value;});}function hasClass(element,value){return element.classList?element.classList.contains(value):element.className.indexOf(value)>-1;}function addClass(element,value){if(isNumber(element.length)){each(element,function(elem){addClass(elem,value);});return;}if(element.classList){element.classList.add(value);return;}var className=trim(element.className);if(!className){element.className=value;}else if(className.indexOf(value)<0){element.className=className+' '+value;}}function removeClass(element,value){if(isNumber(element.length)){each(element,function(elem){removeClass(elem,value);});return;}if(element.classList){element.classList.remove(value);return;}if(element.className.indexOf(value)>=0){element.className=element.className.replace(value,'');}}function toggleClass(element,value,added){if(isNumber(element.length)){each(element,function(elem){toggleClass(elem,value,added);});return;}// IE10-11 doesn't support the second parameter of `classList.toggle`
-	if(added){addClass(element,value);}else{removeClass(element,value);}}function hyphenate(str){return str.replace(REGEXP_HYPHENATE,'$1-$2').toLowerCase();}function getData(element,name){if(isObject(element[name])){return element[name];}else if(element.dataset){return element.dataset[name];}return element.getAttribute('data-'+hyphenate(name));}function setData(element,name,data){if(isObject(data)){element[name]=data;}else if(element.dataset){element.dataset[name]=data;}else{element.setAttribute('data-'+hyphenate(name),data);}}function removeData(element,name){if(isObject(element[name])){delete element[name];}else if(element.dataset){delete element.dataset[name];}else{element.removeAttribute('data-'+hyphenate(name));}}function removeListener(element,type,handler){var types=trim(type).split(REGEXP_SPACES);if(types.length>1){each(types,function(t){removeListener(element,t,handler);});return;}if(element.removeEventListener){element.removeEventListener(type,handler,false);}else if(element.detachEvent){element.detachEvent('on'+type,handler);}}function addListener(element,type,_handler,once){var types=trim(type).split(REGEXP_SPACES);var originalHandler=_handler;if(types.length>1){each(types,function(t){addListener(element,t,_handler);});return;}if(once){_handler=function handler(){for(var _len4=arguments.length,args=Array(_len4),_key4=0;_key4<_len4;_key4++){args[_key4]=arguments[_key4];}removeListener(element,type,_handler);return originalHandler.apply(element,args);};}if(element.addEventListener){element.addEventListener(type,_handler,false);}else if(element.attachEvent){element.attachEvent('on${type}',_handler);}}exports.addListener=addListener;function dispatchEvent(element,type,data){if(element.dispatchEvent){var event=void 0;// Event and CustomEvent on IE9-11 are global objects, not constructors
-	if(isFunction(Event)&&isFunction(CustomEvent)){if(isUndefined(data)){event=new Event(type,{bubbles:true,cancelable:true});}else{event=new CustomEvent(type,{detail:data,bubbles:true,cancelable:true});}}else if(isUndefined(data)){event=document.createEvent('Event');event.initEvent(type,true,true);}else{event=document.createEvent('CustomEvent');event.initCustomEvent(type,true,true,data);}// IE9+
-	return element.dispatchEvent(event);}else if(element.fireEvent){// IE6-10 (native events only)
-	return element.fireEvent('on'+type);}return true;}function getEvent(event){var e=event||window.event;// Fix target property (IE8)
-	if(!e.target){e.target=e.srcElement||document;}if(!isNumber(e.pageX)&&isNumber(e.clientX)){var eventDoc=event.target.ownerDocument||document;var doc=eventDoc.documentElement;var body=eventDoc.body;e.pageX=e.clientX+((doc&&doc.scrollLeft||body&&body.scrollLeft||0)-(doc&&doc.clientLeft||body&&body.clientLeft||0));e.pageY=e.clientY+((doc&&doc.scrollTop||body&&body.scrollTop||0)-(doc&&doc.clientTop||body&&body.clientTop||0));}return e;}function getOffset(element){var doc=document.documentElement;var box=element.getBoundingClientRect();return{left:box.left+((window.scrollX||doc&&doc.scrollLeft||0)-(doc&&doc.clientLeft||0)),top:box.top+((window.scrollY||doc&&doc.scrollTop||0)-(doc&&doc.clientTop||0))};}function getTouchesCenter(touches){var length=touches.length;var pageX=0;var pageY=0;if(length){each(touches,function(touch){pageX+=touch.pageX;pageY+=touch.pageY;});pageX/=length;pageY/=length;}return{pageX:pageX,pageY:pageY};}function getByTag(element,tagName){return element.getElementsByTagName(tagName);}function getByClass(element,className){return element.getElementsByClassName?element.getElementsByClassName(className):element.querySelectorAll('.'+className);}function createElement(tagName){return document.createElement(tagName);}function appendChild(element,elem){element.appendChild(elem);}function removeChild(element){if(element.parentNode){element.parentNode.removeChild(element);}}function empty(element){while(element.firstChild){element.removeChild(element.firstChild);}}function isCrossOriginURL(url){var parts=url.match(REGEXP_ORIGINS);return parts&&(parts[1]!==location.protocol||parts[2]!==location.hostname||parts[3]!==location.port);}function addTimestamp(url){var timestamp='timestamp='+new Date().getTime();return url+(url.indexOf('?')===-1?'?':'&')+timestamp;}function getImageSize(image,callback){// Modern browsers (ignore Safari)
-	if(image.naturalWidth&&!IS_SAFARI_OR_UIWEBVIEW){callback(image.naturalWidth,image.naturalHeight);return;}// IE8: Don't use `new Image()` here
-	var newImage=createElement('img');newImage.onload=function load(){callback(this.width,this.height);};newImage.src=image.src;}function getTransform(data){var transforms=[];var rotate=data.rotate;var scaleX=data.scaleX;var scaleY=data.scaleY;// Rotate should come first before scale to match orientation transform
-	if(isNumber(rotate)&&rotate!==0){transforms.push('rotate('+rotate+'deg)');}if(isNumber(scaleX)&&scaleX!==1){transforms.push('scaleX('+scaleX+')');}if(isNumber(scaleY)&&scaleY!==1){transforms.push('scaleY('+scaleY+')');}return transforms.length?transforms.join(' '):'none';}function getRotatedSizes(data,reversed){var deg=Math.abs(data.degree)%180;var arc=(deg>90?180-deg:deg)*Math.PI/180;var sinArc=Math.sin(arc);var cosArc=Math.cos(arc);var width=data.width;var height=data.height;var aspectRatio=data.aspectRatio;var newWidth=void 0;var newHeight=void 0;if(!reversed){newWidth=width*cosArc+height*sinArc;newHeight=width*sinArc+height*cosArc;}else{newWidth=width/(cosArc+sinArc/aspectRatio);newHeight=newWidth/aspectRatio;}return{width:newWidth,height:newHeight};}function getSourceCanvas(image,data){var canvas=createElement('canvas');var context=canvas.getContext('2d');var dstX=0;var dstY=0;var dstWidth=data.naturalWidth;var dstHeight=data.naturalHeight;var rotate=data.rotate;var scaleX=data.scaleX;var scaleY=data.scaleY;var scalable=isNumber(scaleX)&&isNumber(scaleY)&&(scaleX!==1||scaleY!==1);var rotatable=isNumber(rotate)&&rotate!==0;var advanced=rotatable||scalable;var canvasWidth=dstWidth*Math.abs(scaleX||1);var canvasHeight=dstHeight*Math.abs(scaleY||1);var translateX=void 0;var translateY=void 0;var rotated=void 0;if(scalable){translateX=canvasWidth/2;translateY=canvasHeight/2;}if(rotatable){rotated=getRotatedSizes({width:canvasWidth,height:canvasHeight,degree:rotate});canvasWidth=rotated.width;canvasHeight=rotated.height;translateX=canvasWidth/2;translateY=canvasHeight/2;}canvas.width=canvasWidth;canvas.height=canvasHeight;if(advanced){dstX=-dstWidth/2;dstY=-dstHeight/2;context.save();context.translate(translateX,translateY);}// Rotate should come first before scale as in the "getTransform" function
-	if(rotatable){context.rotate(rotate*Math.PI/180);}if(scalable){context.scale(scaleX,scaleY);}context.drawImage(image,Math.floor(dstX),Math.floor(dstY),Math.floor(dstWidth),Math.floor(dstHeight));if(advanced){context.restore();}return canvas;}function getStringFromCharCode(dataView,start,length){var str='';var i=start;for(length+=start;i<length;i++){str+=fromCharCode(dataView.getUint8(i));}return str;}function getOrientation(arrayBuffer){var dataView=new DataView(arrayBuffer);var length=dataView.byteLength;var orientation=void 0;var exifIDCode=void 0;var tiffOffset=void 0;var firstIFDOffset=void 0;var littleEndian=void 0;var endianness=void 0;var app1Start=void 0;var ifdStart=void 0;var offset=void 0;var i=void 0;// Only handle JPEG image (start by 0xFFD8)
-	if(dataView.getUint8(0)===0xFF&&dataView.getUint8(1)===0xD8){offset=2;while(offset<length){if(dataView.getUint8(offset)===0xFF&&dataView.getUint8(offset+1)===0xE1){app1Start=offset;break;}offset++;}}if(app1Start){exifIDCode=app1Start+4;tiffOffset=app1Start+10;if(getStringFromCharCode(dataView,exifIDCode,4)==='Exif'){endianness=dataView.getUint16(tiffOffset);littleEndian=endianness===0x4949;if(littleEndian||endianness===0x4D4D/* bigEndian */){if(dataView.getUint16(tiffOffset+2,littleEndian)===0x002A){firstIFDOffset=dataView.getUint32(tiffOffset+4,littleEndian);if(firstIFDOffset>=0x00000008){ifdStart=tiffOffset+firstIFDOffset;}}}}}if(ifdStart){length=dataView.getUint16(ifdStart,littleEndian);for(i=0;i<length;i++){offset=ifdStart+i*12+2;if(dataView.getUint16(offset,littleEndian)===0x0112/* Orientation */){// 8 is the offset of the current tag's value
-	offset+=8;// Get the original orientation value
-	orientation=dataView.getUint16(offset,littleEndian);// Override the orientation with its default value for Safari
-	if(IS_SAFARI_OR_UIWEBVIEW){dataView.setUint16(offset,1,littleEndian);}break;}}}return orientation;}function dataURLToArrayBuffer(dataURL){var base64=dataURL.replace(REGEXP_DATA_URL_HEAD,'');var binary=atob(base64);var length=binary.length;var arrayBuffer=new ArrayBuffer(length);var dataView=new Uint8Array(arrayBuffer);var i=void 0;for(i=0;i<length;i++){dataView[i]=binary.charCodeAt(i);}return arrayBuffer;}// Only available for JPEG image
-	function arrayBufferToDataURL(arrayBuffer){var dataView=new Uint8Array(arrayBuffer);var length=dataView.length;var base64='';var i=void 0;for(i=0;i<length;i++){base64+=fromCharCode(dataView[i]);}return'data:image/jpeg;base64,'+btoa(base64);}/***/},/* 5 *//***/function(module,exports,__webpack_require__){'use strict';Object.defineProperty(exports,"__esModule",{value:true});var _utilities=__webpack_require__(4);var $=_interopRequireWildcard(_utilities);function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{var newObj={};if(obj!=null){for(var key in obj){if(Object.prototype.hasOwnProperty.call(obj,key))newObj[key]=obj[key];}}newObj.default=obj;return newObj;}}var DATA_PREVIEW='preview';exports.default={initPreview:function initPreview(){var self=this;var preview=self.options.preview;var image=$.createElement('img');var crossOrigin=self.crossOrigin;var url=crossOrigin?self.crossOriginUrl:self.url;if(crossOrigin){image.crossOrigin=crossOrigin;}image.src=url;$.appendChild(self.viewBox,image);self.image2=image;if(!preview){return;}var previews=document.querySelectorAll(preview);self.previews=previews;$.each(previews,function(element){var img=$.createElement('img');// Save the original size for recover
-	$.setData(element,DATA_PREVIEW,{width:element.offsetWidth,height:element.offsetHeight,html:element.innerHTML});if(crossOrigin){img.crossOrigin=crossOrigin;}img.src=url;/**
-		       * Override img element styles
-		       * Add `display:block` to avoid margin top issue
-		       * Add `height:auto` to override `height` attribute on IE8
-		       * (Occur only when margin-top <= -height)
-		       */img.style.cssText='display:block;'+'width:100%;'+'height:auto;'+'min-width:0!important;'+'min-height:0!important;'+'max-width:none!important;'+'max-height:none!important;'+'image-orientation:0deg!important;"';$.empty(element);$.appendChild(element,img);});},resetPreview:function resetPreview(){$.each(this.previews,function(element){var data=$.getData(element,DATA_PREVIEW);$.setStyle(element,{width:data.width,height:data.height});element.innerHTML=data.html;$.removeData(element,DATA_PREVIEW);});},preview:function preview(){var self=this;var imageData=self.imageData;var canvasData=self.canvasData;var cropBoxData=self.cropBoxData;var cropBoxWidth=cropBoxData.width;var cropBoxHeight=cropBoxData.height;var width=imageData.width;var height=imageData.height;var left=cropBoxData.left-canvasData.left-imageData.left;var top=cropBoxData.top-canvasData.top-imageData.top;var transform=$.getTransform(imageData);var transforms={WebkitTransform:transform,msTransform:transform,transform:transform};if(!self.cropped||self.disabled){return;}$.setStyle(self.image2,$.extend({width:width,height:height,marginLeft:-left,marginTop:-top},transforms));$.each(self.previews,function(element){var data=$.getData(element,DATA_PREVIEW);var originalWidth=data.width;var originalHeight=data.height;var newWidth=originalWidth;var newHeight=originalHeight;var ratio=1;if(cropBoxWidth){ratio=originalWidth/cropBoxWidth;newHeight=cropBoxHeight*ratio;}if(cropBoxHeight&&newHeight>originalHeight){ratio=originalHeight/cropBoxHeight;newWidth=cropBoxWidth*ratio;newHeight=originalHeight;}$.setStyle(element,{width:newWidth,height:newHeight});$.setStyle($.getByTag(element,'img')[0],$.extend({width:width*ratio,height:height*ratio,marginLeft:-left*ratio,marginTop:-top*ratio},transforms));});}};/***/},/* 6 *//***/function(module,exports,__webpack_require__){'use strict';Object.defineProperty(exports,"__esModule",{value:true});var _utilities=__webpack_require__(4);var $=_interopRequireWildcard(_utilities);function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{var newObj={};if(obj!=null){for(var key in obj){if(Object.prototype.hasOwnProperty.call(obj,key))newObj[key]=obj[key];}}newObj.default=obj;return newObj;}}// Events
-	var EVENT_MOUSE_DOWN='mousedown touchstart pointerdown MSPointerDown';var EVENT_MOUSE_MOVE='mousemove touchmove pointermove MSPointerMove';var EVENT_MOUSE_UP='mouseup touchend touchcancel pointerup pointercancel'+' MSPointerUp MSPointerCancel';var EVENT_WHEEL='wheel mousewheel DOMMouseScroll';var EVENT_DBLCLICK='dblclick';var EVENT_RESIZE='resize';var EVENT_CROP_START='cropstart';var EVENT_CROP_MOVE='cropmove';var EVENT_CROP_END='cropend';var EVENT_CROP='crop';var EVENT_ZOOM='zoom';exports.default={bind:function bind(){var self=this;var options=self.options;var element=self.element;var cropper=self.cropper;if($.isFunction(options.cropstart)){$.addListener(element,EVENT_CROP_START,options.cropstart);}if($.isFunction(options.cropmove)){$.addListener(element,EVENT_CROP_MOVE,options.cropmove);}if($.isFunction(options.cropend)){$.addListener(element,EVENT_CROP_END,options.cropend);}if($.isFunction(options.crop)){$.addListener(element,EVENT_CROP,options.crop);}if($.isFunction(options.zoom)){$.addListener(element,EVENT_ZOOM,options.zoom);}$.addListener(cropper,EVENT_MOUSE_DOWN,self.onCropStart=$.proxy(self.cropStart,self));if(options.zoomable&&options.zoomOnWheel){$.addListener(cropper,EVENT_WHEEL,self.onWheel=$.proxy(self.wheel,self));}if(options.toggleDragModeOnDblclick){$.addListener(cropper,EVENT_DBLCLICK,self.onDblclick=$.proxy(self.dblclick,self));}$.addListener(document,EVENT_MOUSE_MOVE,self.onCropMove=$.proxy(self.cropMove,self));$.addListener(document,EVENT_MOUSE_UP,self.onCropEnd=$.proxy(self.cropEnd,self));if(options.responsive){$.addListener(window,EVENT_RESIZE,self.onResize=$.proxy(self.resize,self));}},unbind:function unbind(){var self=this;var options=self.options;var element=self.element;var cropper=self.cropper;if($.isFunction(options.cropstart)){$.removeListener(element,EVENT_CROP_START,options.cropstart);}if($.isFunction(options.cropmove)){$.removeListener(element,EVENT_CROP_MOVE,options.cropmove);}if($.isFunction(options.cropend)){$.removeListener(element,EVENT_CROP_END,options.cropend);}if($.isFunction(options.crop)){$.removeListener(element,EVENT_CROP,options.crop);}if($.isFunction(options.zoom)){$.removeListener(element,EVENT_ZOOM,options.zoom);}$.removeListener(cropper,EVENT_MOUSE_DOWN,self.onCropStart);if(options.zoomable&&options.zoomOnWheel){$.removeListener(cropper,EVENT_WHEEL,self.onWheel);}if(options.toggleDragModeOnDblclick){$.removeListener(cropper,EVENT_DBLCLICK,self.onDblclick);}$.removeListener(document,EVENT_MOUSE_MOVE,self.onCropMove);$.removeListener(document,EVENT_MOUSE_UP,self.onCropEnd);if(options.responsive){$.removeListener(window,EVENT_RESIZE,self.onResize);}}};/***/},/* 7 *//***/function(module,exports,__webpack_require__){'use strict';Object.defineProperty(exports,"__esModule",{value:true});exports.REGEXP_ACTIONS=undefined;var _utilities=__webpack_require__(4);var $=_interopRequireWildcard(_utilities);function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{var newObj={};if(obj!=null){for(var key in obj){if(Object.prototype.hasOwnProperty.call(obj,key))newObj[key]=obj[key];}}newObj.default=obj;return newObj;}}var REGEXP_ACTIONS=exports.REGEXP_ACTIONS=/^(e|w|s|n|se|sw|ne|nw|all|crop|move|zoom)$/;exports.default={resize:function resize(){var self=this;var restore=self.options.restore;var container=self.container;var containerData=self.containerData;// Check `container` is necessary for IE8
-	if(self.disabled||!containerData){return;}var ratio=container.offsetWidth/containerData.width;var canvasData=void 0;var cropBoxData=void 0;// Resize when width changed or height changed
-	if(ratio!==1||container.offsetHeight!==containerData.height){if(restore){canvasData=self.getCanvasData();cropBoxData=self.getCropBoxData();}self.render();if(restore){self.setCanvasData($.each(canvasData,function(n,i){canvasData[i]=n*ratio;}));self.setCropBoxData($.each(cropBoxData,function(n,i){cropBoxData[i]=n*ratio;}));}}},dblclick:function dblclick(){var self=this;if(self.disabled){return;}self.setDragMode($.hasClass(self.dragBox,'cropper-crop')?'move':'crop');},wheel:function wheel(event){var self=this;var e=$.getEvent(event);var ratio=Number(self.options.wheelZoomRatio)||0.1;var delta=1;if(self.disabled){return;}e.preventDefault();// Limit wheel speed to prevent zoom too fast (#21)
-	if(self.wheeling){return;}self.wheeling=true;setTimeout(function(){self.wheeling=false;},50);if(e.deltaY){delta=e.deltaY>0?1:-1;}else if(e.wheelDelta){delta=-e.wheelDelta/120;}else if(e.detail){delta=e.detail>0?1:-1;}self.zoom(-delta*ratio,e);},cropStart:function cropStart(event){var self=this;var options=self.options;var e=$.getEvent(event);var touches=e.touches;var touchesLength=void 0;var touch=void 0;var action=void 0;if(self.disabled){return;}if(touches){touchesLength=touches.length;if(touchesLength>1){if(options.zoomable&&options.zoomOnTouch&&touchesLength===2){touch=touches[1];self.startX2=touch.pageX;self.startY2=touch.pageY;action='zoom';}else{return;}}touch=touches[0];}action=action||$.getData(e.target,'action');if(REGEXP_ACTIONS.test(action)){if($.dispatchEvent(self.element,'cropstart',{originalEvent:e,action:action})===false){return;}e.preventDefault();self.action=action;self.cropping=false;self.startX=touch?touch.pageX:e.pageX;self.startY=touch?touch.pageY:e.pageY;if(action==='crop'){self.cropping=true;$.addClass(self.dragBox,'cropper-modal');}}},cropMove:function cropMove(event){var self=this;var options=self.options;var e=$.getEvent(event);var touches=e.touches;var action=self.action;var touchesLength=void 0;var touch=void 0;if(self.disabled){return;}if(touches){touchesLength=touches.length;if(touchesLength>1){if(options.zoomable&&options.zoomOnTouch&&touchesLength===2){touch=touches[1];self.endX2=touch.pageX;self.endY2=touch.pageY;}else{return;}}touch=touches[0];}if(action){if($.dispatchEvent(self.element,'cropmove',{originalEvent:e,action:action})===false){return;}e.preventDefault();self.endX=touch?touch.pageX:e.pageX;self.endY=touch?touch.pageY:e.pageY;self.change(e.shiftKey,action==='zoom'?e:null);}},cropEnd:function cropEnd(event){var self=this;var options=self.options;var e=$.getEvent(event);var action=self.action;if(self.disabled){return;}if(action){e.preventDefault();if(self.cropping){self.cropping=false;$.toggleClass(self.dragBox,'cropper-modal',self.cropped&&options.modal);}self.action='';$.dispatchEvent(self.element,'cropend',{originalEvent:e,action:action});}}};/***/},/* 8 *//***/function(module,exports,__webpack_require__){'use strict';Object.defineProperty(exports,"__esModule",{value:true});var _utilities=__webpack_require__(4);var $=_interopRequireWildcard(_utilities);function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{var newObj={};if(obj!=null){for(var key in obj){if(Object.prototype.hasOwnProperty.call(obj,key))newObj[key]=obj[key];}}newObj.default=obj;return newObj;}}// Actions
-	var ACTION_EAST='e';var ACTION_WEST='w';var ACTION_SOUTH='s';var ACTION_NORTH='n';var ACTION_SOUTH_EAST='se';var ACTION_SOUTH_WEST='sw';var ACTION_NORTH_EAST='ne';var ACTION_NORTH_WEST='nw';exports.default={change:function change(shiftKey,originalEvent){var self=this;var options=self.options;var containerData=self.containerData;var canvasData=self.canvasData;var cropBoxData=self.cropBoxData;var aspectRatio=options.aspectRatio;var action=self.action;var width=cropBoxData.width;var height=cropBoxData.height;var left=cropBoxData.left;var top=cropBoxData.top;var right=left+width;var bottom=top+height;var minLeft=0;var minTop=0;var maxWidth=containerData.width;var maxHeight=containerData.height;var renderable=true;var offset=void 0;// Locking aspect ratio in "free mode" by holding shift key
-	if(!aspectRatio&&shiftKey){aspectRatio=width&&height?width/height:1;}if(self.limited){minLeft=cropBoxData.minLeft;minTop=cropBoxData.minTop;maxWidth=minLeft+Math.min(containerData.width,canvasData.width,canvasData.left+canvasData.width);maxHeight=minTop+Math.min(containerData.height,canvasData.height,canvasData.top+canvasData.height);}var range={x:self.endX-self.startX,y:self.endY-self.startY};if(aspectRatio){range.X=range.y*aspectRatio;range.Y=range.x/aspectRatio;}switch(action){// Move crop box
-	case'all':left+=range.x;top+=range.y;break;// Resize crop box
-	case ACTION_EAST:if(range.x>=0&&(right>=maxWidth||aspectRatio&&(top<=minTop||bottom>=maxHeight))){renderable=false;break;}width+=range.x;if(aspectRatio){height=width/aspectRatio;top-=range.Y/2;}if(width<0){action=ACTION_WEST;width=0;}break;case ACTION_NORTH:if(range.y<=0&&(top<=minTop||aspectRatio&&(left<=minLeft||right>=maxWidth))){renderable=false;break;}height-=range.y;top+=range.y;if(aspectRatio){width=height*aspectRatio;left+=range.X/2;}if(height<0){action=ACTION_SOUTH;height=0;}break;case ACTION_WEST:if(range.x<=0&&(left<=minLeft||aspectRatio&&(top<=minTop||bottom>=maxHeight))){renderable=false;break;}width-=range.x;left+=range.x;if(aspectRatio){height=width/aspectRatio;top+=range.Y/2;}if(width<0){action=ACTION_EAST;width=0;}break;case ACTION_SOUTH:if(range.y>=0&&(bottom>=maxHeight||aspectRatio&&(left<=minLeft||right>=maxWidth))){renderable=false;break;}height+=range.y;if(aspectRatio){width=height*aspectRatio;left-=range.X/2;}if(height<0){action=ACTION_NORTH;height=0;}break;case ACTION_NORTH_EAST:if(aspectRatio){if(range.y<=0&&(top<=minTop||right>=maxWidth)){renderable=false;break;}height-=range.y;top+=range.y;width=height*aspectRatio;}else{if(range.x>=0){if(right<maxWidth){width+=range.x;}else if(range.y<=0&&top<=minTop){renderable=false;}}else{width+=range.x;}if(range.y<=0){if(top>minTop){height-=range.y;top+=range.y;}}else{height-=range.y;top+=range.y;}}if(width<0&&height<0){action=ACTION_SOUTH_WEST;height=0;width=0;}else if(width<0){action=ACTION_NORTH_WEST;width=0;}else if(height<0){action=ACTION_SOUTH_EAST;height=0;}break;case ACTION_NORTH_WEST:if(aspectRatio){if(range.y<=0&&(top<=minTop||left<=minLeft)){renderable=false;break;}height-=range.y;top+=range.y;width=height*aspectRatio;left+=range.X;}else{if(range.x<=0){if(left>minLeft){width-=range.x;left+=range.x;}else if(range.y<=0&&top<=minTop){renderable=false;}}else{width-=range.x;left+=range.x;}if(range.y<=0){if(top>minTop){height-=range.y;top+=range.y;}}else{height-=range.y;top+=range.y;}}if(width<0&&height<0){action=ACTION_SOUTH_EAST;height=0;width=0;}else if(width<0){action=ACTION_NORTH_EAST;width=0;}else if(height<0){action=ACTION_SOUTH_WEST;height=0;}break;case ACTION_SOUTH_WEST:if(aspectRatio){if(range.x<=0&&(left<=minLeft||bottom>=maxHeight)){renderable=false;break;}width-=range.x;left+=range.x;height=width/aspectRatio;}else{if(range.x<=0){if(left>minLeft){width-=range.x;left+=range.x;}else if(range.y>=0&&bottom>=maxHeight){renderable=false;}}else{width-=range.x;left+=range.x;}if(range.y>=0){if(bottom<maxHeight){height+=range.y;}}else{height+=range.y;}}if(width<0&&height<0){action=ACTION_NORTH_EAST;height=0;width=0;}else if(width<0){action=ACTION_SOUTH_EAST;width=0;}else if(height<0){action=ACTION_NORTH_WEST;height=0;}break;case ACTION_SOUTH_EAST:if(aspectRatio){if(range.x>=0&&(right>=maxWidth||bottom>=maxHeight)){renderable=false;break;}width+=range.x;height=width/aspectRatio;}else{if(range.x>=0){if(right<maxWidth){width+=range.x;}else if(range.y>=0&&bottom>=maxHeight){renderable=false;}}else{width+=range.x;}if(range.y>=0){if(bottom<maxHeight){height+=range.y;}}else{height+=range.y;}}if(width<0&&height<0){action=ACTION_NORTH_WEST;height=0;width=0;}else if(width<0){action=ACTION_SOUTH_WEST;width=0;}else if(height<0){action=ACTION_NORTH_EAST;height=0;}break;// Move canvas
-	case'move':self.move(range.x,range.y);renderable=false;break;// Zoom canvas
-	case'zoom':self.zoom(function(x1,y1,x2,y2){var z1=Math.sqrt(x1*x1+y1*y1);var z2=Math.sqrt(x2*x2+y2*y2);return(z2-z1)/z1;}(Math.abs(self.startX-self.startX2),Math.abs(self.startY-self.startY2),Math.abs(self.endX-self.endX2),Math.abs(self.endY-self.endY2)),originalEvent);self.startX2=self.endX2;self.startY2=self.endY2;renderable=false;break;// Create crop box
-	case'crop':if(!range.x||!range.y){renderable=false;break;}offset=$.getOffset(self.cropper);left=self.startX-offset.left;top=self.startY-offset.top;width=cropBoxData.minWidth;height=cropBoxData.minHeight;if(range.x>0){action=range.y>0?ACTION_SOUTH_EAST:ACTION_NORTH_EAST;}else if(range.x<0){left-=width;action=range.y>0?ACTION_SOUTH_WEST:ACTION_NORTH_WEST;}if(range.y<0){top-=height;}// Show the crop box if is hidden
-	if(!self.cropped){$.removeClass(self.cropBox,'cropper-hidden');self.cropped=true;if(self.limited){self.limitCropBox(true,true);}}break;// No default
-	}if(renderable){cropBoxData.width=width;cropBoxData.height=height;cropBoxData.left=left;cropBoxData.top=top;self.action=action;self.renderCropBox();}// Override
-	self.startX=self.endX;self.startY=self.endY;}};/***/},/* 9 *//***/function(module,exports,__webpack_require__){'use strict';Object.defineProperty(exports,"__esModule",{value:true});var _utilities=__webpack_require__(4);var $=_interopRequireWildcard(_utilities);function _interopRequireWildcard(obj){if(obj&&obj.__esModule){return obj;}else{var newObj={};if(obj!=null){for(var key in obj){if(Object.prototype.hasOwnProperty.call(obj,key))newObj[key]=obj[key];}}newObj.default=obj;return newObj;}}function _toConsumableArray(arr){if(Array.isArray(arr)){for(var i=0,arr2=Array(arr.length);i<arr.length;i++){arr2[i]=arr[i];}return arr2;}else{return Array.from(arr);}}exports.default={// Show the crop box manually
-	crop:function crop(){var self=this;if(self.ready&&!self.disabled){if(!self.cropped){self.cropped=true;self.limitCropBox(true,true);if(self.options.modal){$.addClass(self.dragBox,'cropper-modal');}$.removeClass(self.cropBox,'cropper-hidden');}self.setCropBoxData(self.initialCropBoxData);}return self;},// Reset the image and crop box to their initial states
-	reset:function reset(){var self=this;if(self.ready&&!self.disabled){self.imageData=$.extend({},self.initialImageData);self.canvasData=$.extend({},self.initialCanvasData);self.cropBoxData=$.extend({},self.initialCropBoxData);self.renderCanvas();if(self.cropped){self.renderCropBox();}}return self;},// Clear the crop box
-	clear:function clear(){var self=this;if(self.cropped&&!self.disabled){$.extend(self.cropBoxData,{left:0,top:0,width:0,height:0});self.cropped=false;self.renderCropBox();self.limitCanvas();// Render canvas after crop box rendered
-	self.renderCanvas();$.removeClass(self.dragBox,'cropper-modal');$.addClass(self.cropBox,'cropper-hidden');}return self;},/**
-		   * Replace the image's src and rebuild the cropper
-		   *
-		   * @param {String} url
-		   * @param {Boolean} onlyColorChanged (optional)
-		   */replace:function replace(url,onlyColorChanged){var self=this;if(!self.disabled&&url){if(self.isImg){self.element.src=url;}if(onlyColorChanged){self.url=url;self.image.src=url;if(self.ready){self.image2.src=url;$.each(self.previews,function(element){$.getByTag(element,'img')[0].src=url;});}}else{if(self.isImg){self.replaced=true;}// Clear previous data
-	self.options.data=null;self.load(url);}}return self;},// Enable (unfreeze) the cropper
-	enable:function enable(){var self=this;if(self.ready){self.disabled=false;$.removeClass(self.cropper,'cropper-disabled');}return self;},// Disable (freeze) the cropper
-	disable:function disable(){var self=this;if(self.ready){self.disabled=true;$.addClass(self.cropper,'cropper-disabled');}return self;},// Destroy the cropper and remove the instance from the image
-	destroy:function destroy(){var self=this;var element=self.element;var image=self.image;if(self.loaded){if(self.isImg&&self.replaced){element.src=self.originalUrl;}self.unbuild();$.removeClass(element,'cropper-hidden');}else if(self.isImg){$.removeListener(element,'load',self.start);}else if(image){$.removeChild(image);}$.removeData(element,'cropper');return self;},/**
-		   * Move the canvas with relative offsets
-		   *
-		   * @param {Number} offsetX
-		   * @param {Number} offsetY (optional)
-		   */move:function move(offsetX,offsetY){var self=this;var canvasData=self.canvasData;return self.moveTo($.isUndefined(offsetX)?offsetX:canvasData.left+Number(offsetX),$.isUndefined(offsetY)?offsetY:canvasData.top+Number(offsetY));},/**
-		   * Move the canvas to an absolute point
-		   *
-		   * @param {Number} x
-		   * @param {Number} y (optional)
-		   */moveTo:function moveTo(x,y){var self=this;var canvasData=self.canvasData;var changed=false;// If "y" is not present, its default value is "x"
-	if($.isUndefined(y)){y=x;}x=Number(x);y=Number(y);if(self.ready&&!self.disabled&&self.options.movable){if($.isNumber(x)){canvasData.left=x;changed=true;}if($.isNumber(y)){canvasData.top=y;changed=true;}if(changed){self.renderCanvas(true);}}return self;},/**
-		   * Zoom the canvas with a relative ratio
-		   *
-		   * @param {Number} ratio
-		   * @param {Event} _originalEvent (private)
-		   */zoom:function zoom(ratio,_originalEvent){var self=this;var canvasData=self.canvasData;ratio=Number(ratio);if(ratio<0){ratio=1/(1-ratio);}else{ratio=1+ratio;}return self.zoomTo(canvasData.width*ratio/canvasData.naturalWidth,_originalEvent);},/**
-		   * Zoom the canvas to an absolute ratio
-		   *
-		   * @param {Number} ratio
-		   * @param {Event} _originalEvent (private)
-		   */zoomTo:function zoomTo(ratio,_originalEvent){var self=this;var options=self.options;var canvasData=self.canvasData;var width=canvasData.width;var height=canvasData.height;var naturalWidth=canvasData.naturalWidth;var naturalHeight=canvasData.naturalHeight;var newWidth=void 0;var newHeight=void 0;var offset=void 0;var center=void 0;ratio=Number(ratio);if(ratio>=0&&self.ready&&!self.disabled&&options.zoomable){newWidth=naturalWidth*ratio;newHeight=naturalHeight*ratio;if($.dispatchEvent(self.element,'zoom',{originalEvent:_originalEvent,oldRatio:width/naturalWidth,ratio:newWidth/naturalWidth})===false){return self;}if(_originalEvent){offset=$.getOffset(self.cropper);center=_originalEvent.touches?$.getTouchesCenter(_originalEvent.touches):{pageX:_originalEvent.pageX,pageY:_originalEvent.pageY};// Zoom from the triggering point of the event
-	canvasData.left-=(newWidth-width)*((center.pageX-offset.left-canvasData.left)/width);canvasData.top-=(newHeight-height)*((center.pageY-offset.top-canvasData.top)/height);}else{// Zoom from the center of the canvas
-	canvasData.left-=(newWidth-width)/2;canvasData.top-=(newHeight-height)/2;}canvasData.width=newWidth;canvasData.height=newHeight;self.renderCanvas(true);}return self;},/**
-		   * Rotate the canvas with a relative degree
-		   *
-		   * @param {Number} degree
-		   */rotate:function rotate(degree){var self=this;return self.rotateTo((self.imageData.rotate||0)+Number(degree));},/**
-		   * Rotate the canvas to an absolute degree
-		   * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function#rotate()
-		   *
-		   * @param {Number} degree
-		   */rotateTo:function rotateTo(degree){var self=this;degree=Number(degree);if($.isNumber(degree)&&self.ready&&!self.disabled&&self.options.rotatable){self.imageData.rotate=degree%360;self.rotated=true;self.renderCanvas(true);}return self;},/**
-		   * Scale the image
-		   * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function#scale()
-		   *
-		   * @param {Number} scaleX
-		   * @param {Number} scaleY (optional)
-		   */scale:function scale(scaleX,scaleY){var self=this;var imageData=self.imageData;var changed=false;// If "scaleY" is not present, its default value is "scaleX"
-	if($.isUndefined(scaleY)){scaleY=scaleX;}scaleX=Number(scaleX);scaleY=Number(scaleY);if(self.ready&&!self.disabled&&self.options.scalable){if($.isNumber(scaleX)){imageData.scaleX=scaleX;changed=true;}if($.isNumber(scaleY)){imageData.scaleY=scaleY;changed=true;}if(changed){self.renderImage(true);}}return self;},/**
-		   * Scale the abscissa of the image
-		   *
-		   * @param {Number} scaleX
-		   */scaleX:function scaleX(_scaleX){var self=this;var scaleY=self.imageData.scaleY;return self.scale(_scaleX,$.isNumber(scaleY)?scaleY:1);},/**
-		   * Scale the ordinate of the image
-		   *
-		   * @param {Number} scaleY
-		   */scaleY:function scaleY(_scaleY){var self=this;var scaleX=self.imageData.scaleX;return self.scale($.isNumber(scaleX)?scaleX:1,_scaleY);},/**
-		   * Get the cropped area position and size data (base on the original image)
-		   *
-		   * @param {Boolean} rounded (optional)
-		   * @return {Object} data
-		   */getData:function getData(rounded){var self=this;var options=self.options;var imageData=self.imageData;var canvasData=self.canvasData;var cropBoxData=self.cropBoxData;var ratio=void 0;var data=void 0;if(self.ready&&self.cropped){data={x:cropBoxData.left-canvasData.left,y:cropBoxData.top-canvasData.top,width:cropBoxData.width,height:cropBoxData.height};ratio=imageData.width/imageData.naturalWidth;$.each(data,function(n,i){n/=ratio;data[i]=rounded?Math.round(n):n;});}else{data={x:0,y:0,width:0,height:0};}if(options.rotatable){data.rotate=imageData.rotate||0;}if(options.scalable){data.scaleX=imageData.scaleX||1;data.scaleY=imageData.scaleY||1;}return data;},/**
-		   * Set the cropped area position and size with new data
-		   *
-		   * @param {Object} data
-		   */setData:function setData(data){var self=this;var options=self.options;var imageData=self.imageData;var canvasData=self.canvasData;var cropBoxData={};var rotated=void 0;var scaled=void 0;var ratio=void 0;if($.isFunction(data)){data=data.call(self.element);}if(self.ready&&!self.disabled&&$.isPlainObject(data)){if(options.rotatable){if($.isNumber(data.rotate)&&data.rotate!==imageData.rotate){imageData.rotate=data.rotate;self.rotated=rotated=true;}}if(options.scalable){if($.isNumber(data.scaleX)&&data.scaleX!==imageData.scaleX){imageData.scaleX=data.scaleX;scaled=true;}if($.isNumber(data.scaleY)&&data.scaleY!==imageData.scaleY){imageData.scaleY=data.scaleY;scaled=true;}}if(rotated){self.renderCanvas();}else if(scaled){self.renderImage();}ratio=imageData.width/imageData.naturalWidth;if($.isNumber(data.x)){cropBoxData.left=data.x*ratio+canvasData.left;}if($.isNumber(data.y)){cropBoxData.top=data.y*ratio+canvasData.top;}if($.isNumber(data.width)){cropBoxData.width=data.width*ratio;}if($.isNumber(data.height)){cropBoxData.height=data.height*ratio;}self.setCropBoxData(cropBoxData);}return self;},/**
-		   * Get the container size data
-		   *
-		   * @return {Object} data
-		   */getContainerData:function getContainerData(){var self=this;return self.ready?self.containerData:{};},/**
-		   * Get the image position and size data
-		   *
-		   * @return {Object} data
-		   */getImageData:function getImageData(){var self=this;return self.loaded?self.imageData:{};},/**
-		   * Get the canvas position and size data
-		   *
-		   * @return {Object} data
-		   */getCanvasData:function getCanvasData(){var self=this;var canvasData=self.canvasData;var data={};if(self.ready){$.each(['left','top','width','height','naturalWidth','naturalHeight'],function(n){data[n]=canvasData[n];});}return data;},/**
-		   * Set the canvas position and size with new data
-		   *
-		   * @param {Object} data
-		   */setCanvasData:function setCanvasData(data){var self=this;var canvasData=self.canvasData;var aspectRatio=canvasData.aspectRatio;if($.isFunction(data)){data=data.call(self.element);}if(self.ready&&!self.disabled&&$.isPlainObject(data)){if($.isNumber(data.left)){canvasData.left=data.left;}if($.isNumber(data.top)){canvasData.top=data.top;}if($.isNumber(data.width)){canvasData.width=data.width;canvasData.height=data.width/aspectRatio;}else if($.isNumber(data.height)){canvasData.height=data.height;canvasData.width=data.height*aspectRatio;}self.renderCanvas(true);}return self;},/**
-		   * Get the crop box position and size data
-		   *
-		   * @return {Object} data
-		   */getCropBoxData:function getCropBoxData(){var self=this;var cropBoxData=self.cropBoxData;var data=void 0;if(self.ready&&self.cropped){data={left:cropBoxData.left,top:cropBoxData.top,width:cropBoxData.width,height:cropBoxData.height};}return data||{};},/**
-		   * Set the crop box position and size with new data
-		   *
-		   * @param {Object} data
-		   */setCropBoxData:function setCropBoxData(data){var self=this;var cropBoxData=self.cropBoxData;var aspectRatio=self.options.aspectRatio;var widthChanged=void 0;var heightChanged=void 0;if($.isFunction(data)){data=data.call(self.element);}if(self.ready&&self.cropped&&!self.disabled&&$.isPlainObject(data)){if($.isNumber(data.left)){cropBoxData.left=data.left;}if($.isNumber(data.top)){cropBoxData.top=data.top;}if($.isNumber(data.width)){widthChanged=true;cropBoxData.width=data.width;}if($.isNumber(data.height)){heightChanged=true;cropBoxData.height=data.height;}if(aspectRatio){if(widthChanged){cropBoxData.height=cropBoxData.width/aspectRatio;}else if(heightChanged){cropBoxData.width=cropBoxData.height*aspectRatio;}}self.renderCropBox();}return self;},/**
-		   * Get a canvas drawn the cropped image
-		   *
-		   * @param {Object} options (optional)
-		   * @return {HTMLCanvasElement} canvas
-		   */getCroppedCanvas:function getCroppedCanvas(options){var self=this;if(!self.ready||!window.HTMLCanvasElement){return null;}// Return the whole canvas if not cropped
-	if(!self.cropped){return $.getSourceCanvas(self.image,self.imageData);}if(!$.isPlainObject(options)){options={};}var data=self.getData();var originalWidth=data.width;var originalHeight=data.height;var aspectRatio=originalWidth/originalHeight;var scaledWidth=void 0;var scaledHeight=void 0;var scaledRatio=void 0;if($.isPlainObject(options)){scaledWidth=options.width;scaledHeight=options.height;if(scaledWidth){scaledHeight=scaledWidth/aspectRatio;scaledRatio=scaledWidth/originalWidth;}else if(scaledHeight){scaledWidth=scaledHeight*aspectRatio;scaledRatio=scaledHeight/originalHeight;}}// The canvas element will use `Math.floor` on a float number, so floor first
-	var canvasWidth=Math.floor(scaledWidth||originalWidth);var canvasHeight=Math.floor(scaledHeight||originalHeight);var canvas=$.createElement('canvas');var context=canvas.getContext('2d');canvas.width=canvasWidth;canvas.height=canvasHeight;if(options.fillColor){context.fillStyle=options.fillColor;context.fillRect(0,0,canvasWidth,canvasHeight);}// https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D.drawImage
-	var parameters=function(){var source=$.getSourceCanvas(self.image,self.imageData);var sourceWidth=source.width;var sourceHeight=source.height;var canvasData=self.canvasData;var params=[source];// Source canvas
-	var srcX=data.x+canvasData.naturalWidth*(Math.abs(data.scaleX||1)-1)/2;var srcY=data.y+canvasData.naturalHeight*(Math.abs(data.scaleY||1)-1)/2;var srcWidth=void 0;var srcHeight=void 0;// Destination canvas
-	var dstX=void 0;var dstY=void 0;var dstWidth=void 0;var dstHeight=void 0;if(srcX<=-originalWidth||srcX>sourceWidth){srcX=srcWidth=dstX=dstWidth=0;}else if(srcX<=0){dstX=-srcX;srcX=0;srcWidth=dstWidth=Math.min(sourceWidth,originalWidth+srcX);}else if(srcX<=sourceWidth){dstX=0;srcWidth=dstWidth=Math.min(originalWidth,sourceWidth-srcX);}if(srcWidth<=0||srcY<=-originalHeight||srcY>sourceHeight){srcY=srcHeight=dstY=dstHeight=0;}else if(srcY<=0){dstY=-srcY;srcY=0;srcHeight=dstHeight=Math.min(sourceHeight,originalHeight+srcY);}else if(srcY<=sourceHeight){dstY=0;srcHeight=dstHeight=Math.min(originalHeight,sourceHeight-srcY);}params.push(Math.floor(srcX),Math.floor(srcY),Math.floor(srcWidth),Math.floor(srcHeight));// Scale destination sizes
-	if(scaledRatio){dstX*=scaledRatio;dstY*=scaledRatio;dstWidth*=scaledRatio;dstHeight*=scaledRatio;}// Avoid "IndexSizeError" in IE and Firefox
-	if(dstWidth>0&&dstHeight>0){params.push(Math.floor(dstX),Math.floor(dstY),Math.floor(dstWidth),Math.floor(dstHeight));}return params;}();context.drawImage.apply(context,_toConsumableArray(parameters));return canvas;},/**
-		   * Change the aspect ratio of the crop box
-		   *
-		   * @param {Number} aspectRatio
-		   */setAspectRatio:function setAspectRatio(aspectRatio){var self=this;var options=self.options;if(!self.disabled&&!$.isUndefined(aspectRatio)){// 0 -> NaN
-	options.aspectRatio=Math.max(0,aspectRatio)||NaN;if(self.ready){self.initCropBox();if(self.cropped){self.renderCropBox();}}}return self;},/**
-		   * Change the drag mode
-		   *
-		   * @param {String} mode (optional)
-		   */setDragMode:function setDragMode(mode){var self=this;var options=self.options;var dragBox=self.dragBox;var face=self.face;var croppable=void 0;var movable=void 0;if(self.loaded&&!self.disabled){croppable=mode==='crop';movable=options.movable&&mode==='move';mode=croppable||movable?mode:'none';$.setData(dragBox,'action',mode);$.toggleClass(dragBox,'cropper-crop',croppable);$.toggleClass(dragBox,'cropper-move',movable);if(!options.cropBoxMovable){// Sync drag mode to crop box when it is not movable
-	$.setData(face,'action',mode);$.toggleClass(face,'cropper-crop',croppable);$.toggleClass(face,'cropper-move',movable);}}return self;}};/***/}/******/]));});;//# sourceMappingURL=cropper.js.map
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38)(module)))
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _defaults = __webpack_require__(79);
+
+	var _defaults2 = _interopRequireDefault(_defaults);
+
+	var _template = __webpack_require__(80);
+
+	var _template2 = _interopRequireDefault(_template);
+
+	var _render = __webpack_require__(81);
+
+	var _render2 = _interopRequireDefault(_render);
+
+	var _preview = __webpack_require__(83);
+
+	var _preview2 = _interopRequireDefault(_preview);
+
+	var _events = __webpack_require__(84);
+
+	var _events2 = _interopRequireDefault(_events);
+
+	var _handlers = __webpack_require__(85);
+
+	var _handlers2 = _interopRequireDefault(_handlers);
+
+	var _change = __webpack_require__(86);
+
+	var _change2 = _interopRequireDefault(_change);
+
+	var _methods = __webpack_require__(87);
+
+	var _methods2 = _interopRequireDefault(_methods);
+
+	var _utilities = __webpack_require__(82);
+
+	var $ = _interopRequireWildcard(_utilities);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	// Constants
+	var NAMESPACE = 'cropper';
+
+	// Classes
+	var CLASS_HIDDEN = NAMESPACE + '-hidden';
+
+	// Events
+	var EVENT_ERROR = 'error';
+	var EVENT_LOAD = 'load';
+	var EVENT_READY = 'ready';
+	var EVENT_CROP = 'crop';
+
+	// RegExps
+	var REGEXP_DATA_URL = /^data:/;
+	var REGEXP_DATA_URL_JPEG = /^data:image\/jpeg.*;base64,/;
+
+	var AnotherCropper = void 0;
+
+	var Cropper = function () {
+	  function Cropper(element, options) {
+	    _classCallCheck(this, Cropper);
+
+	    var self = this;
+
+	    self.element = element;
+	    self.options = $.extend({}, _defaults2.default, $.isPlainObject(options) && options);
+	    self.loaded = false;
+	    self.ready = false;
+	    self.complete = false;
+	    self.rotated = false;
+	    self.cropped = false;
+	    self.disabled = false;
+	    self.replaced = false;
+	    self.limited = false;
+	    self.wheeling = false;
+	    self.isImg = false;
+	    self.originalUrl = '';
+	    self.canvasData = null;
+	    self.cropBoxData = null;
+	    self.previews = null;
+	    self.init();
+	  }
+
+	  _createClass(Cropper, [{
+	    key: 'init',
+	    value: function init() {
+	      var self = this;
+	      var element = self.element;
+	      var tagName = element.tagName.toLowerCase();
+	      var url = void 0;
+
+	      if ($.getData(element, NAMESPACE)) {
+	        return;
+	      }
+
+	      $.setData(element, NAMESPACE, self);
+
+	      if (tagName === 'img') {
+	        self.isImg = true;
+
+	        // e.g.: "img/picture.jpg"
+	        self.originalUrl = url = element.getAttribute('src');
+
+	        // Stop when it's a blank image
+	        if (!url) {
+	          return;
+	        }
+
+	        // e.g.: "http://example.com/img/picture.jpg"
+	        url = element.src;
+	      } else if (tagName === 'canvas' && window.HTMLCanvasElement) {
+	        url = element.toDataURL();
+	      }
+
+	      self.load(url);
+	    }
+	  }, {
+	    key: 'load',
+	    value: function load(url) {
+	      var self = this;
+	      var options = self.options;
+	      var element = self.element;
+
+	      if (!url) {
+	        return;
+	      }
+
+	      self.url = url;
+	      self.imageData = {};
+
+	      if (!options.checkOrientation || !window.ArrayBuffer) {
+	        self.clone();
+	        return;
+	      }
+
+	      // XMLHttpRequest disallows to open a Data URL in some browsers like IE11 and Safari
+	      if (REGEXP_DATA_URL.test(url)) {
+	        if (REGEXP_DATA_URL_JPEG) {
+	          self.read($.dataURLToArrayBuffer(url));
+	        } else {
+	          self.clone();
+	        }
+	        return;
+	      }
+
+	      var xhr = new XMLHttpRequest();
+
+	      xhr.onerror = xhr.onabort = function () {
+	        self.clone();
+	      };
+
+	      xhr.onload = function () {
+	        self.read(xhr.response);
+	      };
+
+	      if (options.checkCrossOrigin && $.isCrossOriginURL(url) && element.crossOrigin) {
+	        url = $.addTimestamp(url);
+	      }
+
+	      xhr.open('get', url);
+	      xhr.responseType = 'arraybuffer';
+	      xhr.send();
+	    }
+	  }, {
+	    key: 'read',
+	    value: function read(arrayBuffer) {
+	      var self = this;
+	      var options = self.options;
+	      var orientation = $.getOrientation(arrayBuffer);
+	      var imageData = self.imageData;
+	      var rotate = 0;
+	      var scaleX = 1;
+	      var scaleY = 1;
+
+	      if (orientation > 1) {
+	        self.url = $.arrayBufferToDataURL(arrayBuffer);
+
+	        switch (orientation) {
+
+	          // flip horizontal
+	          case 2:
+	            scaleX = -1;
+	            break;
+
+	          // rotate left 180°
+	          case 3:
+	            rotate = -180;
+	            break;
+
+	          // flip vertical
+	          case 4:
+	            scaleY = -1;
+	            break;
+
+	          // flip vertical + rotate right 90°
+	          case 5:
+	            rotate = 90;
+	            scaleY = -1;
+	            break;
+
+	          // rotate right 90°
+	          case 6:
+	            rotate = 90;
+	            break;
+
+	          // flip horizontal + rotate right 90°
+	          case 7:
+	            rotate = 90;
+	            scaleX = -1;
+	            break;
+
+	          // rotate left 90°
+	          case 8:
+	            rotate = -90;
+	            break;
+	        }
+	      }
+
+	      if (options.rotatable) {
+	        imageData.rotate = rotate;
+	      }
+
+	      if (options.scalable) {
+	        imageData.scaleX = scaleX;
+	        imageData.scaleY = scaleY;
+	      }
+
+	      self.clone();
+	    }
+	  }, {
+	    key: 'clone',
+	    value: function clone() {
+	      var self = this;
+	      var element = self.element;
+	      var url = self.url;
+	      var crossOrigin = void 0;
+	      var crossOriginUrl = void 0;
+	      var start = void 0;
+	      var stop = void 0;
+
+	      if (self.options.checkCrossOrigin && $.isCrossOriginURL(url)) {
+	        crossOrigin = element.crossOrigin;
+
+	        if (crossOrigin) {
+	          crossOriginUrl = url;
+	        } else {
+	          crossOrigin = 'anonymous';
+
+	          // Bust cache when there is not a "crossOrigin" property
+	          crossOriginUrl = $.addTimestamp(url);
+	        }
+	      }
+
+	      self.crossOrigin = crossOrigin;
+	      self.crossOriginUrl = crossOriginUrl;
+
+	      var image = $.createElement('img');
+
+	      if (crossOrigin) {
+	        image.crossOrigin = crossOrigin;
+	      }
+
+	      image.src = crossOriginUrl || url;
+	      self.image = image;
+	      self.onStart = start = $.proxy(self.start, self);
+	      self.onStop = stop = $.proxy(self.stop, self);
+
+	      if (self.isImg) {
+	        if (element.complete) {
+	          self.start();
+	        } else {
+	          $.addListener(element, EVENT_LOAD, start);
+	        }
+	      } else {
+	        $.addListener(image, EVENT_LOAD, start);
+	        $.addListener(image, EVENT_ERROR, stop);
+	        $.addClass(image, 'cropper-hide');
+	        element.parentNode.insertBefore(image, element.nextSibling);
+	      }
+	    }
+	  }, {
+	    key: 'start',
+	    value: function start(event) {
+	      var self = this;
+	      var image = self.isImg ? self.element : self.image;
+
+	      if (event) {
+	        $.removeListener(image, EVENT_LOAD, self.onStart);
+	        $.removeListener(image, EVENT_ERROR, self.onStop);
+	      }
+
+	      $.getImageSize(image, function (naturalWidth, naturalHeight) {
+	        $.extend(self.imageData, {
+	          naturalWidth: naturalWidth,
+	          naturalHeight: naturalHeight,
+	          aspectRatio: naturalWidth / naturalHeight
+	        });
+
+	        self.loaded = true;
+	        self.build();
+	      });
+	    }
+	  }, {
+	    key: 'stop',
+	    value: function stop() {
+	      var self = this;
+	      var image = self.image;
+
+	      $.removeListener(image, EVENT_LOAD, self.onStart);
+	      $.removeListener(image, EVENT_ERROR, self.onStop);
+
+	      $.removeChild(image);
+	      self.image = null;
+	    }
+	  }, {
+	    key: 'build',
+	    value: function build() {
+	      var self = this;
+	      var options = self.options;
+	      var element = self.element;
+	      var image = self.image;
+	      var container = void 0;
+	      var cropper = void 0;
+	      var canvas = void 0;
+	      var dragBox = void 0;
+	      var cropBox = void 0;
+	      var face = void 0;
+
+	      if (!self.loaded) {
+	        return;
+	      }
+
+	      // Unbuild first when replace
+	      if (self.ready) {
+	        self.unbuild();
+	      }
+
+	      var template = $.createElement('div');
+	      template.innerHTML = _template2.default;
+
+	      // Create cropper elements
+	      self.container = container = element.parentNode;
+	      self.cropper = cropper = $.getByClass(template, 'cropper-container')[0];
+	      self.canvas = canvas = $.getByClass(cropper, 'cropper-canvas')[0];
+	      self.dragBox = dragBox = $.getByClass(cropper, 'cropper-drag-box')[0];
+	      self.cropBox = cropBox = $.getByClass(cropper, 'cropper-crop-box')[0];
+	      self.viewBox = $.getByClass(cropper, 'cropper-view-box')[0];
+	      self.face = face = $.getByClass(cropBox, 'cropper-face')[0];
+
+	      $.appendChild(canvas, image);
+
+	      // Hide the original image
+	      $.addClass(element, CLASS_HIDDEN);
+
+	      // Inserts the cropper after to the current image
+	      container.insertBefore(cropper, element.nextSibling);
+
+	      // Show the image if is hidden
+	      if (!self.isImg) {
+	        $.removeClass(image, 'cropper-hide');
+	      }
+
+	      self.initPreview();
+	      self.bind();
+
+	      options.aspectRatio = Math.max(0, options.aspectRatio) || NaN;
+	      options.viewMode = Math.max(0, Math.min(3, Math.round(options.viewMode))) || 0;
+
+	      if (options.autoCrop) {
+	        self.cropped = true;
+
+	        if (options.modal) {
+	          $.addClass(dragBox, 'cropper-modal');
+	        }
+	      } else {
+	        $.addClass(cropBox, CLASS_HIDDEN);
+	      }
+
+	      if (!options.guides) {
+	        $.addClass($.getByClass(cropBox, 'cropper-dashed'), CLASS_HIDDEN);
+	      }
+
+	      if (!options.center) {
+	        $.addClass($.getByClass(cropBox, 'cropper-center'), CLASS_HIDDEN);
+	      }
+
+	      if (options.background) {
+	        $.addClass(cropper, 'cropper-bg');
+	      }
+
+	      if (!options.highlight) {
+	        $.addClass(face, 'cropper-invisible');
+	      }
+
+	      if (options.cropBoxMovable) {
+	        $.addClass(face, 'cropper-move');
+	        $.setData(face, 'action', 'all');
+	      }
+
+	      if (!options.cropBoxResizable) {
+	        $.addClass($.getByClass(cropBox, 'cropper-line'), CLASS_HIDDEN);
+	        $.addClass($.getByClass(cropBox, 'cropper-point'), CLASS_HIDDEN);
+	      }
+
+	      self.setDragMode(options.dragMode);
+	      self.render();
+	      self.ready = true;
+	      self.setData(options.data);
+
+	      // Call the "ready" option asynchronously to keep "image.cropper" is defined
+	      self.completing = setTimeout(function () {
+	        if ($.isFunction(options.ready)) {
+	          $.addListener(element, EVENT_READY, options.ready, true);
+	        }
+
+	        $.dispatchEvent(element, EVENT_READY);
+	        $.dispatchEvent(element, EVENT_CROP, self.getData());
+
+	        self.complete = true;
+	      }, 0);
+	    }
+	  }, {
+	    key: 'unbuild',
+	    value: function unbuild() {
+	      var self = this;
+
+	      if (!self.ready) {
+	        return;
+	      }
+
+	      if (!self.complete) {
+	        clearTimeout(self.completing);
+	      }
+
+	      self.ready = false;
+	      self.complete = false;
+	      self.initialImageData = null;
+
+	      // Clear `initialCanvasData` is necessary when replace
+	      self.initialCanvasData = null;
+	      self.initialCropBoxData = null;
+	      self.containerData = null;
+	      self.canvasData = null;
+
+	      // Clear `cropBoxData` is necessary when replace
+	      self.cropBoxData = null;
+	      self.unbind();
+
+	      self.resetPreview();
+	      self.previews = null;
+
+	      self.viewBox = null;
+	      self.cropBox = null;
+	      self.dragBox = null;
+	      self.canvas = null;
+	      self.container = null;
+
+	      $.removeChild(self.cropper);
+	      self.cropper = null;
+	    }
+	  }], [{
+	    key: 'noConflict',
+	    value: function noConflict() {
+	      window.Cropper = AnotherCropper;
+	      return Cropper;
+	    }
+	  }, {
+	    key: 'setDefaults',
+	    value: function setDefaults(options) {
+	      $.extend(_defaults2.default, $.isPlainObject(options) && options);
+	    }
+	  }]);
+
+	  return Cropper;
+	}();
+
+	$.extend(Cropper.prototype, _render2.default);
+	$.extend(Cropper.prototype, _preview2.default);
+	$.extend(Cropper.prototype, _events2.default);
+	$.extend(Cropper.prototype, _handlers2.default);
+	$.extend(Cropper.prototype, _change2.default);
+	$.extend(Cropper.prototype, _methods2.default);
+
+	if (typeof window !== 'undefined') {
+	  AnotherCropper = window.Cropper;
+	  window.Cropper = Cropper;
+	}
+
+	exports.default = Cropper;
 
 /***/ },
-/* 75 */
+/* 79 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = {
+	  // Define the view mode of the cropper
+	  viewMode: 0, // 0, 1, 2, 3
+
+	  // Define the dragging mode of the cropper
+	  dragMode: 'crop', // 'crop', 'move' or 'none'
+
+	  // Define the aspect ratio of the crop box
+	  aspectRatio: NaN,
+
+	  // An object with the previous cropping result data
+	  data: null,
+
+	  // A selector for adding extra containers to preview
+	  preview: '',
+
+	  // Re-render the cropper when resize the window
+	  responsive: true,
+
+	  // Restore the cropped area after resize the window
+	  restore: true,
+
+	  // Check if the current image is a cross-origin image
+	  checkCrossOrigin: true,
+
+	  // Check the current image's Exif Orientation information
+	  checkOrientation: true,
+
+	  // Show the black modal
+	  modal: true,
+
+	  // Show the dashed lines for guiding
+	  guides: true,
+
+	  // Show the center indicator for guiding
+	  center: true,
+
+	  // Show the white modal to highlight the crop box
+	  highlight: true,
+
+	  // Show the grid background
+	  background: true,
+
+	  // Enable to crop the image automatically when initialize
+	  autoCrop: true,
+
+	  // Define the percentage of automatic cropping area when initializes
+	  autoCropArea: 0.8,
+
+	  // Enable to move the image
+	  movable: true,
+
+	  // Enable to rotate the image
+	  rotatable: true,
+
+	  // Enable to scale the image
+	  scalable: true,
+
+	  // Enable to zoom the image
+	  zoomable: true,
+
+	  // Enable to zoom the image by dragging touch
+	  zoomOnTouch: true,
+
+	  // Enable to zoom the image by wheeling mouse
+	  zoomOnWheel: true,
+
+	  // Define zoom ratio when zoom the image by wheeling mouse
+	  wheelZoomRatio: 0.1,
+
+	  // Enable to move the crop box
+	  cropBoxMovable: true,
+
+	  // Enable to resize the crop box
+	  cropBoxResizable: true,
+
+	  // Toggle drag mode between "crop" and "move" when click twice on the cropper
+	  toggleDragModeOnDblclick: true,
+
+	  // Size limitation
+	  minCanvasWidth: 0,
+	  minCanvasHeight: 0,
+	  minCropBoxWidth: 0,
+	  minCropBoxHeight: 0,
+	  minContainerWidth: 200,
+	  minContainerHeight: 100,
+
+	  // Shortcuts of events
+	  ready: null,
+	  cropstart: null,
+	  cropmove: null,
+	  cropend: null,
+	  crop: null,
+	  zoom: null
+	};
+
+/***/ },
+/* 80 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = '<div class="cropper-container">' + '<div class="cropper-wrap-box">' + '<div class="cropper-canvas"></div>' + '</div>' + '<div class="cropper-drag-box"></div>' + '<div class="cropper-crop-box">' + '<span class="cropper-view-box"></span>' + '<span class="cropper-dashed dashed-h"></span>' + '<span class="cropper-dashed dashed-v"></span>' + '<span class="cropper-center"></span>' + '<span class="cropper-face"></span>' + '<span class="cropper-line line-e" data-action="e"></span>' + '<span class="cropper-line line-n" data-action="n"></span>' + '<span class="cropper-line line-w" data-action="w"></span>' + '<span class="cropper-line line-s" data-action="s"></span>' + '<span class="cropper-point point-e" data-action="e"></span>' + '<span class="cropper-point point-n" data-action="n"></span>' + '<span class="cropper-point point-w" data-action="w"></span>' + '<span class="cropper-point point-s" data-action="s"></span>' + '<span class="cropper-point point-ne" data-action="ne"></span>' + '<span class="cropper-point point-nw" data-action="nw"></span>' + '<span class="cropper-point point-sw" data-action="sw"></span>' + '<span class="cropper-point point-se" data-action="se"></span>' + '</div>' + '</div>';
+
+/***/ },
+/* 81 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _utilities = __webpack_require__(82);
+
+	var $ = _interopRequireWildcard(_utilities);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	exports.default = {
+	  render: function render() {
+	    var self = this;
+
+	    self.initContainer();
+	    self.initCanvas();
+	    self.initCropBox();
+
+	    self.renderCanvas();
+
+	    if (self.cropped) {
+	      self.renderCropBox();
+	    }
+	  },
+	  initContainer: function initContainer() {
+	    var self = this;
+	    var options = self.options;
+	    var element = self.element;
+	    var container = self.container;
+	    var cropper = self.cropper;
+	    var containerData = void 0;
+
+	    $.addClass(cropper, 'cropper-hidden');
+	    $.removeClass(element, 'cropper-hidden');
+
+	    self.containerData = containerData = {
+	      width: Math.max(container.offsetWidth, Number(options.minContainerWidth) || 200),
+	      height: Math.max(container.offsetHeight, Number(options.minContainerHeight) || 100)
+	    };
+
+	    $.setStyle(cropper, {
+	      width: containerData.width,
+	      height: containerData.height
+	    });
+
+	    $.addClass(element, 'cropper-hidden');
+	    $.removeClass(cropper, 'cropper-hidden');
+	  },
+
+
+	  // Canvas (image wrapper)
+	  initCanvas: function initCanvas() {
+	    var self = this;
+	    var viewMode = self.options.viewMode;
+	    var containerData = self.containerData;
+	    var imageData = self.imageData;
+	    var rotated = Math.abs(imageData.rotate) === 90;
+	    var naturalWidth = rotated ? imageData.naturalHeight : imageData.naturalWidth;
+	    var naturalHeight = rotated ? imageData.naturalWidth : imageData.naturalHeight;
+	    var aspectRatio = naturalWidth / naturalHeight;
+	    var canvasWidth = containerData.width;
+	    var canvasHeight = containerData.height;
+
+	    if (containerData.height * aspectRatio > containerData.width) {
+	      if (viewMode === 3) {
+	        canvasWidth = containerData.height * aspectRatio;
+	      } else {
+	        canvasHeight = containerData.width / aspectRatio;
+	      }
+	    } else if (viewMode === 3) {
+	      canvasHeight = containerData.width / aspectRatio;
+	    } else {
+	      canvasWidth = containerData.height * aspectRatio;
+	    }
+
+	    var canvasData = {
+	      naturalWidth: naturalWidth,
+	      naturalHeight: naturalHeight,
+	      aspectRatio: aspectRatio,
+	      width: canvasWidth,
+	      height: canvasHeight
+	    };
+
+	    canvasData.oldLeft = canvasData.left = (containerData.width - canvasWidth) / 2;
+	    canvasData.oldTop = canvasData.top = (containerData.height - canvasHeight) / 2;
+
+	    self.canvasData = canvasData;
+	    self.limited = viewMode === 1 || viewMode === 2;
+	    self.limitCanvas(true, true);
+	    self.initialImageData = $.extend({}, imageData);
+	    self.initialCanvasData = $.extend({}, canvasData);
+	  },
+	  limitCanvas: function limitCanvas(sizeLimited, positionLimited) {
+	    var self = this;
+	    var options = self.options;
+	    var viewMode = options.viewMode;
+	    var containerData = self.containerData;
+	    var canvasData = self.canvasData;
+	    var aspectRatio = canvasData.aspectRatio;
+	    var cropBoxData = self.cropBoxData;
+	    var cropped = self.cropped && cropBoxData;
+	    var minCanvasWidth = void 0;
+	    var minCanvasHeight = void 0;
+	    var newCanvasLeft = void 0;
+	    var newCanvasTop = void 0;
+
+	    if (sizeLimited) {
+	      minCanvasWidth = Number(options.minCanvasWidth) || 0;
+	      minCanvasHeight = Number(options.minCanvasHeight) || 0;
+
+	      if (viewMode > 1) {
+	        minCanvasWidth = Math.max(minCanvasWidth, containerData.width);
+	        minCanvasHeight = Math.max(minCanvasHeight, containerData.height);
+
+	        if (viewMode === 3) {
+	          if (minCanvasHeight * aspectRatio > minCanvasWidth) {
+	            minCanvasWidth = minCanvasHeight * aspectRatio;
+	          } else {
+	            minCanvasHeight = minCanvasWidth / aspectRatio;
+	          }
+	        }
+	      } else if (viewMode > 0) {
+	        if (minCanvasWidth) {
+	          minCanvasWidth = Math.max(minCanvasWidth, cropped ? cropBoxData.width : 0);
+	        } else if (minCanvasHeight) {
+	          minCanvasHeight = Math.max(minCanvasHeight, cropped ? cropBoxData.height : 0);
+	        } else if (cropped) {
+	          minCanvasWidth = cropBoxData.width;
+	          minCanvasHeight = cropBoxData.height;
+
+	          if (minCanvasHeight * aspectRatio > minCanvasWidth) {
+	            minCanvasWidth = minCanvasHeight * aspectRatio;
+	          } else {
+	            minCanvasHeight = minCanvasWidth / aspectRatio;
+	          }
+	        }
+	      }
+
+	      if (minCanvasWidth && minCanvasHeight) {
+	        if (minCanvasHeight * aspectRatio > minCanvasWidth) {
+	          minCanvasHeight = minCanvasWidth / aspectRatio;
+	        } else {
+	          minCanvasWidth = minCanvasHeight * aspectRatio;
+	        }
+	      } else if (minCanvasWidth) {
+	        minCanvasHeight = minCanvasWidth / aspectRatio;
+	      } else if (minCanvasHeight) {
+	        minCanvasWidth = minCanvasHeight * aspectRatio;
+	      }
+
+	      canvasData.minWidth = minCanvasWidth;
+	      canvasData.minHeight = minCanvasHeight;
+	      canvasData.maxWidth = Infinity;
+	      canvasData.maxHeight = Infinity;
+	    }
+
+	    if (positionLimited) {
+	      if (viewMode) {
+	        newCanvasLeft = containerData.width - canvasData.width;
+	        newCanvasTop = containerData.height - canvasData.height;
+
+	        canvasData.minLeft = Math.min(0, newCanvasLeft);
+	        canvasData.minTop = Math.min(0, newCanvasTop);
+	        canvasData.maxLeft = Math.max(0, newCanvasLeft);
+	        canvasData.maxTop = Math.max(0, newCanvasTop);
+
+	        if (cropped && self.limited) {
+	          canvasData.minLeft = Math.min(cropBoxData.left, cropBoxData.left + (cropBoxData.width - canvasData.width));
+	          canvasData.minTop = Math.min(cropBoxData.top, cropBoxData.top + (cropBoxData.height - canvasData.height));
+	          canvasData.maxLeft = cropBoxData.left;
+	          canvasData.maxTop = cropBoxData.top;
+
+	          if (viewMode === 2) {
+	            if (canvasData.width >= containerData.width) {
+	              canvasData.minLeft = Math.min(0, newCanvasLeft);
+	              canvasData.maxLeft = Math.max(0, newCanvasLeft);
+	            }
+
+	            if (canvasData.height >= containerData.height) {
+	              canvasData.minTop = Math.min(0, newCanvasTop);
+	              canvasData.maxTop = Math.max(0, newCanvasTop);
+	            }
+	          }
+	        }
+	      } else {
+	        canvasData.minLeft = -canvasData.width;
+	        canvasData.minTop = -canvasData.height;
+	        canvasData.maxLeft = containerData.width;
+	        canvasData.maxTop = containerData.height;
+	      }
+	    }
+	  },
+	  renderCanvas: function renderCanvas(changed) {
+	    var self = this;
+	    var canvasData = self.canvasData;
+	    var imageData = self.imageData;
+	    var rotate = imageData.rotate;
+	    var aspectRatio = void 0;
+	    var rotatedData = void 0;
+
+	    if (self.rotated) {
+	      self.rotated = false;
+
+	      // Computes rotated sizes with image sizes
+	      rotatedData = $.getRotatedSizes({
+	        width: imageData.width,
+	        height: imageData.height,
+	        degree: rotate
+	      });
+
+	      aspectRatio = rotatedData.width / rotatedData.height;
+
+	      if (aspectRatio !== canvasData.aspectRatio) {
+	        canvasData.left -= (rotatedData.width - canvasData.width) / 2;
+	        canvasData.top -= (rotatedData.height - canvasData.height) / 2;
+	        canvasData.width = rotatedData.width;
+	        canvasData.height = rotatedData.height;
+	        canvasData.aspectRatio = aspectRatio;
+	        canvasData.naturalWidth = imageData.naturalWidth;
+	        canvasData.naturalHeight = imageData.naturalHeight;
+
+	        // Computes rotated sizes with natural image sizes
+	        if (rotate % 180) {
+	          rotatedData = $.getRotatedSizes({
+	            width: imageData.naturalWidth,
+	            height: imageData.naturalHeight,
+	            degree: rotate
+	          });
+
+	          canvasData.naturalWidth = rotatedData.width;
+	          canvasData.naturalHeight = rotatedData.height;
+	        }
+
+	        self.limitCanvas(true, false);
+	      }
+	    }
+
+	    if (canvasData.width > canvasData.maxWidth || canvasData.width < canvasData.minWidth) {
+	      canvasData.left = canvasData.oldLeft;
+	    }
+
+	    if (canvasData.height > canvasData.maxHeight || canvasData.height < canvasData.minHeight) {
+	      canvasData.top = canvasData.oldTop;
+	    }
+
+	    canvasData.width = Math.min(Math.max(canvasData.width, canvasData.minWidth), canvasData.maxWidth);
+	    canvasData.height = Math.min(Math.max(canvasData.height, canvasData.minHeight), canvasData.maxHeight);
+
+	    self.limitCanvas(false, true);
+
+	    canvasData.oldLeft = canvasData.left = Math.min(Math.max(canvasData.left, canvasData.minLeft), canvasData.maxLeft);
+	    canvasData.oldTop = canvasData.top = Math.min(Math.max(canvasData.top, canvasData.minTop), canvasData.maxTop);
+
+	    $.setStyle(self.canvas, {
+	      width: canvasData.width,
+	      height: canvasData.height,
+	      left: canvasData.left,
+	      top: canvasData.top
+	    });
+
+	    self.renderImage();
+
+	    if (self.cropped && self.limited) {
+	      self.limitCropBox(true, true);
+	    }
+
+	    if (changed) {
+	      self.output();
+	    }
+	  },
+	  renderImage: function renderImage(changed) {
+	    var self = this;
+	    var canvasData = self.canvasData;
+	    var imageData = self.imageData;
+	    var newImageData = void 0;
+	    var reversedData = void 0;
+	    var reversedWidth = void 0;
+	    var reversedHeight = void 0;
+
+	    if (imageData.rotate) {
+	      reversedData = $.getRotatedSizes({
+	        width: canvasData.width,
+	        height: canvasData.height,
+	        degree: imageData.rotate,
+	        aspectRatio: imageData.aspectRatio
+	      }, true);
+
+	      reversedWidth = reversedData.width;
+	      reversedHeight = reversedData.height;
+
+	      newImageData = {
+	        width: reversedWidth,
+	        height: reversedHeight,
+	        left: (canvasData.width - reversedWidth) / 2,
+	        top: (canvasData.height - reversedHeight) / 2
+	      };
+	    }
+
+	    $.extend(imageData, newImageData || {
+	      width: canvasData.width,
+	      height: canvasData.height,
+	      left: 0,
+	      top: 0
+	    });
+
+	    var transform = $.getTransform(imageData);
+
+	    $.setStyle(self.image, {
+	      width: imageData.width,
+	      height: imageData.height,
+	      marginLeft: imageData.left,
+	      marginTop: imageData.top,
+	      WebkitTransform: transform,
+	      msTransform: transform,
+	      transform: transform
+	    });
+
+	    if (changed) {
+	      self.output();
+	    }
+	  },
+	  initCropBox: function initCropBox() {
+	    var self = this;
+	    var options = self.options;
+	    var aspectRatio = options.aspectRatio;
+	    var autoCropArea = Number(options.autoCropArea) || 0.8;
+	    var canvasData = self.canvasData;
+	    var cropBoxData = {
+	      width: canvasData.width,
+	      height: canvasData.height
+	    };
+
+	    if (aspectRatio) {
+	      if (canvasData.height * aspectRatio > canvasData.width) {
+	        cropBoxData.height = cropBoxData.width / aspectRatio;
+	      } else {
+	        cropBoxData.width = cropBoxData.height * aspectRatio;
+	      }
+	    }
+
+	    self.cropBoxData = cropBoxData;
+	    self.limitCropBox(true, true);
+
+	    // Initialize auto crop area
+	    cropBoxData.width = Math.min(Math.max(cropBoxData.width, cropBoxData.minWidth), cropBoxData.maxWidth);
+	    cropBoxData.height = Math.min(Math.max(cropBoxData.height, cropBoxData.minHeight), cropBoxData.maxHeight);
+
+	    // The width/height of auto crop area must large than "minWidth/Height"
+	    cropBoxData.width = Math.max(cropBoxData.minWidth, cropBoxData.width * autoCropArea);
+	    cropBoxData.height = Math.max(cropBoxData.minHeight, cropBoxData.height * autoCropArea);
+	    cropBoxData.oldLeft = cropBoxData.left = canvasData.left + (canvasData.width - cropBoxData.width) / 2;
+	    cropBoxData.oldTop = cropBoxData.top = canvasData.top + (canvasData.height - cropBoxData.height) / 2;
+
+	    self.initialCropBoxData = $.extend({}, cropBoxData);
+	  },
+	  limitCropBox: function limitCropBox(sizeLimited, positionLimited) {
+	    var self = this;
+	    var options = self.options;
+	    var aspectRatio = options.aspectRatio;
+	    var containerData = self.containerData;
+	    var canvasData = self.canvasData;
+	    var cropBoxData = self.cropBoxData;
+	    var limited = self.limited;
+	    var minCropBoxWidth = void 0;
+	    var minCropBoxHeight = void 0;
+	    var maxCropBoxWidth = void 0;
+	    var maxCropBoxHeight = void 0;
+
+	    if (sizeLimited) {
+	      minCropBoxWidth = Number(options.minCropBoxWidth) || 0;
+	      minCropBoxHeight = Number(options.minCropBoxHeight) || 0;
+
+	      // The min/maxCropBoxWidth/Height must be less than containerWidth/Height
+	      minCropBoxWidth = Math.min(minCropBoxWidth, containerData.width);
+	      minCropBoxHeight = Math.min(minCropBoxHeight, containerData.height);
+	      maxCropBoxWidth = Math.min(containerData.width, limited ? canvasData.width : containerData.width);
+	      maxCropBoxHeight = Math.min(containerData.height, limited ? canvasData.height : containerData.height);
+
+	      if (aspectRatio) {
+	        if (minCropBoxWidth && minCropBoxHeight) {
+	          if (minCropBoxHeight * aspectRatio > minCropBoxWidth) {
+	            minCropBoxHeight = minCropBoxWidth / aspectRatio;
+	          } else {
+	            minCropBoxWidth = minCropBoxHeight * aspectRatio;
+	          }
+	        } else if (minCropBoxWidth) {
+	          minCropBoxHeight = minCropBoxWidth / aspectRatio;
+	        } else if (minCropBoxHeight) {
+	          minCropBoxWidth = minCropBoxHeight * aspectRatio;
+	        }
+
+	        if (maxCropBoxHeight * aspectRatio > maxCropBoxWidth) {
+	          maxCropBoxHeight = maxCropBoxWidth / aspectRatio;
+	        } else {
+	          maxCropBoxWidth = maxCropBoxHeight * aspectRatio;
+	        }
+	      }
+
+	      // The minWidth/Height must be less than maxWidth/Height
+	      cropBoxData.minWidth = Math.min(minCropBoxWidth, maxCropBoxWidth);
+	      cropBoxData.minHeight = Math.min(minCropBoxHeight, maxCropBoxHeight);
+	      cropBoxData.maxWidth = maxCropBoxWidth;
+	      cropBoxData.maxHeight = maxCropBoxHeight;
+	    }
+
+	    if (positionLimited) {
+	      if (limited) {
+	        cropBoxData.minLeft = Math.max(0, canvasData.left);
+	        cropBoxData.minTop = Math.max(0, canvasData.top);
+	        cropBoxData.maxLeft = Math.min(containerData.width, canvasData.left + canvasData.width) - cropBoxData.width;
+	        cropBoxData.maxTop = Math.min(containerData.height, canvasData.top + canvasData.height) - cropBoxData.height;
+	      } else {
+	        cropBoxData.minLeft = 0;
+	        cropBoxData.minTop = 0;
+	        cropBoxData.maxLeft = containerData.width - cropBoxData.width;
+	        cropBoxData.maxTop = containerData.height - cropBoxData.height;
+	      }
+	    }
+	  },
+	  renderCropBox: function renderCropBox() {
+	    var self = this;
+	    var options = self.options;
+	    var containerData = self.containerData;
+	    var cropBoxData = self.cropBoxData;
+
+	    if (cropBoxData.width > cropBoxData.maxWidth || cropBoxData.width < cropBoxData.minWidth) {
+	      cropBoxData.left = cropBoxData.oldLeft;
+	    }
+
+	    if (cropBoxData.height > cropBoxData.maxHeight || cropBoxData.height < cropBoxData.minHeight) {
+	      cropBoxData.top = cropBoxData.oldTop;
+	    }
+
+	    cropBoxData.width = Math.min(Math.max(cropBoxData.width, cropBoxData.minWidth), cropBoxData.maxWidth);
+	    cropBoxData.height = Math.min(Math.max(cropBoxData.height, cropBoxData.minHeight), cropBoxData.maxHeight);
+
+	    self.limitCropBox(false, true);
+
+	    cropBoxData.oldLeft = cropBoxData.left = Math.min(Math.max(cropBoxData.left, cropBoxData.minLeft), cropBoxData.maxLeft);
+	    cropBoxData.oldTop = cropBoxData.top = Math.min(Math.max(cropBoxData.top, cropBoxData.minTop), cropBoxData.maxTop);
+
+	    if (options.movable && options.cropBoxMovable) {
+	      // Turn to move the canvas when the crop box is equal to the container
+	      $.setData(self.face, 'action', cropBoxData.width === containerData.width && cropBoxData.height === containerData.height ? 'move' : 'all');
+	    }
+
+	    $.setStyle(self.cropBox, {
+	      width: cropBoxData.width,
+	      height: cropBoxData.height,
+	      left: cropBoxData.left,
+	      top: cropBoxData.top
+	    });
+
+	    if (self.cropped && self.limited) {
+	      self.limitCanvas(true, true);
+	    }
+
+	    if (!self.disabled) {
+	      self.output();
+	    }
+	  },
+	  output: function output() {
+	    var self = this;
+
+	    self.preview();
+
+	    if (self.complete) {
+	      $.dispatchEvent(self.element, 'crop', self.getData());
+	    }
+	  }
+	};
+
+/***/ },
+/* 82 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	exports.typeOf = typeOf;
+	exports.isNumber = isNumber;
+	exports.isUndefined = isUndefined;
+	exports.isObject = isObject;
+	exports.isPlainObject = isPlainObject;
+	exports.isFunction = isFunction;
+	exports.isArray = isArray;
+	exports.toArray = toArray;
+	exports.trim = trim;
+	exports.each = each;
+	exports.extend = extend;
+	exports.proxy = proxy;
+	exports.setStyle = setStyle;
+	exports.hasClass = hasClass;
+	exports.addClass = addClass;
+	exports.removeClass = removeClass;
+	exports.toggleClass = toggleClass;
+	exports.hyphenate = hyphenate;
+	exports.getData = getData;
+	exports.setData = setData;
+	exports.removeData = removeData;
+	exports.removeListener = removeListener;
+	exports.dispatchEvent = dispatchEvent;
+	exports.getEvent = getEvent;
+	exports.getOffset = getOffset;
+	exports.getTouchesCenter = getTouchesCenter;
+	exports.getByTag = getByTag;
+	exports.getByClass = getByClass;
+	exports.createElement = createElement;
+	exports.appendChild = appendChild;
+	exports.removeChild = removeChild;
+	exports.empty = empty;
+	exports.isCrossOriginURL = isCrossOriginURL;
+	exports.addTimestamp = addTimestamp;
+	exports.getImageSize = getImageSize;
+	exports.getTransform = getTransform;
+	exports.getRotatedSizes = getRotatedSizes;
+	exports.getSourceCanvas = getSourceCanvas;
+	exports.getStringFromCharCode = getStringFromCharCode;
+	exports.getOrientation = getOrientation;
+	exports.dataURLToArrayBuffer = dataURLToArrayBuffer;
+	exports.arrayBufferToDataURL = arrayBufferToDataURL;
+	// RegExps
+	var REGEXP_DATA_URL_HEAD = /^data:([^;]+);base64,/;
+	var REGEXP_HYPHENATE = /([a-z\d])([A-Z])/g;
+	var REGEXP_ORIGINS = /^(https?:)\/\/([^:\/\?#]+):?(\d*)/i;
+	var REGEXP_SPACES = /\s+/;
+	var REGEXP_SUFFIX = /^(width|height|left|top|marginLeft|marginTop)$/;
+	var REGEXP_TRIM = /^\s+(.*)\s+$/;
+	var REGEXP_USERAGENT = /(Macintosh|iPhone|iPod|iPad).*AppleWebKit/i;
+	var navigator = window.navigator;
+	var IS_SAFARI_OR_UIWEBVIEW = navigator && REGEXP_USERAGENT.test(navigator.userAgent);
+
+	// Utilities
+	var objectProto = Object.prototype;
+	var toString = objectProto.toString;
+	var hasOwnProperty = objectProto.hasOwnProperty;
+	var slice = Array.prototype.slice;
+	var fromCharCode = String.fromCharCode;
+
+	function typeOf(obj) {
+	  return toString.call(obj).slice(8, -1).toLowerCase();
+	}
+
+	function isNumber(num) {
+	  return typeof num === 'number' && !isNaN(num);
+	}
+
+	function isUndefined(obj) {
+	  return typeof obj === 'undefined';
+	}
+
+	function isObject(obj) {
+	  return (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' && obj !== null;
+	}
+
+	function isPlainObject(obj) {
+	  if (!isObject(obj)) {
+	    return false;
+	  }
+
+	  try {
+	    var _constructor = obj.constructor;
+	    var prototype = _constructor.prototype;
+
+	    return _constructor && prototype && hasOwnProperty.call(prototype, 'isPrototypeOf');
+	  } catch (e) {
+	    return false;
+	  }
+	}
+
+	function isFunction(fn) {
+	  return typeOf(fn) === 'function';
+	}
+
+	function isArray(arr) {
+	  return Array.isArray ? Array.isArray(arr) : typeOf(arr) === 'array';
+	}
+
+	function toArray(obj, offset) {
+	  offset = offset >= 0 ? offset : 0;
+
+	  if (Array.from) {
+	    return Array.from(obj).slice(offset);
+	  }
+
+	  return slice.call(obj, offset);
+	}
+
+	function trim(str) {
+	  if (typeof str === 'string') {
+	    str = str.trim ? str.trim() : str.replace(REGEXP_TRIM, '$1');
+	  }
+
+	  return str;
+	}
+
+	function each(obj, callback) {
+	  if (obj && isFunction(callback)) {
+	    var i = void 0;
+
+	    if (isArray(obj) || isNumber(obj.length) /* array-like */) {
+	        var length = obj.length;
+
+	        for (i = 0; i < length; i++) {
+	          if (callback.call(obj, obj[i], i, obj) === false) {
+	            break;
+	          }
+	        }
+	      } else if (isObject(obj)) {
+	      Object.keys(obj).forEach(function (key) {
+	        callback.call(obj, obj[key], key, obj);
+	      });
+	    }
+	  }
+
+	  return obj;
+	}
+
+	function extend() {
+	  for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	    args[_key] = arguments[_key];
+	  }
+
+	  var deep = args[0] === true;
+	  var data = deep ? args[1] : args[0];
+
+	  if (args.length > 1) {
+	    // if (Object.assign) {
+	    //   return Object.assign.apply(Object, args);
+	    // }
+
+	    args.shift();
+
+	    args.forEach(function (arg) {
+	      if (isObject(arg)) {
+	        Object.keys(arg).forEach(function (key) {
+	          if (deep && isObject(data[key])) {
+	            extend(true, data[key], arg[key]);
+	          } else {
+	            data[key] = arg[key];
+	          }
+	        });
+	      }
+	    });
+	  }
+
+	  return data;
+	}
+
+	function proxy(fn, context) {
+	  for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+	    args[_key2 - 2] = arguments[_key2];
+	  }
+
+	  return function () {
+	    for (var _len3 = arguments.length, args2 = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+	      args2[_key3] = arguments[_key3];
+	    }
+
+	    return fn.apply(context, args.concat(args2));
+	  };
+	}
+
+	function setStyle(element, styles) {
+	  var style = element.style;
+
+	  each(styles, function (value, property) {
+	    if (REGEXP_SUFFIX.test(property) && isNumber(value)) {
+	      value += 'px';
+	    }
+
+	    style[property] = value;
+	  });
+	}
+
+	function hasClass(element, value) {
+	  return element.classList ? element.classList.contains(value) : element.className.indexOf(value) > -1;
+	}
+
+	function addClass(element, value) {
+	  if (isNumber(element.length)) {
+	    each(element, function (elem) {
+	      addClass(elem, value);
+	    });
+	    return;
+	  }
+
+	  if (element.classList) {
+	    element.classList.add(value);
+	    return;
+	  }
+
+	  var className = trim(element.className);
+
+	  if (!className) {
+	    element.className = value;
+	  } else if (className.indexOf(value) < 0) {
+	    element.className = className + ' ' + value;
+	  }
+	}
+
+	function removeClass(element, value) {
+	  if (isNumber(element.length)) {
+	    each(element, function (elem) {
+	      removeClass(elem, value);
+	    });
+	    return;
+	  }
+
+	  if (element.classList) {
+	    element.classList.remove(value);
+	    return;
+	  }
+
+	  if (element.className.indexOf(value) >= 0) {
+	    element.className = element.className.replace(value, '');
+	  }
+	}
+
+	function toggleClass(element, value, added) {
+	  if (isNumber(element.length)) {
+	    each(element, function (elem) {
+	      toggleClass(elem, value, added);
+	    });
+	    return;
+	  }
+
+	  // IE10-11 doesn't support the second parameter of `classList.toggle`
+	  if (added) {
+	    addClass(element, value);
+	  } else {
+	    removeClass(element, value);
+	  }
+	}
+
+	function hyphenate(str) {
+	  return str.replace(REGEXP_HYPHENATE, '$1-$2').toLowerCase();
+	}
+
+	function getData(element, name) {
+	  if (isObject(element[name])) {
+	    return element[name];
+	  } else if (element.dataset) {
+	    return element.dataset[name];
+	  }
+
+	  return element.getAttribute('data-' + hyphenate(name));
+	}
+
+	function setData(element, name, data) {
+	  if (isObject(data)) {
+	    element[name] = data;
+	  } else if (element.dataset) {
+	    element.dataset[name] = data;
+	  } else {
+	    element.setAttribute('data-' + hyphenate(name), data);
+	  }
+	}
+
+	function removeData(element, name) {
+	  if (isObject(element[name])) {
+	    delete element[name];
+	  } else if (element.dataset) {
+	    delete element.dataset[name];
+	  } else {
+	    element.removeAttribute('data-' + hyphenate(name));
+	  }
+	}
+
+	function removeListener(element, type, handler) {
+	  var types = trim(type).split(REGEXP_SPACES);
+
+	  if (types.length > 1) {
+	    each(types, function (t) {
+	      removeListener(element, t, handler);
+	    });
+	    return;
+	  }
+
+	  if (element.removeEventListener) {
+	    element.removeEventListener(type, handler, false);
+	  } else if (element.detachEvent) {
+	    element.detachEvent('on' + type, handler);
+	  }
+	}
+
+	function addListener(element, type, _handler, once) {
+	  var types = trim(type).split(REGEXP_SPACES);
+	  var originalHandler = _handler;
+
+	  if (types.length > 1) {
+	    each(types, function (t) {
+	      addListener(element, t, _handler);
+	    });
+	    return;
+	  }
+
+	  if (once) {
+	    _handler = function handler() {
+	      for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+	        args[_key4] = arguments[_key4];
+	      }
+
+	      removeListener(element, type, _handler);
+
+	      return originalHandler.apply(element, args);
+	    };
+	  }
+
+	  if (element.addEventListener) {
+	    element.addEventListener(type, _handler, false);
+	  } else if (element.attachEvent) {
+	    element.attachEvent('on${type}', _handler);
+	  }
+	}
+
+	exports.addListener = addListener;
+	function dispatchEvent(element, type, data) {
+	  if (element.dispatchEvent) {
+	    var event = void 0;
+
+	    // Event and CustomEvent on IE9-11 are global objects, not constructors
+	    if (isFunction(Event) && isFunction(CustomEvent)) {
+	      if (isUndefined(data)) {
+	        event = new Event(type, {
+	          bubbles: true,
+	          cancelable: true
+	        });
+	      } else {
+	        event = new CustomEvent(type, {
+	          detail: data,
+	          bubbles: true,
+	          cancelable: true
+	        });
+	      }
+	    } else if (isUndefined(data)) {
+	      event = document.createEvent('Event');
+	      event.initEvent(type, true, true);
+	    } else {
+	      event = document.createEvent('CustomEvent');
+	      event.initCustomEvent(type, true, true, data);
+	    }
+
+	    // IE9+
+	    return element.dispatchEvent(event);
+	  } else if (element.fireEvent) {
+	    // IE6-10 (native events only)
+	    return element.fireEvent('on' + type);
+	  }
+
+	  return true;
+	}
+
+	function getEvent(event) {
+	  var e = event || window.event;
+
+	  // Fix target property (IE8)
+	  if (!e.target) {
+	    e.target = e.srcElement || document;
+	  }
+
+	  if (!isNumber(e.pageX) && isNumber(e.clientX)) {
+	    var eventDoc = event.target.ownerDocument || document;
+	    var doc = eventDoc.documentElement;
+	    var body = eventDoc.body;
+
+	    e.pageX = e.clientX + ((doc && doc.scrollLeft || body && body.scrollLeft || 0) - (doc && doc.clientLeft || body && body.clientLeft || 0));
+	    e.pageY = e.clientY + ((doc && doc.scrollTop || body && body.scrollTop || 0) - (doc && doc.clientTop || body && body.clientTop || 0));
+	  }
+
+	  return e;
+	}
+
+	function getOffset(element) {
+	  var doc = document.documentElement;
+	  var box = element.getBoundingClientRect();
+
+	  return {
+	    left: box.left + ((window.scrollX || doc && doc.scrollLeft || 0) - (doc && doc.clientLeft || 0)),
+	    top: box.top + ((window.scrollY || doc && doc.scrollTop || 0) - (doc && doc.clientTop || 0))
+	  };
+	}
+
+	function getTouchesCenter(touches) {
+	  var length = touches.length;
+	  var pageX = 0;
+	  var pageY = 0;
+
+	  if (length) {
+	    each(touches, function (touch) {
+	      pageX += touch.pageX;
+	      pageY += touch.pageY;
+	    });
+
+	    pageX /= length;
+	    pageY /= length;
+	  }
+
+	  return {
+	    pageX: pageX,
+	    pageY: pageY
+	  };
+	}
+
+	function getByTag(element, tagName) {
+	  return element.getElementsByTagName(tagName);
+	}
+
+	function getByClass(element, className) {
+	  return element.getElementsByClassName ? element.getElementsByClassName(className) : element.querySelectorAll('.' + className);
+	}
+
+	function createElement(tagName) {
+	  return document.createElement(tagName);
+	}
+
+	function appendChild(element, elem) {
+	  element.appendChild(elem);
+	}
+
+	function removeChild(element) {
+	  if (element.parentNode) {
+	    element.parentNode.removeChild(element);
+	  }
+	}
+
+	function empty(element) {
+	  while (element.firstChild) {
+	    element.removeChild(element.firstChild);
+	  }
+	}
+
+	function isCrossOriginURL(url) {
+	  var parts = url.match(REGEXP_ORIGINS);
+
+	  return parts && (parts[1] !== location.protocol || parts[2] !== location.hostname || parts[3] !== location.port);
+	}
+
+	function addTimestamp(url) {
+	  var timestamp = 'timestamp=' + new Date().getTime();
+
+	  return url + (url.indexOf('?') === -1 ? '?' : '&') + timestamp;
+	}
+
+	function getImageSize(image, callback) {
+	  // Modern browsers (ignore Safari)
+	  if (image.naturalWidth && !IS_SAFARI_OR_UIWEBVIEW) {
+	    callback(image.naturalWidth, image.naturalHeight);
+	    return;
+	  }
+
+	  // IE8: Don't use `new Image()` here
+	  var newImage = createElement('img');
+
+	  newImage.onload = function load() {
+	    callback(this.width, this.height);
+	  };
+
+	  newImage.src = image.src;
+	}
+
+	function getTransform(data) {
+	  var transforms = [];
+	  var rotate = data.rotate;
+	  var scaleX = data.scaleX;
+	  var scaleY = data.scaleY;
+
+	  // Rotate should come first before scale to match orientation transform
+	  if (isNumber(rotate) && rotate !== 0) {
+	    transforms.push('rotate(' + rotate + 'deg)');
+	  }
+
+	  if (isNumber(scaleX) && scaleX !== 1) {
+	    transforms.push('scaleX(' + scaleX + ')');
+	  }
+
+	  if (isNumber(scaleY) && scaleY !== 1) {
+	    transforms.push('scaleY(' + scaleY + ')');
+	  }
+
+	  return transforms.length ? transforms.join(' ') : 'none';
+	}
+
+	function getRotatedSizes(data, reversed) {
+	  var deg = Math.abs(data.degree) % 180;
+	  var arc = (deg > 90 ? 180 - deg : deg) * Math.PI / 180;
+	  var sinArc = Math.sin(arc);
+	  var cosArc = Math.cos(arc);
+	  var width = data.width;
+	  var height = data.height;
+	  var aspectRatio = data.aspectRatio;
+	  var newWidth = void 0;
+	  var newHeight = void 0;
+
+	  if (!reversed) {
+	    newWidth = width * cosArc + height * sinArc;
+	    newHeight = width * sinArc + height * cosArc;
+	  } else {
+	    newWidth = width / (cosArc + sinArc / aspectRatio);
+	    newHeight = newWidth / aspectRatio;
+	  }
+
+	  return {
+	    width: newWidth,
+	    height: newHeight
+	  };
+	}
+
+	function getSourceCanvas(image, data) {
+	  var canvas = createElement('canvas');
+	  var context = canvas.getContext('2d');
+	  var dstX = 0;
+	  var dstY = 0;
+	  var dstWidth = data.naturalWidth;
+	  var dstHeight = data.naturalHeight;
+	  var rotate = data.rotate;
+	  var scaleX = data.scaleX;
+	  var scaleY = data.scaleY;
+	  var scalable = isNumber(scaleX) && isNumber(scaleY) && (scaleX !== 1 || scaleY !== 1);
+	  var rotatable = isNumber(rotate) && rotate !== 0;
+	  var advanced = rotatable || scalable;
+	  var canvasWidth = dstWidth * Math.abs(scaleX || 1);
+	  var canvasHeight = dstHeight * Math.abs(scaleY || 1);
+	  var translateX = void 0;
+	  var translateY = void 0;
+	  var rotated = void 0;
+
+	  if (scalable) {
+	    translateX = canvasWidth / 2;
+	    translateY = canvasHeight / 2;
+	  }
+
+	  if (rotatable) {
+	    rotated = getRotatedSizes({
+	      width: canvasWidth,
+	      height: canvasHeight,
+	      degree: rotate
+	    });
+
+	    canvasWidth = rotated.width;
+	    canvasHeight = rotated.height;
+	    translateX = canvasWidth / 2;
+	    translateY = canvasHeight / 2;
+	  }
+
+	  canvas.width = canvasWidth;
+	  canvas.height = canvasHeight;
+
+	  if (advanced) {
+	    dstX = -dstWidth / 2;
+	    dstY = -dstHeight / 2;
+
+	    context.save();
+	    context.translate(translateX, translateY);
+	  }
+
+	  // Rotate should come first before scale as in the "getTransform" function
+	  if (rotatable) {
+	    context.rotate(rotate * Math.PI / 180);
+	  }
+
+	  if (scalable) {
+	    context.scale(scaleX, scaleY);
+	  }
+
+	  context.drawImage(image, Math.floor(dstX), Math.floor(dstY), Math.floor(dstWidth), Math.floor(dstHeight));
+
+	  if (advanced) {
+	    context.restore();
+	  }
+
+	  return canvas;
+	}
+
+	function getStringFromCharCode(dataView, start, length) {
+	  var str = '';
+	  var i = start;
+
+	  for (length += start; i < length; i++) {
+	    str += fromCharCode(dataView.getUint8(i));
+	  }
+
+	  return str;
+	}
+
+	function getOrientation(arrayBuffer) {
+	  var dataView = new DataView(arrayBuffer);
+	  var length = dataView.byteLength;
+	  var orientation = void 0;
+	  var exifIDCode = void 0;
+	  var tiffOffset = void 0;
+	  var firstIFDOffset = void 0;
+	  var littleEndian = void 0;
+	  var endianness = void 0;
+	  var app1Start = void 0;
+	  var ifdStart = void 0;
+	  var offset = void 0;
+	  var i = void 0;
+
+	  // Only handle JPEG image (start by 0xFFD8)
+	  if (dataView.getUint8(0) === 0xFF && dataView.getUint8(1) === 0xD8) {
+	    offset = 2;
+
+	    while (offset < length) {
+	      if (dataView.getUint8(offset) === 0xFF && dataView.getUint8(offset + 1) === 0xE1) {
+	        app1Start = offset;
+	        break;
+	      }
+
+	      offset++;
+	    }
+	  }
+
+	  if (app1Start) {
+	    exifIDCode = app1Start + 4;
+	    tiffOffset = app1Start + 10;
+
+	    if (getStringFromCharCode(dataView, exifIDCode, 4) === 'Exif') {
+	      endianness = dataView.getUint16(tiffOffset);
+	      littleEndian = endianness === 0x4949;
+
+	      if (littleEndian || endianness === 0x4D4D /* bigEndian */) {
+	          if (dataView.getUint16(tiffOffset + 2, littleEndian) === 0x002A) {
+	            firstIFDOffset = dataView.getUint32(tiffOffset + 4, littleEndian);
+
+	            if (firstIFDOffset >= 0x00000008) {
+	              ifdStart = tiffOffset + firstIFDOffset;
+	            }
+	          }
+	        }
+	    }
+	  }
+
+	  if (ifdStart) {
+	    length = dataView.getUint16(ifdStart, littleEndian);
+
+	    for (i = 0; i < length; i++) {
+	      offset = ifdStart + i * 12 + 2;
+
+	      if (dataView.getUint16(offset, littleEndian) === 0x0112 /* Orientation */) {
+	          // 8 is the offset of the current tag's value
+	          offset += 8;
+
+	          // Get the original orientation value
+	          orientation = dataView.getUint16(offset, littleEndian);
+
+	          // Override the orientation with its default value for Safari
+	          if (IS_SAFARI_OR_UIWEBVIEW) {
+	            dataView.setUint16(offset, 1, littleEndian);
+	          }
+
+	          break;
+	        }
+	    }
+	  }
+
+	  return orientation;
+	}
+
+	function dataURLToArrayBuffer(dataURL) {
+	  var base64 = dataURL.replace(REGEXP_DATA_URL_HEAD, '');
+	  var binary = atob(base64);
+	  var length = binary.length;
+	  var arrayBuffer = new ArrayBuffer(length);
+	  var dataView = new Uint8Array(arrayBuffer);
+	  var i = void 0;
+
+	  for (i = 0; i < length; i++) {
+	    dataView[i] = binary.charCodeAt(i);
+	  }
+
+	  return arrayBuffer;
+	}
+
+	// Only available for JPEG image
+	function arrayBufferToDataURL(arrayBuffer) {
+	  var dataView = new Uint8Array(arrayBuffer);
+	  var length = dataView.length;
+	  var base64 = '';
+	  var i = void 0;
+
+	  for (i = 0; i < length; i++) {
+	    base64 += fromCharCode(dataView[i]);
+	  }
+
+	  return 'data:image/jpeg;base64,' + btoa(base64);
+	}
+
+/***/ },
+/* 83 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _utilities = __webpack_require__(82);
+
+	var $ = _interopRequireWildcard(_utilities);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var DATA_PREVIEW = 'preview';
+
+	exports.default = {
+	  initPreview: function initPreview() {
+	    var self = this;
+	    var preview = self.options.preview;
+	    var image = $.createElement('img');
+	    var crossOrigin = self.crossOrigin;
+	    var url = crossOrigin ? self.crossOriginUrl : self.url;
+
+	    if (crossOrigin) {
+	      image.crossOrigin = crossOrigin;
+	    }
+
+	    image.src = url;
+	    $.appendChild(self.viewBox, image);
+	    self.image2 = image;
+
+	    if (!preview) {
+	      return;
+	    }
+
+	    var previews = document.querySelectorAll(preview);
+
+	    self.previews = previews;
+
+	    $.each(previews, function (element) {
+	      var img = $.createElement('img');
+
+	      // Save the original size for recover
+	      $.setData(element, DATA_PREVIEW, {
+	        width: element.offsetWidth,
+	        height: element.offsetHeight,
+	        html: element.innerHTML
+	      });
+
+	      if (crossOrigin) {
+	        img.crossOrigin = crossOrigin;
+	      }
+
+	      img.src = url;
+
+	      /**
+	       * Override img element styles
+	       * Add `display:block` to avoid margin top issue
+	       * Add `height:auto` to override `height` attribute on IE8
+	       * (Occur only when margin-top <= -height)
+	       */
+
+	      img.style.cssText = 'display:block;' + 'width:100%;' + 'height:auto;' + 'min-width:0!important;' + 'min-height:0!important;' + 'max-width:none!important;' + 'max-height:none!important;' + 'image-orientation:0deg!important;"';
+
+	      $.empty(element);
+	      $.appendChild(element, img);
+	    });
+	  },
+	  resetPreview: function resetPreview() {
+	    $.each(this.previews, function (element) {
+	      var data = $.getData(element, DATA_PREVIEW);
+
+	      $.setStyle(element, {
+	        width: data.width,
+	        height: data.height
+	      });
+
+	      element.innerHTML = data.html;
+	      $.removeData(element, DATA_PREVIEW);
+	    });
+	  },
+	  preview: function preview() {
+	    var self = this;
+	    var imageData = self.imageData;
+	    var canvasData = self.canvasData;
+	    var cropBoxData = self.cropBoxData;
+	    var cropBoxWidth = cropBoxData.width;
+	    var cropBoxHeight = cropBoxData.height;
+	    var width = imageData.width;
+	    var height = imageData.height;
+	    var left = cropBoxData.left - canvasData.left - imageData.left;
+	    var top = cropBoxData.top - canvasData.top - imageData.top;
+	    var transform = $.getTransform(imageData);
+	    var transforms = {
+	      WebkitTransform: transform,
+	      msTransform: transform,
+	      transform: transform
+	    };
+
+	    if (!self.cropped || self.disabled) {
+	      return;
+	    }
+
+	    $.setStyle(self.image2, $.extend({
+	      width: width,
+	      height: height,
+	      marginLeft: -left,
+	      marginTop: -top
+	    }, transforms));
+
+	    $.each(self.previews, function (element) {
+	      var data = $.getData(element, DATA_PREVIEW);
+	      var originalWidth = data.width;
+	      var originalHeight = data.height;
+	      var newWidth = originalWidth;
+	      var newHeight = originalHeight;
+	      var ratio = 1;
+
+	      if (cropBoxWidth) {
+	        ratio = originalWidth / cropBoxWidth;
+	        newHeight = cropBoxHeight * ratio;
+	      }
+
+	      if (cropBoxHeight && newHeight > originalHeight) {
+	        ratio = originalHeight / cropBoxHeight;
+	        newWidth = cropBoxWidth * ratio;
+	        newHeight = originalHeight;
+	      }
+
+	      $.setStyle(element, {
+	        width: newWidth,
+	        height: newHeight
+	      });
+
+	      $.setStyle($.getByTag(element, 'img')[0], $.extend({
+	        width: width * ratio,
+	        height: height * ratio,
+	        marginLeft: -left * ratio,
+	        marginTop: -top * ratio
+	      }, transforms));
+	    });
+	  }
+	};
+
+/***/ },
+/* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _utilities = __webpack_require__(82);
+
+	var $ = _interopRequireWildcard(_utilities);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// Events
+	var EVENT_MOUSE_DOWN = 'mousedown touchstart pointerdown MSPointerDown';
+	var EVENT_MOUSE_MOVE = 'mousemove touchmove pointermove MSPointerMove';
+	var EVENT_MOUSE_UP = 'mouseup touchend touchcancel pointerup pointercancel' + ' MSPointerUp MSPointerCancel';
+	var EVENT_WHEEL = 'wheel mousewheel DOMMouseScroll';
+	var EVENT_DBLCLICK = 'dblclick';
+	var EVENT_RESIZE = 'resize';
+	var EVENT_CROP_START = 'cropstart';
+	var EVENT_CROP_MOVE = 'cropmove';
+	var EVENT_CROP_END = 'cropend';
+	var EVENT_CROP = 'crop';
+	var EVENT_ZOOM = 'zoom';
+
+	exports.default = {
+	  bind: function bind() {
+	    var self = this;
+	    var options = self.options;
+	    var element = self.element;
+	    var cropper = self.cropper;
+
+	    if ($.isFunction(options.cropstart)) {
+	      $.addListener(element, EVENT_CROP_START, options.cropstart);
+	    }
+
+	    if ($.isFunction(options.cropmove)) {
+	      $.addListener(element, EVENT_CROP_MOVE, options.cropmove);
+	    }
+
+	    if ($.isFunction(options.cropend)) {
+	      $.addListener(element, EVENT_CROP_END, options.cropend);
+	    }
+
+	    if ($.isFunction(options.crop)) {
+	      $.addListener(element, EVENT_CROP, options.crop);
+	    }
+
+	    if ($.isFunction(options.zoom)) {
+	      $.addListener(element, EVENT_ZOOM, options.zoom);
+	    }
+
+	    $.addListener(cropper, EVENT_MOUSE_DOWN, self.onCropStart = $.proxy(self.cropStart, self));
+
+	    if (options.zoomable && options.zoomOnWheel) {
+	      $.addListener(cropper, EVENT_WHEEL, self.onWheel = $.proxy(self.wheel, self));
+	    }
+
+	    if (options.toggleDragModeOnDblclick) {
+	      $.addListener(cropper, EVENT_DBLCLICK, self.onDblclick = $.proxy(self.dblclick, self));
+	    }
+
+	    $.addListener(document, EVENT_MOUSE_MOVE, self.onCropMove = $.proxy(self.cropMove, self));
+	    $.addListener(document, EVENT_MOUSE_UP, self.onCropEnd = $.proxy(self.cropEnd, self));
+
+	    if (options.responsive) {
+	      $.addListener(window, EVENT_RESIZE, self.onResize = $.proxy(self.resize, self));
+	    }
+	  },
+	  unbind: function unbind() {
+	    var self = this;
+	    var options = self.options;
+	    var element = self.element;
+	    var cropper = self.cropper;
+
+	    if ($.isFunction(options.cropstart)) {
+	      $.removeListener(element, EVENT_CROP_START, options.cropstart);
+	    }
+
+	    if ($.isFunction(options.cropmove)) {
+	      $.removeListener(element, EVENT_CROP_MOVE, options.cropmove);
+	    }
+
+	    if ($.isFunction(options.cropend)) {
+	      $.removeListener(element, EVENT_CROP_END, options.cropend);
+	    }
+
+	    if ($.isFunction(options.crop)) {
+	      $.removeListener(element, EVENT_CROP, options.crop);
+	    }
+
+	    if ($.isFunction(options.zoom)) {
+	      $.removeListener(element, EVENT_ZOOM, options.zoom);
+	    }
+
+	    $.removeListener(cropper, EVENT_MOUSE_DOWN, self.onCropStart);
+
+	    if (options.zoomable && options.zoomOnWheel) {
+	      $.removeListener(cropper, EVENT_WHEEL, self.onWheel);
+	    }
+
+	    if (options.toggleDragModeOnDblclick) {
+	      $.removeListener(cropper, EVENT_DBLCLICK, self.onDblclick);
+	    }
+
+	    $.removeListener(document, EVENT_MOUSE_MOVE, self.onCropMove);
+	    $.removeListener(document, EVENT_MOUSE_UP, self.onCropEnd);
+
+	    if (options.responsive) {
+	      $.removeListener(window, EVENT_RESIZE, self.onResize);
+	    }
+	  }
+	};
+
+/***/ },
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.REGEXP_ACTIONS = undefined;
+
+	var _utilities = __webpack_require__(82);
+
+	var $ = _interopRequireWildcard(_utilities);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	var REGEXP_ACTIONS = exports.REGEXP_ACTIONS = /^(e|w|s|n|se|sw|ne|nw|all|crop|move|zoom)$/;
+
+	exports.default = {
+	  resize: function resize() {
+	    var self = this;
+	    var restore = self.options.restore;
+	    var container = self.container;
+	    var containerData = self.containerData;
+
+	    // Check `container` is necessary for IE8
+	    if (self.disabled || !containerData) {
+	      return;
+	    }
+
+	    var ratio = container.offsetWidth / containerData.width;
+	    var canvasData = void 0;
+	    var cropBoxData = void 0;
+
+	    // Resize when width changed or height changed
+	    if (ratio !== 1 || container.offsetHeight !== containerData.height) {
+	      if (restore) {
+	        canvasData = self.getCanvasData();
+	        cropBoxData = self.getCropBoxData();
+	      }
+
+	      self.render();
+
+	      if (restore) {
+	        self.setCanvasData($.each(canvasData, function (n, i) {
+	          canvasData[i] = n * ratio;
+	        }));
+	        self.setCropBoxData($.each(cropBoxData, function (n, i) {
+	          cropBoxData[i] = n * ratio;
+	        }));
+	      }
+	    }
+	  },
+	  dblclick: function dblclick() {
+	    var self = this;
+
+	    if (self.disabled) {
+	      return;
+	    }
+
+	    self.setDragMode($.hasClass(self.dragBox, 'cropper-crop') ? 'move' : 'crop');
+	  },
+	  wheel: function wheel(event) {
+	    var self = this;
+	    var e = $.getEvent(event);
+	    var ratio = Number(self.options.wheelZoomRatio) || 0.1;
+	    var delta = 1;
+
+	    if (self.disabled) {
+	      return;
+	    }
+
+	    e.preventDefault();
+
+	    // Limit wheel speed to prevent zoom too fast (#21)
+	    if (self.wheeling) {
+	      return;
+	    }
+
+	    self.wheeling = true;
+
+	    setTimeout(function () {
+	      self.wheeling = false;
+	    }, 50);
+
+	    if (e.deltaY) {
+	      delta = e.deltaY > 0 ? 1 : -1;
+	    } else if (e.wheelDelta) {
+	      delta = -e.wheelDelta / 120;
+	    } else if (e.detail) {
+	      delta = e.detail > 0 ? 1 : -1;
+	    }
+
+	    self.zoom(-delta * ratio, e);
+	  },
+	  cropStart: function cropStart(event) {
+	    var self = this;
+	    var options = self.options;
+	    var e = $.getEvent(event);
+	    var touches = e.touches;
+	    var touchesLength = void 0;
+	    var touch = void 0;
+	    var action = void 0;
+
+	    if (self.disabled) {
+	      return;
+	    }
+
+	    if (touches) {
+	      touchesLength = touches.length;
+
+	      if (touchesLength > 1) {
+	        if (options.zoomable && options.zoomOnTouch && touchesLength === 2) {
+	          touch = touches[1];
+	          self.startX2 = touch.pageX;
+	          self.startY2 = touch.pageY;
+	          action = 'zoom';
+	        } else {
+	          return;
+	        }
+	      }
+
+	      touch = touches[0];
+	    }
+
+	    action = action || $.getData(e.target, 'action');
+
+	    if (REGEXP_ACTIONS.test(action)) {
+	      if ($.dispatchEvent(self.element, 'cropstart', {
+	        originalEvent: e,
+	        action: action
+	      }) === false) {
+	        return;
+	      }
+
+	      e.preventDefault();
+
+	      self.action = action;
+	      self.cropping = false;
+
+	      self.startX = touch ? touch.pageX : e.pageX;
+	      self.startY = touch ? touch.pageY : e.pageY;
+
+	      if (action === 'crop') {
+	        self.cropping = true;
+	        $.addClass(self.dragBox, 'cropper-modal');
+	      }
+	    }
+	  },
+	  cropMove: function cropMove(event) {
+	    var self = this;
+	    var options = self.options;
+	    var e = $.getEvent(event);
+	    var touches = e.touches;
+	    var action = self.action;
+	    var touchesLength = void 0;
+	    var touch = void 0;
+
+	    if (self.disabled) {
+	      return;
+	    }
+
+	    if (touches) {
+	      touchesLength = touches.length;
+
+	      if (touchesLength > 1) {
+	        if (options.zoomable && options.zoomOnTouch && touchesLength === 2) {
+	          touch = touches[1];
+	          self.endX2 = touch.pageX;
+	          self.endY2 = touch.pageY;
+	        } else {
+	          return;
+	        }
+	      }
+
+	      touch = touches[0];
+	    }
+
+	    if (action) {
+	      if ($.dispatchEvent(self.element, 'cropmove', {
+	        originalEvent: e,
+	        action: action
+	      }) === false) {
+	        return;
+	      }
+
+	      e.preventDefault();
+
+	      self.endX = touch ? touch.pageX : e.pageX;
+	      self.endY = touch ? touch.pageY : e.pageY;
+
+	      self.change(e.shiftKey, action === 'zoom' ? e : null);
+	    }
+	  },
+	  cropEnd: function cropEnd(event) {
+	    var self = this;
+	    var options = self.options;
+	    var e = $.getEvent(event);
+	    var action = self.action;
+
+	    if (self.disabled) {
+	      return;
+	    }
+
+	    if (action) {
+	      e.preventDefault();
+
+	      if (self.cropping) {
+	        self.cropping = false;
+	        $.toggleClass(self.dragBox, 'cropper-modal', self.cropped && options.modal);
+	      }
+
+	      self.action = '';
+
+	      $.dispatchEvent(self.element, 'cropend', {
+	        originalEvent: e,
+	        action: action
+	      });
+	    }
+	  }
+	};
+
+/***/ },
+/* 86 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _utilities = __webpack_require__(82);
+
+	var $ = _interopRequireWildcard(_utilities);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	// Actions
+	var ACTION_EAST = 'e';
+	var ACTION_WEST = 'w';
+	var ACTION_SOUTH = 's';
+	var ACTION_NORTH = 'n';
+	var ACTION_SOUTH_EAST = 'se';
+	var ACTION_SOUTH_WEST = 'sw';
+	var ACTION_NORTH_EAST = 'ne';
+	var ACTION_NORTH_WEST = 'nw';
+
+	exports.default = {
+	  change: function change(shiftKey, originalEvent) {
+	    var self = this;
+	    var options = self.options;
+	    var containerData = self.containerData;
+	    var canvasData = self.canvasData;
+	    var cropBoxData = self.cropBoxData;
+	    var aspectRatio = options.aspectRatio;
+	    var action = self.action;
+	    var width = cropBoxData.width;
+	    var height = cropBoxData.height;
+	    var left = cropBoxData.left;
+	    var top = cropBoxData.top;
+	    var right = left + width;
+	    var bottom = top + height;
+	    var minLeft = 0;
+	    var minTop = 0;
+	    var maxWidth = containerData.width;
+	    var maxHeight = containerData.height;
+	    var renderable = true;
+	    var offset = void 0;
+
+	    // Locking aspect ratio in "free mode" by holding shift key
+	    if (!aspectRatio && shiftKey) {
+	      aspectRatio = width && height ? width / height : 1;
+	    }
+
+	    if (self.limited) {
+	      minLeft = cropBoxData.minLeft;
+	      minTop = cropBoxData.minTop;
+	      maxWidth = minLeft + Math.min(containerData.width, canvasData.width, canvasData.left + canvasData.width);
+	      maxHeight = minTop + Math.min(containerData.height, canvasData.height, canvasData.top + canvasData.height);
+	    }
+
+	    var range = {
+	      x: self.endX - self.startX,
+	      y: self.endY - self.startY
+	    };
+
+	    if (aspectRatio) {
+	      range.X = range.y * aspectRatio;
+	      range.Y = range.x / aspectRatio;
+	    }
+
+	    switch (action) {
+	      // Move crop box
+	      case 'all':
+	        left += range.x;
+	        top += range.y;
+	        break;
+
+	      // Resize crop box
+	      case ACTION_EAST:
+	        if (range.x >= 0 && (right >= maxWidth || aspectRatio && (top <= minTop || bottom >= maxHeight))) {
+	          renderable = false;
+	          break;
+	        }
+
+	        width += range.x;
+
+	        if (aspectRatio) {
+	          height = width / aspectRatio;
+	          top -= range.Y / 2;
+	        }
+
+	        if (width < 0) {
+	          action = ACTION_WEST;
+	          width = 0;
+	        }
+
+	        break;
+
+	      case ACTION_NORTH:
+	        if (range.y <= 0 && (top <= minTop || aspectRatio && (left <= minLeft || right >= maxWidth))) {
+	          renderable = false;
+	          break;
+	        }
+
+	        height -= range.y;
+	        top += range.y;
+
+	        if (aspectRatio) {
+	          width = height * aspectRatio;
+	          left += range.X / 2;
+	        }
+
+	        if (height < 0) {
+	          action = ACTION_SOUTH;
+	          height = 0;
+	        }
+
+	        break;
+
+	      case ACTION_WEST:
+	        if (range.x <= 0 && (left <= minLeft || aspectRatio && (top <= minTop || bottom >= maxHeight))) {
+	          renderable = false;
+	          break;
+	        }
+
+	        width -= range.x;
+	        left += range.x;
+
+	        if (aspectRatio) {
+	          height = width / aspectRatio;
+	          top += range.Y / 2;
+	        }
+
+	        if (width < 0) {
+	          action = ACTION_EAST;
+	          width = 0;
+	        }
+
+	        break;
+
+	      case ACTION_SOUTH:
+	        if (range.y >= 0 && (bottom >= maxHeight || aspectRatio && (left <= minLeft || right >= maxWidth))) {
+	          renderable = false;
+	          break;
+	        }
+
+	        height += range.y;
+
+	        if (aspectRatio) {
+	          width = height * aspectRatio;
+	          left -= range.X / 2;
+	        }
+
+	        if (height < 0) {
+	          action = ACTION_NORTH;
+	          height = 0;
+	        }
+
+	        break;
+
+	      case ACTION_NORTH_EAST:
+	        if (aspectRatio) {
+	          if (range.y <= 0 && (top <= minTop || right >= maxWidth)) {
+	            renderable = false;
+	            break;
+	          }
+
+	          height -= range.y;
+	          top += range.y;
+	          width = height * aspectRatio;
+	        } else {
+	          if (range.x >= 0) {
+	            if (right < maxWidth) {
+	              width += range.x;
+	            } else if (range.y <= 0 && top <= minTop) {
+	              renderable = false;
+	            }
+	          } else {
+	            width += range.x;
+	          }
+
+	          if (range.y <= 0) {
+	            if (top > minTop) {
+	              height -= range.y;
+	              top += range.y;
+	            }
+	          } else {
+	            height -= range.y;
+	            top += range.y;
+	          }
+	        }
+
+	        if (width < 0 && height < 0) {
+	          action = ACTION_SOUTH_WEST;
+	          height = 0;
+	          width = 0;
+	        } else if (width < 0) {
+	          action = ACTION_NORTH_WEST;
+	          width = 0;
+	        } else if (height < 0) {
+	          action = ACTION_SOUTH_EAST;
+	          height = 0;
+	        }
+
+	        break;
+
+	      case ACTION_NORTH_WEST:
+	        if (aspectRatio) {
+	          if (range.y <= 0 && (top <= minTop || left <= minLeft)) {
+	            renderable = false;
+	            break;
+	          }
+
+	          height -= range.y;
+	          top += range.y;
+	          width = height * aspectRatio;
+	          left += range.X;
+	        } else {
+	          if (range.x <= 0) {
+	            if (left > minLeft) {
+	              width -= range.x;
+	              left += range.x;
+	            } else if (range.y <= 0 && top <= minTop) {
+	              renderable = false;
+	            }
+	          } else {
+	            width -= range.x;
+	            left += range.x;
+	          }
+
+	          if (range.y <= 0) {
+	            if (top > minTop) {
+	              height -= range.y;
+	              top += range.y;
+	            }
+	          } else {
+	            height -= range.y;
+	            top += range.y;
+	          }
+	        }
+
+	        if (width < 0 && height < 0) {
+	          action = ACTION_SOUTH_EAST;
+	          height = 0;
+	          width = 0;
+	        } else if (width < 0) {
+	          action = ACTION_NORTH_EAST;
+	          width = 0;
+	        } else if (height < 0) {
+	          action = ACTION_SOUTH_WEST;
+	          height = 0;
+	        }
+
+	        break;
+
+	      case ACTION_SOUTH_WEST:
+	        if (aspectRatio) {
+	          if (range.x <= 0 && (left <= minLeft || bottom >= maxHeight)) {
+	            renderable = false;
+	            break;
+	          }
+
+	          width -= range.x;
+	          left += range.x;
+	          height = width / aspectRatio;
+	        } else {
+	          if (range.x <= 0) {
+	            if (left > minLeft) {
+	              width -= range.x;
+	              left += range.x;
+	            } else if (range.y >= 0 && bottom >= maxHeight) {
+	              renderable = false;
+	            }
+	          } else {
+	            width -= range.x;
+	            left += range.x;
+	          }
+
+	          if (range.y >= 0) {
+	            if (bottom < maxHeight) {
+	              height += range.y;
+	            }
+	          } else {
+	            height += range.y;
+	          }
+	        }
+
+	        if (width < 0 && height < 0) {
+	          action = ACTION_NORTH_EAST;
+	          height = 0;
+	          width = 0;
+	        } else if (width < 0) {
+	          action = ACTION_SOUTH_EAST;
+	          width = 0;
+	        } else if (height < 0) {
+	          action = ACTION_NORTH_WEST;
+	          height = 0;
+	        }
+
+	        break;
+
+	      case ACTION_SOUTH_EAST:
+	        if (aspectRatio) {
+	          if (range.x >= 0 && (right >= maxWidth || bottom >= maxHeight)) {
+	            renderable = false;
+	            break;
+	          }
+
+	          width += range.x;
+	          height = width / aspectRatio;
+	        } else {
+	          if (range.x >= 0) {
+	            if (right < maxWidth) {
+	              width += range.x;
+	            } else if (range.y >= 0 && bottom >= maxHeight) {
+	              renderable = false;
+	            }
+	          } else {
+	            width += range.x;
+	          }
+
+	          if (range.y >= 0) {
+	            if (bottom < maxHeight) {
+	              height += range.y;
+	            }
+	          } else {
+	            height += range.y;
+	          }
+	        }
+
+	        if (width < 0 && height < 0) {
+	          action = ACTION_NORTH_WEST;
+	          height = 0;
+	          width = 0;
+	        } else if (width < 0) {
+	          action = ACTION_SOUTH_WEST;
+	          width = 0;
+	        } else if (height < 0) {
+	          action = ACTION_NORTH_EAST;
+	          height = 0;
+	        }
+
+	        break;
+
+	      // Move canvas
+	      case 'move':
+	        self.move(range.x, range.y);
+	        renderable = false;
+	        break;
+
+	      // Zoom canvas
+	      case 'zoom':
+	        self.zoom(function (x1, y1, x2, y2) {
+	          var z1 = Math.sqrt(x1 * x1 + y1 * y1);
+	          var z2 = Math.sqrt(x2 * x2 + y2 * y2);
+
+	          return (z2 - z1) / z1;
+	        }(Math.abs(self.startX - self.startX2), Math.abs(self.startY - self.startY2), Math.abs(self.endX - self.endX2), Math.abs(self.endY - self.endY2)), originalEvent);
+	        self.startX2 = self.endX2;
+	        self.startY2 = self.endY2;
+	        renderable = false;
+	        break;
+
+	      // Create crop box
+	      case 'crop':
+	        if (!range.x || !range.y) {
+	          renderable = false;
+	          break;
+	        }
+
+	        offset = $.getOffset(self.cropper);
+	        left = self.startX - offset.left;
+	        top = self.startY - offset.top;
+	        width = cropBoxData.minWidth;
+	        height = cropBoxData.minHeight;
+
+	        if (range.x > 0) {
+	          action = range.y > 0 ? ACTION_SOUTH_EAST : ACTION_NORTH_EAST;
+	        } else if (range.x < 0) {
+	          left -= width;
+	          action = range.y > 0 ? ACTION_SOUTH_WEST : ACTION_NORTH_WEST;
+	        }
+
+	        if (range.y < 0) {
+	          top -= height;
+	        }
+
+	        // Show the crop box if is hidden
+	        if (!self.cropped) {
+	          $.removeClass(self.cropBox, 'cropper-hidden');
+	          self.cropped = true;
+
+	          if (self.limited) {
+	            self.limitCropBox(true, true);
+	          }
+	        }
+
+	        break;
+
+	      // No default
+	    }
+
+	    if (renderable) {
+	      cropBoxData.width = width;
+	      cropBoxData.height = height;
+	      cropBoxData.left = left;
+	      cropBoxData.top = top;
+	      self.action = action;
+
+	      self.renderCropBox();
+	    }
+
+	    // Override
+	    self.startX = self.endX;
+	    self.startY = self.endY;
+	  }
+	};
+
+/***/ },
+/* 87 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _utilities = __webpack_require__(82);
+
+	var $ = _interopRequireWildcard(_utilities);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	exports.default = {
+	  // Show the crop box manually
+	  crop: function crop() {
+	    var self = this;
+
+	    if (self.ready && !self.disabled) {
+	      if (!self.cropped) {
+	        self.cropped = true;
+	        self.limitCropBox(true, true);
+
+	        if (self.options.modal) {
+	          $.addClass(self.dragBox, 'cropper-modal');
+	        }
+
+	        $.removeClass(self.cropBox, 'cropper-hidden');
+	      }
+
+	      self.setCropBoxData(self.initialCropBoxData);
+	    }
+
+	    return self;
+	  },
+
+
+	  // Reset the image and crop box to their initial states
+	  reset: function reset() {
+	    var self = this;
+
+	    if (self.ready && !self.disabled) {
+	      self.imageData = $.extend({}, self.initialImageData);
+	      self.canvasData = $.extend({}, self.initialCanvasData);
+	      self.cropBoxData = $.extend({}, self.initialCropBoxData);
+
+	      self.renderCanvas();
+
+	      if (self.cropped) {
+	        self.renderCropBox();
+	      }
+	    }
+
+	    return self;
+	  },
+
+
+	  // Clear the crop box
+	  clear: function clear() {
+	    var self = this;
+
+	    if (self.cropped && !self.disabled) {
+	      $.extend(self.cropBoxData, {
+	        left: 0,
+	        top: 0,
+	        width: 0,
+	        height: 0
+	      });
+
+	      self.cropped = false;
+	      self.renderCropBox();
+
+	      self.limitCanvas();
+
+	      // Render canvas after crop box rendered
+	      self.renderCanvas();
+
+	      $.removeClass(self.dragBox, 'cropper-modal');
+	      $.addClass(self.cropBox, 'cropper-hidden');
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Replace the image's src and rebuild the cropper
+	   *
+	   * @param {String} url
+	   * @param {Boolean} onlyColorChanged (optional)
+	   */
+	  replace: function replace(url, onlyColorChanged) {
+	    var self = this;
+
+	    if (!self.disabled && url) {
+	      if (self.isImg) {
+	        self.element.src = url;
+	      }
+
+	      if (onlyColorChanged) {
+	        self.url = url;
+	        self.image.src = url;
+
+	        if (self.ready) {
+	          self.image2.src = url;
+
+	          $.each(self.previews, function (element) {
+	            $.getByTag(element, 'img')[0].src = url;
+	          });
+	        }
+	      } else {
+	        if (self.isImg) {
+	          self.replaced = true;
+	        }
+
+	        // Clear previous data
+	        self.options.data = null;
+	        self.load(url);
+	      }
+	    }
+
+	    return self;
+	  },
+
+
+	  // Enable (unfreeze) the cropper
+	  enable: function enable() {
+	    var self = this;
+
+	    if (self.ready) {
+	      self.disabled = false;
+	      $.removeClass(self.cropper, 'cropper-disabled');
+	    }
+
+	    return self;
+	  },
+
+
+	  // Disable (freeze) the cropper
+	  disable: function disable() {
+	    var self = this;
+
+	    if (self.ready) {
+	      self.disabled = true;
+	      $.addClass(self.cropper, 'cropper-disabled');
+	    }
+
+	    return self;
+	  },
+
+
+	  // Destroy the cropper and remove the instance from the image
+	  destroy: function destroy() {
+	    var self = this;
+	    var element = self.element;
+	    var image = self.image;
+
+	    if (self.loaded) {
+	      if (self.isImg && self.replaced) {
+	        element.src = self.originalUrl;
+	      }
+
+	      self.unbuild();
+	      $.removeClass(element, 'cropper-hidden');
+	    } else if (self.isImg) {
+	      $.removeListener(element, 'load', self.start);
+	    } else if (image) {
+	      $.removeChild(image);
+	    }
+
+	    $.removeData(element, 'cropper');
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Move the canvas with relative offsets
+	   *
+	   * @param {Number} offsetX
+	   * @param {Number} offsetY (optional)
+	   */
+	  move: function move(offsetX, offsetY) {
+	    var self = this;
+	    var canvasData = self.canvasData;
+
+	    return self.moveTo($.isUndefined(offsetX) ? offsetX : canvasData.left + Number(offsetX), $.isUndefined(offsetY) ? offsetY : canvasData.top + Number(offsetY));
+	  },
+
+
+	  /**
+	   * Move the canvas to an absolute point
+	   *
+	   * @param {Number} x
+	   * @param {Number} y (optional)
+	   */
+	  moveTo: function moveTo(x, y) {
+	    var self = this;
+	    var canvasData = self.canvasData;
+	    var changed = false;
+
+	    // If "y" is not present, its default value is "x"
+	    if ($.isUndefined(y)) {
+	      y = x;
+	    }
+
+	    x = Number(x);
+	    y = Number(y);
+
+	    if (self.ready && !self.disabled && self.options.movable) {
+	      if ($.isNumber(x)) {
+	        canvasData.left = x;
+	        changed = true;
+	      }
+
+	      if ($.isNumber(y)) {
+	        canvasData.top = y;
+	        changed = true;
+	      }
+
+	      if (changed) {
+	        self.renderCanvas(true);
+	      }
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Zoom the canvas with a relative ratio
+	   *
+	   * @param {Number} ratio
+	   * @param {Event} _originalEvent (private)
+	   */
+	  zoom: function zoom(ratio, _originalEvent) {
+	    var self = this;
+	    var canvasData = self.canvasData;
+
+	    ratio = Number(ratio);
+
+	    if (ratio < 0) {
+	      ratio = 1 / (1 - ratio);
+	    } else {
+	      ratio = 1 + ratio;
+	    }
+
+	    return self.zoomTo(canvasData.width * ratio / canvasData.naturalWidth, _originalEvent);
+	  },
+
+
+	  /**
+	   * Zoom the canvas to an absolute ratio
+	   *
+	   * @param {Number} ratio
+	   * @param {Event} _originalEvent (private)
+	   */
+	  zoomTo: function zoomTo(ratio, _originalEvent) {
+	    var self = this;
+	    var options = self.options;
+	    var canvasData = self.canvasData;
+	    var width = canvasData.width;
+	    var height = canvasData.height;
+	    var naturalWidth = canvasData.naturalWidth;
+	    var naturalHeight = canvasData.naturalHeight;
+	    var newWidth = void 0;
+	    var newHeight = void 0;
+	    var offset = void 0;
+	    var center = void 0;
+
+	    ratio = Number(ratio);
+
+	    if (ratio >= 0 && self.ready && !self.disabled && options.zoomable) {
+	      newWidth = naturalWidth * ratio;
+	      newHeight = naturalHeight * ratio;
+
+	      if ($.dispatchEvent(self.element, 'zoom', {
+	        originalEvent: _originalEvent,
+	        oldRatio: width / naturalWidth,
+	        ratio: newWidth / naturalWidth
+	      }) === false) {
+	        return self;
+	      }
+
+	      if (_originalEvent) {
+	        offset = $.getOffset(self.cropper);
+	        center = _originalEvent.touches ? $.getTouchesCenter(_originalEvent.touches) : {
+	          pageX: _originalEvent.pageX,
+	          pageY: _originalEvent.pageY
+	        };
+
+	        // Zoom from the triggering point of the event
+	        canvasData.left -= (newWidth - width) * ((center.pageX - offset.left - canvasData.left) / width);
+	        canvasData.top -= (newHeight - height) * ((center.pageY - offset.top - canvasData.top) / height);
+	      } else {
+	        // Zoom from the center of the canvas
+	        canvasData.left -= (newWidth - width) / 2;
+	        canvasData.top -= (newHeight - height) / 2;
+	      }
+
+	      canvasData.width = newWidth;
+	      canvasData.height = newHeight;
+	      self.renderCanvas(true);
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Rotate the canvas with a relative degree
+	   *
+	   * @param {Number} degree
+	   */
+	  rotate: function rotate(degree) {
+	    var self = this;
+
+	    return self.rotateTo((self.imageData.rotate || 0) + Number(degree));
+	  },
+
+
+	  /**
+	   * Rotate the canvas to an absolute degree
+	   * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function#rotate()
+	   *
+	   * @param {Number} degree
+	   */
+	  rotateTo: function rotateTo(degree) {
+	    var self = this;
+
+	    degree = Number(degree);
+
+	    if ($.isNumber(degree) && self.ready && !self.disabled && self.options.rotatable) {
+	      self.imageData.rotate = degree % 360;
+	      self.rotated = true;
+	      self.renderCanvas(true);
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Scale the image
+	   * https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function#scale()
+	   *
+	   * @param {Number} scaleX
+	   * @param {Number} scaleY (optional)
+	   */
+	  scale: function scale(scaleX, scaleY) {
+	    var self = this;
+	    var imageData = self.imageData;
+	    var changed = false;
+
+	    // If "scaleY" is not present, its default value is "scaleX"
+	    if ($.isUndefined(scaleY)) {
+	      scaleY = scaleX;
+	    }
+
+	    scaleX = Number(scaleX);
+	    scaleY = Number(scaleY);
+
+	    if (self.ready && !self.disabled && self.options.scalable) {
+	      if ($.isNumber(scaleX)) {
+	        imageData.scaleX = scaleX;
+	        changed = true;
+	      }
+
+	      if ($.isNumber(scaleY)) {
+	        imageData.scaleY = scaleY;
+	        changed = true;
+	      }
+
+	      if (changed) {
+	        self.renderImage(true);
+	      }
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Scale the abscissa of the image
+	   *
+	   * @param {Number} scaleX
+	   */
+	  scaleX: function scaleX(_scaleX) {
+	    var self = this;
+	    var scaleY = self.imageData.scaleY;
+
+	    return self.scale(_scaleX, $.isNumber(scaleY) ? scaleY : 1);
+	  },
+
+
+	  /**
+	   * Scale the ordinate of the image
+	   *
+	   * @param {Number} scaleY
+	   */
+	  scaleY: function scaleY(_scaleY) {
+	    var self = this;
+	    var scaleX = self.imageData.scaleX;
+
+	    return self.scale($.isNumber(scaleX) ? scaleX : 1, _scaleY);
+	  },
+
+
+	  /**
+	   * Get the cropped area position and size data (base on the original image)
+	   *
+	   * @param {Boolean} rounded (optional)
+	   * @return {Object} data
+	   */
+	  getData: function getData(rounded) {
+	    var self = this;
+	    var options = self.options;
+	    var imageData = self.imageData;
+	    var canvasData = self.canvasData;
+	    var cropBoxData = self.cropBoxData;
+	    var ratio = void 0;
+	    var data = void 0;
+
+	    if (self.ready && self.cropped) {
+	      data = {
+	        x: cropBoxData.left - canvasData.left,
+	        y: cropBoxData.top - canvasData.top,
+	        width: cropBoxData.width,
+	        height: cropBoxData.height
+	      };
+
+	      ratio = imageData.width / imageData.naturalWidth;
+
+	      $.each(data, function (n, i) {
+	        n /= ratio;
+	        data[i] = rounded ? Math.round(n) : n;
+	      });
+	    } else {
+	      data = {
+	        x: 0,
+	        y: 0,
+	        width: 0,
+	        height: 0
+	      };
+	    }
+
+	    if (options.rotatable) {
+	      data.rotate = imageData.rotate || 0;
+	    }
+
+	    if (options.scalable) {
+	      data.scaleX = imageData.scaleX || 1;
+	      data.scaleY = imageData.scaleY || 1;
+	    }
+
+	    return data;
+	  },
+
+
+	  /**
+	   * Set the cropped area position and size with new data
+	   *
+	   * @param {Object} data
+	   */
+	  setData: function setData(data) {
+	    var self = this;
+	    var options = self.options;
+	    var imageData = self.imageData;
+	    var canvasData = self.canvasData;
+	    var cropBoxData = {};
+	    var rotated = void 0;
+	    var scaled = void 0;
+	    var ratio = void 0;
+
+	    if ($.isFunction(data)) {
+	      data = data.call(self.element);
+	    }
+
+	    if (self.ready && !self.disabled && $.isPlainObject(data)) {
+	      if (options.rotatable) {
+	        if ($.isNumber(data.rotate) && data.rotate !== imageData.rotate) {
+	          imageData.rotate = data.rotate;
+	          self.rotated = rotated = true;
+	        }
+	      }
+
+	      if (options.scalable) {
+	        if ($.isNumber(data.scaleX) && data.scaleX !== imageData.scaleX) {
+	          imageData.scaleX = data.scaleX;
+	          scaled = true;
+	        }
+
+	        if ($.isNumber(data.scaleY) && data.scaleY !== imageData.scaleY) {
+	          imageData.scaleY = data.scaleY;
+	          scaled = true;
+	        }
+	      }
+
+	      if (rotated) {
+	        self.renderCanvas();
+	      } else if (scaled) {
+	        self.renderImage();
+	      }
+
+	      ratio = imageData.width / imageData.naturalWidth;
+
+	      if ($.isNumber(data.x)) {
+	        cropBoxData.left = data.x * ratio + canvasData.left;
+	      }
+
+	      if ($.isNumber(data.y)) {
+	        cropBoxData.top = data.y * ratio + canvasData.top;
+	      }
+
+	      if ($.isNumber(data.width)) {
+	        cropBoxData.width = data.width * ratio;
+	      }
+
+	      if ($.isNumber(data.height)) {
+	        cropBoxData.height = data.height * ratio;
+	      }
+
+	      self.setCropBoxData(cropBoxData);
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Get the container size data
+	   *
+	   * @return {Object} data
+	   */
+	  getContainerData: function getContainerData() {
+	    var self = this;
+
+	    return self.ready ? self.containerData : {};
+	  },
+
+
+	  /**
+	   * Get the image position and size data
+	   *
+	   * @return {Object} data
+	   */
+	  getImageData: function getImageData() {
+	    var self = this;
+
+	    return self.loaded ? self.imageData : {};
+	  },
+
+
+	  /**
+	   * Get the canvas position and size data
+	   *
+	   * @return {Object} data
+	   */
+	  getCanvasData: function getCanvasData() {
+	    var self = this;
+	    var canvasData = self.canvasData;
+	    var data = {};
+
+	    if (self.ready) {
+	      $.each(['left', 'top', 'width', 'height', 'naturalWidth', 'naturalHeight'], function (n) {
+	        data[n] = canvasData[n];
+	      });
+	    }
+
+	    return data;
+	  },
+
+
+	  /**
+	   * Set the canvas position and size with new data
+	   *
+	   * @param {Object} data
+	   */
+	  setCanvasData: function setCanvasData(data) {
+	    var self = this;
+	    var canvasData = self.canvasData;
+	    var aspectRatio = canvasData.aspectRatio;
+
+	    if ($.isFunction(data)) {
+	      data = data.call(self.element);
+	    }
+
+	    if (self.ready && !self.disabled && $.isPlainObject(data)) {
+	      if ($.isNumber(data.left)) {
+	        canvasData.left = data.left;
+	      }
+
+	      if ($.isNumber(data.top)) {
+	        canvasData.top = data.top;
+	      }
+
+	      if ($.isNumber(data.width)) {
+	        canvasData.width = data.width;
+	        canvasData.height = data.width / aspectRatio;
+	      } else if ($.isNumber(data.height)) {
+	        canvasData.height = data.height;
+	        canvasData.width = data.height * aspectRatio;
+	      }
+
+	      self.renderCanvas(true);
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Get the crop box position and size data
+	   *
+	   * @return {Object} data
+	   */
+	  getCropBoxData: function getCropBoxData() {
+	    var self = this;
+	    var cropBoxData = self.cropBoxData;
+	    var data = void 0;
+
+	    if (self.ready && self.cropped) {
+	      data = {
+	        left: cropBoxData.left,
+	        top: cropBoxData.top,
+	        width: cropBoxData.width,
+	        height: cropBoxData.height
+	      };
+	    }
+
+	    return data || {};
+	  },
+
+
+	  /**
+	   * Set the crop box position and size with new data
+	   *
+	   * @param {Object} data
+	   */
+	  setCropBoxData: function setCropBoxData(data) {
+	    var self = this;
+	    var cropBoxData = self.cropBoxData;
+	    var aspectRatio = self.options.aspectRatio;
+	    var widthChanged = void 0;
+	    var heightChanged = void 0;
+
+	    if ($.isFunction(data)) {
+	      data = data.call(self.element);
+	    }
+
+	    if (self.ready && self.cropped && !self.disabled && $.isPlainObject(data)) {
+	      if ($.isNumber(data.left)) {
+	        cropBoxData.left = data.left;
+	      }
+
+	      if ($.isNumber(data.top)) {
+	        cropBoxData.top = data.top;
+	      }
+
+	      if ($.isNumber(data.width)) {
+	        widthChanged = true;
+	        cropBoxData.width = data.width;
+	      }
+
+	      if ($.isNumber(data.height)) {
+	        heightChanged = true;
+	        cropBoxData.height = data.height;
+	      }
+
+	      if (aspectRatio) {
+	        if (widthChanged) {
+	          cropBoxData.height = cropBoxData.width / aspectRatio;
+	        } else if (heightChanged) {
+	          cropBoxData.width = cropBoxData.height * aspectRatio;
+	        }
+	      }
+
+	      self.renderCropBox();
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Get a canvas drawn the cropped image
+	   *
+	   * @param {Object} options (optional)
+	   * @return {HTMLCanvasElement} canvas
+	   */
+	  getCroppedCanvas: function getCroppedCanvas(options) {
+	    var self = this;
+
+	    if (!self.ready || !window.HTMLCanvasElement) {
+	      return null;
+	    }
+
+	    // Return the whole canvas if not cropped
+	    if (!self.cropped) {
+	      return $.getSourceCanvas(self.image, self.imageData);
+	    }
+
+	    if (!$.isPlainObject(options)) {
+	      options = {};
+	    }
+
+	    var data = self.getData();
+	    var originalWidth = data.width;
+	    var originalHeight = data.height;
+	    var aspectRatio = originalWidth / originalHeight;
+	    var scaledWidth = void 0;
+	    var scaledHeight = void 0;
+	    var scaledRatio = void 0;
+
+	    if ($.isPlainObject(options)) {
+	      scaledWidth = options.width;
+	      scaledHeight = options.height;
+
+	      if (scaledWidth) {
+	        scaledHeight = scaledWidth / aspectRatio;
+	        scaledRatio = scaledWidth / originalWidth;
+	      } else if (scaledHeight) {
+	        scaledWidth = scaledHeight * aspectRatio;
+	        scaledRatio = scaledHeight / originalHeight;
+	      }
+	    }
+
+	    // The canvas element will use `Math.floor` on a float number, so floor first
+	    var canvasWidth = Math.floor(scaledWidth || originalWidth);
+	    var canvasHeight = Math.floor(scaledHeight || originalHeight);
+
+	    var canvas = $.createElement('canvas');
+	    var context = canvas.getContext('2d');
+
+	    canvas.width = canvasWidth;
+	    canvas.height = canvasHeight;
+
+	    if (options.fillColor) {
+	      context.fillStyle = options.fillColor;
+	      context.fillRect(0, 0, canvasWidth, canvasHeight);
+	    }
+
+	    // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D.drawImage
+	    var parameters = function () {
+	      var source = $.getSourceCanvas(self.image, self.imageData);
+	      var sourceWidth = source.width;
+	      var sourceHeight = source.height;
+	      var canvasData = self.canvasData;
+	      var params = [source];
+
+	      // Source canvas
+	      var srcX = data.x + canvasData.naturalWidth * (Math.abs(data.scaleX || 1) - 1) / 2;
+	      var srcY = data.y + canvasData.naturalHeight * (Math.abs(data.scaleY || 1) - 1) / 2;
+	      var srcWidth = void 0;
+	      var srcHeight = void 0;
+
+	      // Destination canvas
+	      var dstX = void 0;
+	      var dstY = void 0;
+	      var dstWidth = void 0;
+	      var dstHeight = void 0;
+
+	      if (srcX <= -originalWidth || srcX > sourceWidth) {
+	        srcX = srcWidth = dstX = dstWidth = 0;
+	      } else if (srcX <= 0) {
+	        dstX = -srcX;
+	        srcX = 0;
+	        srcWidth = dstWidth = Math.min(sourceWidth, originalWidth + srcX);
+	      } else if (srcX <= sourceWidth) {
+	        dstX = 0;
+	        srcWidth = dstWidth = Math.min(originalWidth, sourceWidth - srcX);
+	      }
+
+	      if (srcWidth <= 0 || srcY <= -originalHeight || srcY > sourceHeight) {
+	        srcY = srcHeight = dstY = dstHeight = 0;
+	      } else if (srcY <= 0) {
+	        dstY = -srcY;
+	        srcY = 0;
+	        srcHeight = dstHeight = Math.min(sourceHeight, originalHeight + srcY);
+	      } else if (srcY <= sourceHeight) {
+	        dstY = 0;
+	        srcHeight = dstHeight = Math.min(originalHeight, sourceHeight - srcY);
+	      }
+
+	      params.push(Math.floor(srcX), Math.floor(srcY), Math.floor(srcWidth), Math.floor(srcHeight));
+
+	      // Scale destination sizes
+	      if (scaledRatio) {
+	        dstX *= scaledRatio;
+	        dstY *= scaledRatio;
+	        dstWidth *= scaledRatio;
+	        dstHeight *= scaledRatio;
+	      }
+
+	      // Avoid "IndexSizeError" in IE and Firefox
+	      if (dstWidth > 0 && dstHeight > 0) {
+	        params.push(Math.floor(dstX), Math.floor(dstY), Math.floor(dstWidth), Math.floor(dstHeight));
+	      }
+
+	      return params;
+	    }();
+
+	    context.drawImage.apply(context, _toConsumableArray(parameters));
+
+	    return canvas;
+	  },
+
+
+	  /**
+	   * Change the aspect ratio of the crop box
+	   *
+	   * @param {Number} aspectRatio
+	   */
+	  setAspectRatio: function setAspectRatio(aspectRatio) {
+	    var self = this;
+	    var options = self.options;
+
+	    if (!self.disabled && !$.isUndefined(aspectRatio)) {
+	      // 0 -> NaN
+	      options.aspectRatio = Math.max(0, aspectRatio) || NaN;
+
+	      if (self.ready) {
+	        self.initCropBox();
+
+	        if (self.cropped) {
+	          self.renderCropBox();
+	        }
+	      }
+	    }
+
+	    return self;
+	  },
+
+
+	  /**
+	   * Change the drag mode
+	   *
+	   * @param {String} mode (optional)
+	   */
+	  setDragMode: function setDragMode(mode) {
+	    var self = this;
+	    var options = self.options;
+	    var dragBox = self.dragBox;
+	    var face = self.face;
+	    var croppable = void 0;
+	    var movable = void 0;
+
+	    if (self.loaded && !self.disabled) {
+	      croppable = mode === 'crop';
+	      movable = options.movable && mode === 'move';
+	      mode = croppable || movable ? mode : 'none';
+
+	      $.setData(dragBox, 'action', mode);
+	      $.toggleClass(dragBox, 'cropper-crop', croppable);
+	      $.toggleClass(dragBox, 'cropper-move', movable);
+
+	      if (!options.cropBoxMovable) {
+	        // Sync drag mode to crop box when it is not movable
+	        $.setData(face, 'action', mode);
+	        $.toggleClass(face, 'cropper-crop', croppable);
+	        $.toggleClass(face, 'cropper-move', movable);
+	      }
+	    }
+
+	    return self;
+	  }
+	};
+
+/***/ },
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -12107,12 +15872,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(76));
+	__export(__webpack_require__(89));
 
 /***/ },
-/* 76 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
+	    ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
 	"use strict";
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -12136,79 +15903,1800 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
+	var index_1 = __webpack_require__(74);
+	var views_form_1 = __webpack_require__(90);
 	var views_1 = __webpack_require__(45);
+	var index_2 = __webpack_require__(65);
 	var orange_dom_1 = __webpack_require__(48);
 	var orange_1 = __webpack_require__(21);
-	var Modal = function (_views_1$View) {
-	    _inherits(Modal, _views_1$View);
+	var _template = "\n  <div class=\"modal-container\"></div>\n  <div class=\"crop-container\">\n  </div>\n  <!--<label class=\"btn btn-sm btn-default\">\n    <span>Upload</span>\n    <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />\n  </label>-->\n  <button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n  <button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>\n";
+	var CropEditor = function (_views_form_1$BaseEdi) {
+	    _inherits(CropEditor, _views_form_1$BaseEdi);
 
-	    function Modal(options) {
-	        _classCallCheck(this, Modal);
+	    function CropEditor(options) {
+	        _classCallCheck(this, CropEditor);
 
-	        var _this = _possibleConstructorReturn(this, (Modal.__proto__ || Object.getPrototypeOf(Modal)).call(this, options));
+	        var _this = _possibleConstructorReturn(this, (CropEditor.__proto__ || Object.getPrototypeOf(CropEditor)).call(this, options));
 
-	        _this.__rendered = false;
-	        if (options.el) {
-	            orange_dom_1.addClass(_this.el, _this.className);
+	        _this.options = options = _this._getOptions(orange_1.extend({}, options));
+	        var client = options.client;
+	        if (client == null) {
+	            /*if (options.host == null) throw new Error('client or host expected');
+	            client = createClient({
+	                endpoint: options.host,
+	            });*/
+	            throw new Error("no client");
 	        }
-	        _this._onClose = orange_1.bind(_this._onClose, _this);
+	        _this.modal = new index_2.GalleryModal({
+	            client: client,
+	            showDirectories: false,
+	            accept: ["image/*"],
+	            maxSize: _this.options.maxSize,
+	            uploader: _this.options.uploader
+	        });
+	        _this.modal.root = _this.options.root;
+	        if (_this.options.cropping != null) {
+	            var o = orange_1.extend({
+	                zoomable: false,
+	                scalable: false,
+	                autoCropArea: 0.6,
+	                resize: true
+	            }, orange_1.omit(_this.options, ['el']));
+	            _this.crop = new index_1.CropView(o);
+	        }
+	        /*this.uploader = new FileUploader({
+	            url: client.url,
+	            maxSize: this.options.maxSize,
+	            mimeType: this.options.mimeType
+	        });*/
+	        _this.listenTo(_this.modal, 'selected', _this.onAssetSelected);
+	        //this.listenTo('crop', '')
 	        return _this;
 	    }
 
-	    _createClass(Modal, [{
+	    _createClass(CropEditor, [{
+	        key: "getValue",
+	        value: function getValue() {
+	            return this.model;
+	        }
+	    }, {
+	        key: "setValue",
+	        value: function setValue(model) {
+	            if (this.model === model) return;
+	            this.model = model;
+	        }
+	    }, {
+	        key: "onModel",
+	        value: function onModel(model) {
+	            if (model) this._removeDropIndicator();
+	            if (this.crop) {
+	                this._toggled = false;
+	                orange_dom_1.Html.query('.crop-btn').removeClass('active');
+	                this.crop.model = model;
+	            }
+	        }
+	    }, {
+	        key: "onSetElement",
+	        value: function onSetElement() {
+	            this.options = this._getOptions(this.options);
+	        }
+	    }, {
+	        key: "_getOptions",
+	        value: function _getOptions(options) {
+	            var _this2 = this;
+
+	            ['host', 'maxSize', 'mimeType', 'ratio', 'cropping'].forEach(function (m) {
+	                var l = m.toLowerCase();
+	                var attr = _this2.el.getAttribute(l); // || this.el.getAttribute('o-' + l);
+	                if (attr == null) {
+	                    return;
+	                } else if (attr == "") attr = true;
+	                if (m == 'ratio') {
+	                    m = 'aspectRatio';
+	                    attr = parseFloat(attr);
+	                } else if (m == 'maxSize') {
+	                    attr = parseInt(attr);
+	                }
+	                options[m] = attr;
+	            });
+	            return options;
+	        }
+	    }, {
 	        key: "onRender",
 	        value: function onRender() {
-	            this.__rendered = true;
-	        }
-	    }, {
-	        key: "open",
-	        value: function open() {
-	            var body = document.body;
-	            if (orange_dom_1.hasClass(body, "torsten-modal-open")) {
-	                return;
+	            this.ui['modal'].appendChild(this.modal.render().el);
+	            if (this.crop) {
+	                this.ui['crop'].appendChild(this.crop.render().el);
+	                orange_dom_1.addClass(this.crop.el, 'crop-preview cropping-preview');
+	                orange_dom_1.addClass(this.crop.ui['image'], 'content');
+	                if (this.crop.options.previewView) {
+	                    this.crop.options.previewView.destroy();
+	                }
 	            }
-	            var overlay = orange_dom_1.createElement('div', {});
-	            orange_dom_1.addClass(overlay, 'torsten-modal-overlay');
-	            body.appendChild(overlay);
-	            requestAnimationFrame(function () {
-	                orange_dom_1.addClass(body, 'torsten-modal-open');
+	            var preview = new index_1.CropPreView({
+	                el: this.crop ? this.crop.el : null
 	            });
-	            orange_dom_1.addEventListener(overlay, 'click', this._onClose);
+	            if (!this.crop) {
+	                preview.el.innerHTML = '<img class="content" />';
+	                orange_dom_1.addClass(preview.el, 'crop-preview cropping-preview');
+	                var el = this.el.querySelector('.crop-btn');
+	                el.parentElement.removeChild(el);
+	            } else {
+	                this.crop.options.previewView = preview;
+	            }
+	            preview.render();
+	            if (this.crop) {
+	                var _el = orange_dom_1.Html.query(document.createElement('div')).addClass('upload-progress-container').css({ display: 'none' });
+	                _el.html('<div class="upload-progress" style="width:0;"></div>');
+	                this.crop.el.appendChild(_el.get(0));
+	            } else {
+	                this.ui['crop'].appendChild(preview.el);
+	            }
+	            this._showDropIndicator();
 	        }
 	    }, {
-	        key: "_onClose",
-	        value: function _onClose() {
-	            console.log('close');
-	            this.close();
+	        key: "clear",
+	        value: function clear() {
+	            this.model = null;
+	            this._showDropIndicator();
 	        }
 	    }, {
-	        key: "close",
-	        value: function close() {
-	            var body = document.body;
-	            if (!orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	        key: "_showDropIndicator",
+	        value: function _showDropIndicator() {
+	            var preview = this.el.querySelector('.crop-preview');
+	            if (!preview) return;
+	            var i = preview.querySelector('.drop-indicator');
+	            if (i) return;
+	            i = document.createElement('div');
+	            var $i = orange_dom_1.Html.query(i);
+	            $i.addClass('drop-indicator').css({
+	                position: 'absolute',
+	                top: '50%',
+	                transform: 'translate(-50%, -50%)',
+	                left: '50%'
+	            });
+	            $i.text('Drop Here');
+	            preview.appendChild(i);
+	        }
+	    }, {
+	        key: "_removeDropIndicator",
+	        value: function _removeDropIndicator() {
+	            var i = this.el.querySelector('.drop-indicator');
+	            if (i && i.parentElement) i.parentElement.removeChild(i);
+	        }
+	    }, {
+	        key: "_onToggleCropper",
+	        value: function _onToggleCropper(e) {
+	            e.preventDefault();
+	            if (this.model == null) return;
+	            this.crop.toggle();
+	            this._toggled = !this._toggled;
+	            if (this._toggled) {
+	                orange_dom_1.addClass(e.target, 'active');
+	            } else {
+	                orange_dom_1.removeClass(e.target, 'active');
+	                this.model.set('meta.cropping', this.crop.cropping);
+	                this.triggerMethod('change');
+	            }
+	        }
+	    }, {
+	        key: "_onDrop",
+	        value: function _onDrop(e) {
+	            e.preventDefault();
+	            var files = e.dataTransfer.files;
+	            if (!files.length) {
 	                return;
 	            }
-	            var overlay = body.querySelector('.torsten-modal-overlay');
-	            orange_dom_1.removeEventListener(overlay, 'click', this._onClose);
-	            orange_dom_1.removeClass(body, 'torsten-modal-open');
-	            orange_dom_1.transitionEnd(overlay, function (e) {
-	                body.removeChild(overlay);
-	            }, null);
+	            var file = files.item(0);
+	            try {
+	                this._validateFile(file);
+	            } catch (e) {
+	                console.log('validate error');
+	                return;
+	            }
+	            var div = this.crop.el.querySelector('.upload-progress');
+	            console.log('upload file', file);
+	            /*this.uploader.upload(file, (loaded, total) => {
+	                let progress = (loaded / total * 100 || 0);
+	                if (div) div.style.width = progress + '%';
+	            }).then(b => {
+	                if (div) div.style.width = '0';
+	                let model = new this.modal.gallery.collection.Model(b as any)
+	                this.modal.gallery.collection.add(model);
+	                this.modal.value = model;
+	                this.onAssetSelected();
+	            }).catch(e => {
+	                console.log(e)
+	                if (div) div.style.width = '0';
+	            })*/
 	        }
 	    }, {
-	        key: "onDestroy",
-	        value: function onDestroy() {
-	            this.remove();
+	        key: "_cancel",
+	        value: function _cancel(e) {
+	            if (e.preventDefault) {
+	                e.preventDefault();
+	            }
+	            var el = orange_dom_1.Html.query(this.crop.el);
+	            //if (!e.dataTransfer.files.length) return false;
+	            if (e.type == 'dragenter') {
+	                el.addClass('dragenter');
+	            } else if (e.type == 'dragleave') {
+	                el.removeClass('dragenter');
+	            }
+	            return false;
+	        }
+	    }, {
+	        key: "_validateFile",
+	        value: function _validateFile(file) {
+	            var maxSize = this.options.maxSize * 1000;
+	            if (maxSize !== 0 && file.size > maxSize) {
+	                throw new Error('file to big');
+	            }
+	            var type = file.type;
+	            var mimeTypes;
+	            if (typeof this.options.mimeType === 'string') {
+	                mimeTypes = [this.options.mimeType];
+	            } else {
+	                mimeTypes = this.options.mimeType;
+	            }
+	            if (!mimeTypes) return;
+	            for (var i = 0; i < mimeTypes.length; i++) {
+	                var mime = new RegExp(mimeTypes[i].replace('*', '.*'));
+	                if (mime.test(type)) return;else throw new Error('Wrong mime type');
+	            }
+	        }
+	    }, {
+	        key: "onAssetSelected",
+	        value: function onAssetSelected(model) {
+	            //let value = this.modal.selected;
+	            this.model = model;
+	            //(<HTMLImageElement>this.crop.ui['image']).src = value.getURL();
+	            this.trigger('change');
+	        }
+	        /*validate(form: Form) {
+	            return validate(form, this, this.value);
+	        }*/
+
+	    }, {
+	        key: "destroy",
+	        value: function destroy() {
+	            if (this.crop.options.previewView) {
+	                this.crop.options.previewView.destroy();
+	            }
+	            this.crop.destroy();
+	            this.modal.destroy();
 	        }
 	    }]);
 
-	    return Modal;
+	    return CropEditor;
+	}(views_form_1.BaseEditor);
+	CropEditor = __decorate([views_1.attributes({
+	    template: function template() {
+	        return _template;
+	    },
+	    ui: {
+	        modal: '.modal-container',
+	        crop: '.crop-container'
+	    },
+	    events: {
+	        drop: '_onDrop',
+	        dragenter: '_cancel',
+	        dragover: '_cancel',
+	        dragleave: '_cancel',
+	        'click .gallery-btn': function clickGalleryBtn(e) {
+	            e.preventDefault();
+	            this.modal.toggle();
+	        },
+	        'click .crop-btn': '_onToggleCropper'
+	    }
+	}), views_form_1.editor('torsten.crop'), __metadata('design:paramtypes', [Object])], CropEditor);
+	exports.CropEditor = CropEditor;
+
+/***/ },
+/* 90 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	function __export(m) {
+	    for (var p in m) {
+	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	    }
+	}
+	__export(__webpack_require__(91));
+	var define_1 = __webpack_require__(97);
+	exports.editor = define_1.editor;
+	var editor_1 = __webpack_require__(93);
+	exports.BaseEditor = editor_1.BaseEditor;
+	exports.BaseLayoutEditor = editor_1.BaseLayoutEditor;
+	var field_1 = __webpack_require__(92);
+	exports.Field = field_1.Field;
+	__export(__webpack_require__(95));
+	__webpack_require__(98);
+
+/***/ },
+/* 91 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	var _createClass = function () {
+	    function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	            var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	        }
+	    }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	    };
+	}();
+
+	var _get = function get(object, property, receiver) {
+	    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+	        var parent = Object.getPrototypeOf(object);if (parent === null) {
+	            return undefined;
+	        } else {
+	            return get(parent, property, receiver);
+	        }
+	    } else if ("value" in desc) {
+	        return desc.value;
+	    } else {
+	        var getter = desc.get;if (getter === undefined) {
+	            return undefined;
+	        }return getter.call(receiver);
+	    }
+	};
+
+	var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+	    return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	} : function (obj) {
+	    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	};
+
+	function _classCallCheck(instance, Constructor) {
+	    if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
+	    }
+	}
+
+	function _possibleConstructorReturn(self, call) {
+	    if (!self) {
+	        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	    }return call && ((typeof call === "undefined" ? "undefined" : _typeof2(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	    if (typeof superClass !== "function" && superClass !== null) {
+	        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof2(superClass)));
+	    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+	    var c = arguments.length,
+	        r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+	        d;
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = undefined && undefined.__metadata || function (k, v) {
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var views_1 = __webpack_require__(45);
+	var field_1 = __webpack_require__(92);
+	var orange_1 = __webpack_require__(21);
+	var Debug = __webpack_require__(40);
+	var debug = Debug('views:form');
+	var Form = function (_views_1$View) {
+	    _inherits(Form, _views_1$View);
+
+	    function Form(options) {
+	        _classCallCheck(this, Form);
+
+	        var _this = _possibleConstructorReturn(this, (Form.__proto__ || Object.getPrototypeOf(Form)).call(this, options));
+
+	        _this._fields = [];
+	        _this._isRendered = false;
+	        options = options || {};
+	        _this._options = orange_1.extend({}, {
+	            createHelpAreas: false,
+	            validateOnChange: true,
+	            fieldOptions: {}
+	        }, options);
+	        return _this;
+	    }
+
+	    _createClass(Form, [{
+	        key: "getFieldByName",
+	        value: function getFieldByName(name) {
+	            for (var i = 0, ii = this.fields.length; i < ii; i++) {
+	                if (this.fields[i].name === name) return this.fields[i];
+	            }
+	            return null;
+	        }
+	    }, {
+	        key: "render",
+	        value: function render() {
+	            var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	            this._isRendered = false;
+	            if (!options.silent) this.triggerMethod('before:render');
+	            this.undelegateEvents();
+	            this.renderTemplate(this.getTemplateData());
+	            this._renderFields();
+	            this.delegateEvents();
+	            if (!options.silent) this.triggerMethod('render');
+	            this._isRendered = true;
+	            this._setValue(this.model);
+	            return this;
+	        }
+	    }, {
+	        key: "setModel",
+	        value: function setModel(model) {
+	            if (model === this.model) return;
+	            _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), "setModel", this).call(this, model);
+	            this._setValue(model);
+	            if (model != null) this.listenTo(model, 'change', this._onModelValueChange);
+	            return this;
+	        }
+	    }, {
+	        key: "validate",
+	        value: function validate() {
+	            return this.fields.map(function (m) {
+	                return m.validate();
+	            }).filter(function (m) {
+	                return m != null;
+	            });
+	        }
+	    }, {
+	        key: "clear",
+	        value: function clear() {
+	            if (!this._fields) return this;
+	            this._fields.forEach(function (f) {
+	                return f.clear();
+	            });
+	        }
+	    }, {
+	        key: "_setValue",
+	        value: function _setValue(model) {
+	            var _this2 = this;
+
+	            if (!this._isRendered) {
+	                this.once('render', function () {
+	                    return _this2._setValue(model);
+	                });
+	            }
+	            if (model == null) {
+	                this.fields.forEach(function (m) {
+	                    return m.editor.clear();
+	                });
+	            } else {
+	                this.fields.forEach(function (m) {
+	                    if (model.get(m.name) !== undefined) {
+	                        m.editor.value = model.get(m.name);
+	                    } else {
+	                        _this2.model.set(m.name, m.editor.value, { silent: true });
+	                    }
+	                });
+	            }
+	        }
+	    }, {
+	        key: "_renderFields",
+	        value: function _renderFields() {
+	            var _this3 = this;
+
+	            this.triggerMethod('before:render:fields');
+	            this._fields.forEach(function (f) {
+	                _this3.stopListening(f);
+	                f.destroy();
+	            });
+	            this._fields = [];
+	            var fields = this.el.querySelectorAll('.field');
+	            debug('found %i fields', fields.length);
+	            var errors = [],
+	                field;
+	            for (var i = 0, ii = fields.length; i < ii; i++) {
+	                try {
+	                    var e = fields[i].querySelector('[name]');
+	                    var name = "";
+	                    if (e) name = e.getAttribute('name');
+	                    var o = orange_1.extend({
+	                        createHelpArea: this.options.createHelpAreas || false
+	                    }, this.options.fieldOptions[name] || {}, {
+	                        form: this
+	                    });
+	                    debug('create field: %s', name);
+	                    field = field_1.Field.createField(fields[i], o);
+	                    this._fields.push(field);
+	                    //this.listenTo(field, 'all', this._onFieldEventTriggered);
+	                    this.listenTo(field, 'change', this._onFieldValueChanged);
+	                } catch (e) {
+	                    errors.push(e);
+	                }
+	            }
+	            this._fields.forEach(function (m) {
+	                m.render();
+	            });
+	            if (errors.length) {
+	                this.triggerMethod('render:fields:error', errors);
+	            }
+	            this.triggerMethod('render:fields');
+	        }
+	    }, {
+	        key: "_onModelValueChange",
+	        value: function _onModelValueChange(model) {
+	            for (var key in model.changed) {
+	                var field = this.getFieldByName(key);
+	                if (field == null) continue;
+	                field.editor.value = model.get(key);
+	            }
+	        }
+	    }, {
+	        key: "_onFieldValueChanged",
+	        value: function _onFieldValueChanged(field) {
+	            this.trigger('change');
+	            if (this.options.validateOnChange) {
+	                if (field.validate()) {
+	                    return;
+	                }
+	                ;
+	            }
+	            if (this.model) this.model.set(field.name, field.editor.value);
+	        }
+	    }, {
+	        key: "_onFieldEventTriggered",
+	        value: function _onFieldEventTriggered(event, field) {
+	            console.log(event);
+	            if (event === "change") {
+	                this.trigger('change');
+	                if (this.options.validateOnChange) {
+	                    if (field.validate()) {
+	                        return;
+	                    }
+	                    ;
+	                }
+	                if (this.model) this.model.set(field.name, field.editor.value);
+	            }
+
+	            for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+	                args[_key - 2] = arguments[_key];
+	            }
+
+	            this.triggerMethod.apply(this, ['field:' + event, field].concat(args));
+	        }
+	    }, {
+	        key: "destroy",
+	        value: function destroy() {
+	            this._fields.forEach(function (f) {
+	                return f.destroy();
+	            });
+	            this._fields = [];
+	            return _get(Form.prototype.__proto__ || Object.getPrototypeOf(Form.prototype), "destroy", this).call(this);
+	        }
+	    }, {
+	        key: "options",
+	        get: function get() {
+	            return this._options;
+	        }
+	    }, {
+	        key: "fields",
+	        get: function get() {
+	            return [].concat(this._fields);
+	        }
+	    }]);
+
+	    return Form;
 	}(views_1.View);
-	Modal = __decorate([views_1.attributes({
+	Form = __decorate([views_1.attributes({
+	    tagName: 'form',
+	    events: {}
+	}), __metadata('design:paramtypes', [Object])], Form);
+	exports.Form = Form;
+
+/***/ },
+/* 92 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	var _createClass = function () {
+	    function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	            var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	        }
+	    }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	    };
+	}();
+
+	var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+	    return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	} : function (obj) {
+	    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	};
+
+	function _classCallCheck(instance, Constructor) {
+	    if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
+	    }
+	}
+
+	function _possibleConstructorReturn(self, call) {
+	    if (!self) {
+	        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	    }return call && ((typeof call === "undefined" ? "undefined" : _typeof2(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	    if (typeof superClass !== "function" && superClass !== null) {
+	        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof2(superClass)));
+	    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+	    var c = arguments.length,
+	        r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+	        d;
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = undefined && undefined.__metadata || function (k, v) {
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var views_1 = __webpack_require__(45);
+	var orange_1 = __webpack_require__(21);
+	var orange_dom_1 = __webpack_require__(48);
+	var editor_1 = __webpack_require__(93);
+	var define_1 = __webpack_require__(97);
+	var Debug = __webpack_require__(40);
+	var debug = Debug('views:form:field');
+	var Field_1 = void 0;
+	var Field = Field_1 = function (_views_1$View) {
+	    _inherits(Field, _views_1$View);
+
+	    function Field(options) {
+	        _classCallCheck(this, Field);
+
+	        if (options == null) throw new Error('field options required');
+	        if (options.form == null) throw new Error('form required');
+
+	        var _this = _possibleConstructorReturn(this, (Field.__proto__ || Object.getPrototypeOf(Field)).call(this, options));
+
+	        _this._options = options;
+	        _this._form = options.form;
+	        return _this;
+	    }
+
+	    _createClass(Field, [{
+	        key: "clear",
+	        value: function clear() {
+	            if (this.editor) this.editor.clear();
+	            orange_dom_1.removeClass(this.el, 'has-success has-error');
+	            orange_dom_1.Html.query('.form-field-helparea').html('');
+	        }
+	    }, {
+	        key: "render",
+	        value: function render() {
+	            var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	            if (!options.silent) this.triggerMethod('before:render');
+	            this.undelegateEvents();
+	            this.renderTemplate(this.getTemplateData());
+	            if (!this._editor) {
+	                var el = this.el.querySelector('[name]');
+	                if (!el) {
+	                    throw new Error('no editor or no input with name attribute');
+	                }
+	                var editorType = el.getAttribute('form-editor');
+	                var o = orange_1.extend({}, this._options.editorOptions || {}, {
+	                    el: el
+	                });
+	                var name = el.getAttribute('name');
+	                if (editorType) {
+	                    var editor = define_1.getEditor(editorType, o);
+	                    if (editor) {
+	                        debug('%s: found custom editor type: %s', name, editorType);
+	                        this.editor = editor;
+	                    }
+	                }
+	                if (this.editor == null) {
+	                    var _editor = define_1.getEditor(el.nodeName.toLowerCase(), o);
+	                    if (_editor) {
+	                        debug('%s: found custom editor type from tag: %s', name, el.nodeName.toLowerCase());
+	                        this.editor = _editor;
+	                    } else {
+	                        this.editor = new editor_1.Editor(o);
+	                    }
+	                }
+	            }
+	            if (this._options.createHelpArea) this.createHelpArea();
+	            this.editor.render();
+	            this.delegateEvents();
+	            if (!options.silent) this.triggerMethod('render');
+	            return this;
+	        }
+	    }, {
+	        key: "createHelpArea",
+	        value: function createHelpArea() {
+	            var helpArea = this.el.querySelector('.form-field-helparea');
+	            if (helpArea) {
+	                return;
+	            }
+	            debug('%s: creating help area', this.name);
+	            this.triggerMethod('before:helparea');
+	            helpArea = orange_dom_1.createElement("div", {
+	                class: "form-field-helparea"
+	            });
+	            /*if (this.editor) {
+	                this.el.insertBefore(helpArea, this.editor.el);
+	            } else {*/
+	            this.el.appendChild(helpArea);
+	            //}
+	        }
+	    }, {
+	        key: "validate",
+	        value: function validate() {
+	            if (!this.editor) return null;
+	            var el = orange_dom_1.Html.query(this.el);
+	            var e = this.editor.validate(this._form);
+	            var helpArea = this.el.querySelector('.form-field-helparea');
+	            if (e == null) {
+	                el.addClass('has-success').removeClass('has-error');
+	                if (helpArea) helpArea.innerHTML = '';
+	                return;
+	            }
+	            el.addClass('has-error').removeClass('has-success');
+	            if (helpArea) {
+	                var html = void 0;
+	                if (e.errors.length === 1) {
+	                    html = "<span>" + e.errors[0].message + "</span>";
+	                } else {
+	                    var m = e.errors.map(function (m) {
+	                        return "<li>" + m.message + "</li>";
+	                    }).join('');
+	                    html = "<ul>" + m + "</ul>";
+	                }
+	                helpArea.innerHTML = html;
+	            }
+	            return e;
+	        }
+	    }, {
+	        key: "_onEditorChange",
+	        value: function _onEditorChange() {
+	            this.triggerMethod('change', this);
+	        }
+	    }, {
+	        key: "name",
+	        get: function get() {
+	            if (this._editor) return this._editor.name;
+	            return "no-name";
+	        }
+	    }, {
+	        key: "label",
+	        get: function get() {
+	            var label = this.el.querySelector('form-field-label');
+	            if (label) {
+	                return label.textContent;
+	            }
+	            return this.name;
+	        }
+	    }, {
+	        key: "value",
+	        get: function get() {
+	            if (this.editor) return this.editor.value;
+	            return null;
+	        },
+	        set: function set(value) {
+	            if (this.editor) this.editor.value = value;
+	        }
+	    }, {
+	        key: "editor",
+	        set: function set(editor) {
+	            if (this._editor) {
+	                this.stopListening(this._editor);
+	                this._editor.destroy();
+	            }
+	            this._editor = editor;
+	            if (editor == null) {
+	                return;
+	            }
+	            this.listenTo(editor, 'change', this._onEditorChange);
+	            /*this.listenTo(editor, 'all', (event:string, ...args:any[]) => {
+	                if (event == 'change') return;
+	                args = (args || []);
+	                args.unshift(this);
+	                this.triggerMethod(event, ...args);
+	            })*/
+	        },
+	        get: function get() {
+	            return this._editor;
+	        }
+	    }], [{
+	        key: "createField",
+	        value: function createField(el, options) {
+	            var elm = el.querySelector('[name]');
+	            if (elm == null) throw new Error("field doest not contain an element");
+	            var o = orange_1.extend({}, options || {}, {
+	                el: el
+	            });
+	            return new Field_1(o);
+	        }
+	    }]);
+
+	    return Field;
+	}(views_1.View);
+	Field = Field_1 = __decorate([views_1.attributes({
 	    tagName: 'div',
-	    className: 'torsten modal'
-	}), __metadata('design:paramtypes', [Object])], Modal);
-	exports.Modal = Modal;
+	    className: 'form-field'
+	}), __metadata('design:paramtypes', [Object])], Field);
+	exports.Field = Field;
+
+/***/ },
+/* 93 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	var _createClass = function () {
+	    function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	            var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	        }
+	    }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	    };
+	}();
+
+	var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+	    return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	} : function (obj) {
+	    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	};
+
+	function _classCallCheck(instance, Constructor) {
+	    if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
+	    }
+	}
+
+	function _possibleConstructorReturn(self, call) {
+	    if (!self) {
+	        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	    }return call && ((typeof call === "undefined" ? "undefined" : _typeof2(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	    if (typeof superClass !== "function" && superClass !== null) {
+	        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof2(superClass)));
+	    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+	    var c = arguments.length,
+	        r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+	        d;
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = undefined && undefined.__metadata || function (k, v) {
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var views_1 = __webpack_require__(45);
+	var utils_1 = __webpack_require__(94);
+	var validator_1 = __webpack_require__(95);
+	var orange_1 = __webpack_require__(21);
+
+	var BaseEditor = function (_views_1$View) {
+	    _inherits(BaseEditor, _views_1$View);
+
+	    function BaseEditor() {
+	        _classCallCheck(this, BaseEditor);
+
+	        return _possibleConstructorReturn(this, (BaseEditor.__proto__ || Object.getPrototypeOf(BaseEditor)).apply(this, arguments));
+	    }
+
+	    _createClass(BaseEditor, [{
+	        key: "clear",
+	        value: function clear() {
+	            this.triggerMethod('before:clear');
+	            this.setValue(null);
+	            this.triggerMethod('clear');
+	        }
+	    }, {
+	        key: "validate",
+	        value: function validate(form) {
+	            return validator_1.validate(form, this, this.value);
+	        }
+	    }, {
+	        key: "name",
+	        get: function get() {
+	            return this.el.getAttribute('name');
+	        }
+	    }, {
+	        key: "value",
+	        get: function get() {
+	            return this.getValue();
+	        },
+	        set: function set(value) {
+	            if (orange_1.equal(value, this.getValue())) return;
+	            this.setValue(value);
+	        }
+	    }]);
+
+	    return BaseEditor;
+	}(views_1.View);
+
+	exports.BaseEditor = BaseEditor;
+
+	var BaseLayoutEditor = function (_views_1$View2) {
+	    _inherits(BaseLayoutEditor, _views_1$View2);
+
+	    function BaseLayoutEditor() {
+	        _classCallCheck(this, BaseLayoutEditor);
+
+	        return _possibleConstructorReturn(this, (BaseLayoutEditor.__proto__ || Object.getPrototypeOf(BaseLayoutEditor)).apply(this, arguments));
+	    }
+
+	    _createClass(BaseLayoutEditor, [{
+	        key: "clear",
+	        value: function clear() {
+	            this.triggerMethod('before:clear');
+	            this.setValue(null);
+	            this.triggerMethod('clear');
+	        }
+	    }, {
+	        key: "validate",
+	        value: function validate(form) {
+	            return validator_1.validate(form, this, this.value);
+	        }
+	    }, {
+	        key: "name",
+	        get: function get() {
+	            return this.el.getAttribute('name');
+	        }
+	    }, {
+	        key: "value",
+	        get: function get() {
+	            return this.getValue();
+	        },
+	        set: function set(value) {
+	            if (orange_1.equal(value, this.getValue())) return;
+	            this.triggerMethod('before:set:value', value);
+	            this.setValue(value);
+	            this.triggerMethod('set:value', value);
+	        }
+	    }]);
+
+	    return BaseLayoutEditor;
+	}(views_1.View);
+
+	exports.BaseLayoutEditor = BaseLayoutEditor;
+	var Editor = function (_BaseEditor) {
+	    _inherits(Editor, _BaseEditor);
+
+	    function Editor() {
+	        _classCallCheck(this, Editor);
+
+	        return _possibleConstructorReturn(this, (Editor.__proto__ || Object.getPrototypeOf(Editor)).apply(this, arguments));
+	    }
+
+	    _createClass(Editor, [{
+	        key: "setValue",
+	        value: function setValue(value) {
+	            utils_1.setValue(this.el, value);
+	        }
+	    }, {
+	        key: "getValue",
+	        value: function getValue() {
+	            return utils_1.getValue(this.el);
+	        }
+	    }, {
+	        key: "_onKeyPress",
+	        value: function _onKeyPress(e) {
+	            this._prev = this.getValue();
+	            this.triggerMethod('change');
+	        }
+	    }, {
+	        key: "_onChange",
+	        value: function _onChange(e) {
+	            if (orange_1.equal(this._prev, this.getValue())) return;
+	            this._prev = this.getValue();
+	            this.triggerMethod('change');
+	        }
+	    }, {
+	        key: "name",
+	        get: function get() {
+	            return this.el.getAttribute('name');
+	        }
+	    }]);
+
+	    return Editor;
+	}(BaseEditor);
+	Editor = __decorate([views_1.attributes({
+	    tagName: 'input',
+	    events: {
+	        keyup: '_onKeyPress',
+	        change: '_onChange'
+	    }
+	}), __metadata('design:paramtypes', [])], Editor);
+	exports.Editor = Editor;
+
+/***/ },
+/* 94 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	var start = "<%",
+	    end = "%>",
+	    path = "[a-z0-9_$][\\.a-z0-9_]*",
+
+	// e.g. config.person.name
+	pattern = new RegExp(start + "\\s*(" + path + ")\\s*" + end, "gi"),
+	    undef = undefined;
+	function template(template, data) {
+	    var throwOnNotFound = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
+	    return template.replace(pattern, function (tag, token) {
+	        var path = token.split("."),
+	            len = path.length,
+	            lookup = data,
+	            i = 0;
+	        for (; i < len; i++) {
+	            lookup = lookup[path[i]];
+	            // Property not found
+	            if (lookup === undef) {
+	                if (throwOnNotFound) {
+	                    throw new Error("tim: '" + path[i] + "' not found in " + tag);
+	                } else {
+	                    lookup = "";
+	                }
+	            }
+	            // Return the required value
+	            if (i === len - 1) {
+	                return lookup;
+	            }
+	        }
+	    });
+	}
+	exports.template = template;
+	function getValue(el, value) {
+	    var node = el;
+	    var isCheckbox = /checkbox/.test(node.type);
+	    var isRadio = /radio/.test(node.type);
+	    var isRadioOrCheckbox = isCheckbox || isRadio;
+	    var hasValue = Object.prototype.hasOwnProperty.call(node, "value");
+	    var isInput = hasValue || /input|textarea|checkbox/.test(node.nodeName.toLowerCase());
+	    var isSelect = /select/i.test(node.nodeName);
+	    if (arguments.length === 1) {
+	        if (isCheckbox) {
+	            return Boolean(node.checked);
+	        } else if (isSelect) {
+	            return node.value || "";
+	        } else if (isInput) {
+	            var _value = node.value || "";
+	            if (node.type && node.type.toLowerCase() === 'number') {
+	                _value = parseInt(_value);
+	                _value = isNaN(_value) ? 0 : _value;
+	            }
+	            return _value;
+	        } else {
+	            return node.innerHTML || "";
+	        }
+	    }
+	    if (value == null) {
+	        value = "";
+	    }
+	    if (isRadioOrCheckbox) {
+	        if (isRadio) {
+	            if (String(value) === String(node.value)) {
+	                node.checked = true;
+	            }
+	        } else {
+	            node.checked = value;
+	        }
+	    } else if (String(value) !== getValue(el)) {
+	        if (isInput || isSelect) {
+	            node.value = value;
+	        } else {
+	            node.innerHTML = value;
+	        }
+	    }
+	}
+	exports.getValue = getValue;
+	function setValue(el, value) {
+	    getValue(el, value);
+	}
+	exports.setValue = setValue;
+
+/***/ },
+/* 95 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	var _createClass = function () {
+	    function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	            var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	        }
+	    }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	    };
+	}();
+
+	function _classCallCheck(instance, Constructor) {
+	    if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
+	    }
+	}
+
+	function _possibleConstructorReturn(self, call) {
+	    if (!self) {
+	        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	    if (typeof superClass !== "function" && superClass !== null) {
+	        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+	    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var utils_1 = __webpack_require__(94);
+	var orange_1 = __webpack_require__(21);
+	var Debug = __webpack_require__(40);
+	var debug = Debug('views:form:validator');
+	var validURL = __webpack_require__(96);
+	function get_validations(el) {
+	    var required;
+	    var v = Object.keys(validators).map(function (e) {
+	        // The required validator is getting handled elsewhere
+	        if (e === 'required') return null;
+	        var i = el.getAttribute('validate-' + e);
+	        if (i != null) return [validators[e], i, messages[e] || "invalid", e];
+	        return null;
+	    }).filter(function (e) {
+	        return e !== null;
+	    });
+	    return v;
+	}
+	function validate(form, editor, value) {
+	    var vals = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
+
+	    var el = editor.el;
+	    var v = get_validations(el),
+	        name = editor.name,
+
+	    //el.getAttribute('name'),
+	    errors = [];
+	    var required = el.getAttribute('required');
+	    if (required == null) required = el.getAttribute('validate-required');
+	    v = orange_1.unique(v.concat(vals));
+	    if (required != null) {
+	        debug("running 'required' validator on %s", name);
+	        if (!validators.required(name, form, value, null)) {
+	            debug("'required' validator failed on %s", name);
+	            return new ValidateErrors([new ValidateError(utils_1.template(messages.required, {
+	                name: name,
+	                label: name,
+	                value: value,
+	                arg: null
+	            }))]);
+	        }
+	    } else if (value == null || value == "") {
+	        // Do not run validations, when the value is empty
+	        return null;
+	    }
+	    for (var i = 0, ii = v.length; i < ii; i++) {
+	        debug("running '%s' validator on %s", v[i][3], name);
+	        if (!v[i][0](name, form, value, v[i][1])) {
+	            debug("'%s' validator failed on %s", v[i][3], name);
+	            var e = new ValidateError(utils_1.template(v[i][2], {
+	                name: name,
+	                value: value,
+	                label: name,
+	                arg: v[i][1]
+	            }));
+	            errors.push(e);
+	        }
+	    }
+	    if (errors.length) {
+	        return new ValidateErrors(errors);
+	    }
+	    return null;
+	}
+	exports.validate = validate;
+	var messages;
+	(function (messages) {
+	    messages.required = "<b><% label %></b> is required";
+	    messages.min = "<b><% label %></b> needs to be minimum <% arg %>";
+	    messages.max = "<b><% label %></b> needs to be maximum <% arg %>";
+	    messages.email = "<b><% label %></b> is not an email";
+	    messages.url = "<b><% label %></b> is not an url";
+	    messages.match = "<b><% label %></b> does not match: <b><%arg%></b>";
+	})(messages || (messages = {}));
+	var validators;
+	(function (validators) {
+	    function required(name, form, value, arg) {
+	        return !(value == "" || value == null);
+	    }
+	    validators.required = required;
+	    function min(name, form, value, arg) {
+	        var min = parseInt(arg);
+	        // TODO: check in init
+	        if (isNaN(min)) return;
+	        if (typeof value === 'string') {
+	            return value.length >= min;
+	        } else if (Array.isArray(value)) {
+	            return value.length >= min;
+	        } else {
+	            return parseInt(value) >= min;
+	        }
+	    }
+	    validators.min = min;
+	    function max(name, form, value, arg) {
+	        var max = parseInt(arg);
+	        // TODO: check in init
+	        if (isNaN(max)) return;
+	        if (typeof value === 'string') {
+	            return value.length <= max;
+	        } else if (Array.isArray(value)) {
+	            return value.length <= max;
+	        } else {
+	            return parseInt(value) <= max;
+	        }
+	    }
+	    validators.max = max;
+	    function match(name, form, value, arg) {
+	        var field = form.getFieldByName(arg);
+	        if (!field) {
+	            throw new Error('field: ' + arg + ' does not exists');
+	        }
+	        var oval = field.editor.value;
+	        return orange_1.equal(value, oval);
+	    }
+	    validators.match = match;
+	    function url(name, form, value, arg) {
+	        return validURL.isUri(value);
+	    }
+	    validators.url = url;
+	    var tester = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-?\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+	    function email(name, form, value, arg) {
+	        return validate_email(value);
+	        // Thanks to:
+	        // http://fightingforalostcause.net/misc/2006/compare-email-regex.php
+	        // http://thedailywtf.com/Articles/Validating_Email_Addresses.aspx
+	        // http://stackoverflow.com/questions/201323/what-is-the-best-regular-expression-for-validating-email-addresses/201378#201378
+	        function validate_email(email) {
+	            if (!email) return false;
+	            if (email.length > 254) return false;
+	            var valid = tester.test(email);
+	            if (!valid) return false;
+	            // Further checking of some things regex can't handle
+	            var parts = email.split("@");
+	            if (parts[0].length > 64) return false;
+	            var domainParts = parts[1].split(".");
+	            if (domainParts.some(function (part) {
+	                return part.length > 63;
+	            })) return false;
+	            return true;
+	        }
+	    }
+	    validators.email = email;
+	})(validators = exports.validators || (exports.validators = {}));
+	function setMessage(validator, message) {
+	    messages[validator] = message;
+	}
+	exports.setMessage = setMessage;
+	function registerValidator(name, fn) {
+	    validators[name] = fn;
+	}
+	exports.registerValidator = registerValidator;
+
+	var ValidateError = function (_Error) {
+	    _inherits(ValidateError, _Error);
+
+	    function ValidateError(message) {
+	        _classCallCheck(this, ValidateError);
+
+	        var _this = _possibleConstructorReturn(this, (ValidateError.__proto__ || Object.getPrototypeOf(ValidateError)).call(this, message));
+
+	        _this.message = message;
+	        return _this;
+	    }
+
+	    return ValidateError;
+	}(Error);
+
+	exports.ValidateError = ValidateError;
+
+	var ValidateErrors = function (_Error2) {
+	    _inherits(ValidateErrors, _Error2);
+
+	    function ValidateErrors() {
+	        var errors = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+	        _classCallCheck(this, ValidateErrors);
+
+	        var _this2 = _possibleConstructorReturn(this, (ValidateErrors.__proto__ || Object.getPrototypeOf(ValidateErrors)).call(this));
+
+	        _this2.errors = errors;
+	        return _this2;
+	    }
+
+	    _createClass(ValidateErrors, [{
+	        key: 'length',
+	        get: function get() {
+	            return this.errors.length;
+	        }
+	    }]);
+
+	    return ValidateErrors;
+	}(Error);
+
+	exports.ValidateErrors = ValidateErrors;
+
+/***/ },
+/* 96 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(module) {'use strict';
+
+	(function (module) {
+	    'use strict';
+
+	    module.exports.is_uri = is_iri;
+	    module.exports.is_http_uri = is_http_iri;
+	    module.exports.is_https_uri = is_https_iri;
+	    module.exports.is_web_uri = is_web_iri;
+	    // Create aliases
+	    module.exports.isUri = is_iri;
+	    module.exports.isHttpUri = is_http_iri;
+	    module.exports.isHttpsUri = is_https_iri;
+	    module.exports.isWebUri = is_web_iri;
+
+	    // private function
+	    // internal URI spitter method - direct from RFC 3986
+	    var splitUri = function splitUri(uri) {
+	        var splitted = uri.match(/(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/);
+	        return splitted;
+	    };
+
+	    function is_iri(value) {
+	        if (!value) {
+	            return;
+	        }
+
+	        // check for illegal characters
+	        if (/[^a-z0-9\:\/\?\#\[\]\@\!\$\&\'\(\)\*\+\,\;\=\.\-\_\~\%]/i.test(value)) return;
+
+	        // check for hex escapes that aren't complete
+	        if (/%[^0-9a-f]/i.test(value)) return;
+	        if (/%[0-9a-f](:?[^0-9a-f]|$)/i.test(value)) return;
+
+	        var splitted = [];
+	        var scheme = '';
+	        var authority = '';
+	        var path = '';
+	        var query = '';
+	        var fragment = '';
+	        var out = '';
+
+	        // from RFC 3986
+	        splitted = splitUri(value);
+	        scheme = splitted[1];
+	        authority = splitted[2];
+	        path = splitted[3];
+	        query = splitted[4];
+	        fragment = splitted[5];
+
+	        // scheme and path are required, though the path can be empty
+	        if (!(scheme && scheme.length && path.length >= 0)) return;
+
+	        // if authority is present, the path must be empty or begin with a /
+	        if (authority && authority.length) {
+	            if (!(path.length === 0 || /^\//.test(path))) return;
+	        } else {
+	            // if authority is not present, the path must not start with //
+	            if (/^\/\//.test(path)) return;
+	        }
+
+	        // scheme must begin with a letter, then consist of letters, digits, +, ., or -
+	        if (!/^[a-z][a-z0-9\+\-\.]*$/.test(scheme.toLowerCase())) return;
+
+	        // re-assemble the URL per section 5.3 in RFC 3986
+	        out += scheme + ':';
+	        if (authority && authority.length) {
+	            out += '//' + authority;
+	        }
+
+	        out += path;
+
+	        if (query && query.length) {
+	            out += '?' + query;
+	        }
+
+	        if (fragment && fragment.length) {
+	            out += '#' + fragment;
+	        }
+
+	        return out;
+	    }
+
+	    function is_http_iri(value, allowHttps) {
+	        if (!is_iri(value)) {
+	            return;
+	        }
+
+	        var splitted = [];
+	        var scheme = '';
+	        var authority = '';
+	        var path = '';
+	        var port = '';
+	        var query = '';
+	        var fragment = '';
+	        var out = '';
+
+	        // from RFC 3986
+	        splitted = splitUri(value);
+	        scheme = splitted[1];
+	        authority = splitted[2];
+	        path = splitted[3];
+	        query = splitted[4];
+	        fragment = splitted[5];
+
+	        if (!scheme) return;
+
+	        if (allowHttps) {
+	            if (scheme.toLowerCase() != 'https') return;
+	        } else {
+	            if (scheme.toLowerCase() != 'http') return;
+	        }
+
+	        // fully-qualified URIs must have an authority section that is
+	        // a valid host
+	        if (!authority) {
+	            return;
+	        }
+
+	        // enable port component
+	        if (/:(\d+)$/.test(authority)) {
+	            port = authority.match(/:(\d+)$/)[0];
+	            authority = authority.replace(/:\d+$/, '');
+	        }
+
+	        out += scheme + ':';
+	        out += '//' + authority;
+
+	        if (port) {
+	            out += port;
+	        }
+
+	        out += path;
+
+	        if (query && query.length) {
+	            out += '?' + query;
+	        }
+
+	        if (fragment && fragment.length) {
+	            out += '#' + fragment;
+	        }
+
+	        return out;
+	    }
+
+	    function is_https_iri(value) {
+	        return is_http_iri(value, true);
+	    }
+
+	    function is_web_iri(value) {
+	        return is_http_iri(value) || is_https_iri(value);
+	    }
+	})(module);
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38)(module)))
+
+/***/ },
+/* 97 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var Debug = __webpack_require__(40);
+	var debug = Debug('views:form');
+	var _editors = {};
+	function editor(name) {
+	    return function (target) {
+	        debug('register editor: %s', name);
+	        _editors[name] = target;
+	    };
+	}
+	exports.editor = editor;
+	function getEditor(name, options) {
+	    if (_editors[name]) {
+	        return new _editors[name](options);
+	    }
+	    return null;
+	}
+	exports.getEditor = getEditor;
+
+/***/ },
+/* 98 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	var _get = function get(object, property, receiver) {
+	    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+	        var parent = Object.getPrototypeOf(object);if (parent === null) {
+	            return undefined;
+	        } else {
+	            return get(parent, property, receiver);
+	        }
+	    } else if ("value" in desc) {
+	        return desc.value;
+	    } else {
+	        var getter = desc.get;if (getter === undefined) {
+	            return undefined;
+	        }return getter.call(receiver);
+	    }
+	};
+
+	var _createClass = function () {
+	    function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	            var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	        }
+	    }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	    };
+	}();
+
+	var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+	    return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	} : function (obj) {
+	    return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+	};
+
+	function _possibleConstructorReturn(self, call) {
+	    if (!self) {
+	        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	    }return call && ((typeof call === "undefined" ? "undefined" : _typeof2(call)) === "object" || typeof call === "function") ? call : self;
+	}
+
+	function _inherits(subClass, superClass) {
+	    if (typeof superClass !== "function" && superClass !== null) {
+	        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof2(superClass)));
+	    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	function _classCallCheck(instance, Constructor) {
+	    if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
+	    }
+	}
+
+	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+	    var c = arguments.length,
+	        r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+	        d;
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = undefined && undefined.__metadata || function (k, v) {
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var orange_1 = __webpack_require__(21);
+	var orange_dom_1 = __webpack_require__(48);
+	var editor_1 = __webpack_require__(93);
+	var define_1 = __webpack_require__(97);
+	var views_1 = __webpack_require__(45);
+
+	var AutoSizer = function () {
+	    function AutoSizer(el) {
+	        _classCallCheck(this, AutoSizer);
+
+	        this.el = el;
+	        this._onChange = orange_1.bind(this._onChange, this);
+	        this._onPageResize = orange_1.bind(this._onPageResize, this);
+	        this._initInitialSize();
+	    }
+
+	    _createClass(AutoSizer, [{
+	        key: "_onPageResize",
+	        value: function _onPageResize() {
+	            if (this.el.clientWidth !== this._state.clientWidth) {
+	                this._updateSize();
+	            }
+	        }
+	    }, {
+	        key: "_onChange",
+	        value: function _onChange() {
+	            this._updateSize();
+	        }
+	    }, {
+	        key: "_initInitialSize",
+	        value: function _initInitialSize() {
+	            var style = window.getComputedStyle(this.el, null);
+	            var heightOffset = void 0;
+	            if (style.resize === 'vertical') {
+	                this.el.style.resize = 'none';
+	            } else if (style.resize === 'both') {
+	                this.el.style.resize = 'horizontal';
+	            }
+	            if (style.boxSizing === 'content-box') {
+	                heightOffset = -(parseFloat(style.paddingTop) + parseFloat(style.paddingBottom));
+	            } else {
+	                heightOffset = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+	            }
+	            // Fix when a textarea is not on document body and heightOffset is Not a Number
+	            if (isNaN(heightOffset)) {
+	                heightOffset = 0;
+	            }
+	            this._state = {
+	                overflowY: style.overflowY,
+	                heightOffset: heightOffset,
+	                clientWidth: this.el.clientWidth
+	            };
+	            orange_dom_1.addEventListener(this.el, 'keyup', this._onChange);
+	            orange_dom_1.addEventListener(this.el, 'input', this._onChange);
+	            orange_dom_1.addEventListener(window, 'resize', this._onPageResize);
+	            this._updateSize();
+	        }
+	    }, {
+	        key: "_changeOverflow",
+	        value: function _changeOverflow(value) {
+	            {
+	                // Chrome/Safari-specific fix:
+	                // When the textarea y-overflow is hidden, Chrome/Safari do not reflow the text to account for the space
+	                // made available by removing the scrollbar. The following forces the necessary text reflow.
+	                var width = this.el.style.width;
+	                this.el.style.width = '0px';
+	                // Force reflow:
+	                /* jshint ignore:start */
+	                this.el.offsetWidth;
+	                /* jshint ignore:end */
+	                this.el.style.width = width;
+	            }
+	            this._state.overflowY = value;
+	            ///*if (setOverflowY) {
+	            this.el.style.overflowY = value;
+	            //}*/
+	            this._resize();
+	        }
+	    }, {
+	        key: "_resize",
+	        value: function _resize() {
+	            var htmlTop = window.pageYOffset;
+	            var bodyTop = document.body.scrollTop;
+	            var originalHeight = this.el.style.height;
+	            this.el.style.height = 'auto';
+	            var endHeight = this.el.scrollHeight + this._state.heightOffset;
+	            if (this.el.scrollHeight === 0) {
+	                // If the scrollHeight is 0, then the element probably has display:none or is detached from the DOM.
+	                this.el.style.height = originalHeight;
+	                return;
+	            }
+	            this.el.style.height = endHeight + 'px';
+	            // used to check if an update is actually necessary on window.resize
+	            this._state.clientWidth = this.el.clientWidth;
+	            // prevents scroll-position jumping
+	            document.documentElement.scrollTop = htmlTop;
+	            document.body.scrollTop = bodyTop;
+	        }
+	    }, {
+	        key: "update",
+	        value: function update() {
+	            this._updateSize();
+	        }
+	    }, {
+	        key: "_updateSize",
+	        value: function _updateSize() {
+	            var startHeight = this.el.style.height;
+	            this._resize();
+	            var style = window.getComputedStyle(this.el, null);
+	            if (style.height !== this.el.style.height) {
+	                if (this._state.overflowY !== 'visible') {
+	                    this._changeOverflow('visible');
+	                }
+	            } else {
+	                if (this._state.overflowY !== 'hidden') {
+	                    this._changeOverflow('hidden');
+	                }
+	            }
+	            if (startHeight !== this.el.style.height) {}
+	        }
+	    }, {
+	        key: "destroy",
+	        value: function destroy() {
+	            orange_dom_1.removeEventListener(this.el, 'keyup', this._onChange);
+	            orange_dom_1.removeEventListener(this.el, 'input', this._onChange);
+	            orange_dom_1.removeEventListener(window, 'resize', this._onPageResize);
+	        }
+	    }]);
+
+	    return AutoSizer;
+	}();
+
+	exports.AutoSizer = AutoSizer;
+	var TextArea = function (_editor_1$BaseEditor) {
+	    _inherits(TextArea, _editor_1$BaseEditor);
+
+	    function TextArea(options) {
+	        _classCallCheck(this, TextArea);
+
+	        return _possibleConstructorReturn(this, (TextArea.__proto__ || Object.getPrototypeOf(TextArea)).call(this, options));
+	    }
+
+	    _createClass(TextArea, [{
+	        key: "render",
+	        value: function render(o) {
+	            _get(TextArea.prototype.__proto__ || Object.getPrototypeOf(TextArea.prototype), "render", this).call(this, o);
+	            var autoSize = this.el.getAttribute('autosize');
+	            if (autoSize != null) {
+	                if (this._autoSizer == null) {
+	                    this._autoSizer = new AutoSizer(this.el);
+	                    this.el.style.overflowX = 'hidden';
+	                    this.el.style.wordWrap = 'break-word';
+	                    this.el.rows = 1;
+	                }
+	            } else {
+	                if (this._autoSizer) {
+	                    this._autoSizer.destroy();
+	                    this._autoSizer = void 0;
+	                }
+	            }
+	            return this;
+	        }
+	    }, {
+	        key: "setValue",
+	        value: function setValue(value) {
+	            this.el.value = value;
+	            if (this._autoSizer) this._autoSizer.update();
+	        }
+	    }, {
+	        key: "getValue",
+	        value: function getValue() {
+	            return this.el.value;
+	        }
+	    }, {
+	        key: "destroy",
+	        value: function destroy() {
+	            if (this._autoSizer) {
+	                this._autoSizer.destroy();
+	                this._autoSizer = void 0;
+	            }
+	        }
+	    }]);
+
+	    return TextArea;
+	}(editor_1.BaseEditor);
+	TextArea = __decorate([define_1.editor('textarea'), views_1.attributes({
+	    events: {
+	        keyup: function keyup() {
+	            this._prev = this.getValue();
+	            this.triggerMethod('change');
+	        },
+	        change: function change() {
+	            if (this._prev !== this.getValue()) {
+	                this._prev = this.getValue();
+	                this.triggerMethod('change');
+	            }
+	        }
+	    }
+	}), __metadata('design:paramtypes', [Object])], TextArea);
 
 /***/ }
 /******/ ])

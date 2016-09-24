@@ -19,6 +19,7 @@
         "src/error.ts",
         "src/types.ts",
         "src/utils.ts",
+        "src/uploader.ts",
 
         "src/download.ts",
 
@@ -34,6 +35,7 @@
         "src/gallery/gallery.ts",
         "src/gallery/mimetypes.ts",
         "src/gallery/dropzone.ts",
+        "src/gallery/modal.ts",
 
         "src/crop/crop-view.ts",
         "src/crop/crop-preview.ts",
@@ -41,7 +43,7 @@
         "src/crop/types.ts",
 
         "src/form/index.ts",
-        "src/form/crop-view.ts",
+        "src/form/crop-editor.ts",
 
         "src/modal/index.ts",
         "src/modal/modal.ts",

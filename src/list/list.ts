@@ -109,7 +109,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
 
         this.listenTo(this.collection, 'before:fetch', this._showLoaderView);
         this.listenTo(this.collection, 'fetch', this._hideLoaderView);
-        this.listenTo(this, 'height', this._loadImages, this);
+        this.listenTo(this, 'height', this.loadImages, this);
         this.listenTo(this.collection, 'fetch:progress', (e: ProgressEvent) => {
             if (!e.lengthComputable) return;
             if (this._progress) this._progress.setPercent(100 / e.total * e.loaded)
@@ -124,7 +124,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             //this._initBlazy();
             
         }
-        this._loadImages()
+        this.loadImages()
     }
 
     onRenderChild(view: FileListItemView, index: number) {
@@ -172,7 +172,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         let el = this.el;
 
         if (el.scrollTop < (el.scrollHeight - el.clientHeight) - el.clientHeight) {
-            this._loadImages()
+            this.loadImages()
         } else if (this.collection.hasNext()) {
 
             this.collection.getNextPage({
@@ -183,7 +183,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         }
     }
 
-    private _loadImages() {
+    loadImages() {
 
         const loadImage = (img: HTMLImageElement) => {
             var parent = img.parentElement

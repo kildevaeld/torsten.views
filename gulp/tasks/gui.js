@@ -51,15 +51,37 @@ gulp.task('gui:webpack', ['gui:typescript'], () => {
 
                 ]
             },
-
+            resolve: {
+                alias: {
+                    "debug": process.cwd() + "/node_modules/debug/browser.js",
+                    "cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
+                }
+            },
             externals: {
                 "orange": "orange",
-                "orange.request": ['orange', 'request'],
+                "orange.request": {
+                    root: ['orange','request'],
+                    commonjs2: 'orange.request',
+                    commonjs: 'orange.request',
+                    amd: 'orange.request'
+                },
+                "orange.dom": {
+                    root: ['orange','dom'],
+                    commonjs2: 'orange.dom',
+                    commonjs: 'orange.dom',
+                    amd: 'orange.dom'
+                },
                 "views": "views",
                 "collection": "collection",
-                "cropperjs": "cropperjs",
-                "blazy": "blazy",
-                "torsten": "torsten"
+               
+                "torsten": "torsten",
+                "views.form": {
+                    root: ['views','form'],
+                    commonjs2: 'views.form',
+                    commonjs: 'views.form',
+                    amd: 'views.form'
+                },
+                eventsjs: "eventsjs"
             }
         })).pipe(gulp.dest('dist'))
 });
@@ -91,7 +113,9 @@ gulp.task('gui:webpack:bundle', ['gui:typescript'], () => {
             },
             resolve: {
                 alias: {
-                    "orange.request": process.cwd() + "/node_modules/orange.request/dist/orange.request.js"
+                    "orange.request": process.cwd() + "/node_modules/orange.request/dist/orange.request.js",
+                    "debug": process.cwd() + "/node_modules/debug/browser.js",
+                    "cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
                 }
             }
         })).pipe(gulp.dest('dist'))
@@ -115,5 +139,5 @@ gulp.task('gui:default', ['gui:webpack', 'gui:webpack:bundle', 'gui:styles'])
 
 
 gulp.task('gui:watch', ['gui:templates:watch', 'gui:styles:watch'], () => {
-    gulp.watch('./src/**/*.ts', ['gui:webpack:bundle', 'gui:webpack'])
+    gulp.watch('./src/**/*.ts', [ 'gui:webpack'])
 })

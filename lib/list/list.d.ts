@@ -24,7 +24,7 @@ export declare class FileListView extends CollectionView<HTMLDivElement> {
     private _showLoaderView();
     private _hideLoaderView();
     private _onSroll(e);
-    private _loadImages();
+    loadImages(): void;
     private _initHeight();
     onShow(): void;
 }

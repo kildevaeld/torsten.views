@@ -60,11 +60,11 @@
         console.log(torsten.views)
 
         var client = torsten.views.createClient({
-            endpoint: 'http://localhost:3000'
+            endpoint: 'http://localhost:3000',
+            showDirectories: true
         });
 
-        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI1MmRmNDg3MS1kMjRjLTQ0NTUtOTMzMy00MDUwZjIwN2RhMTciLCJnaWQiOlsiZGUxODRjNmItMjM5YS00ZmEwLThhYWEtYWY1MjA0NjUxZGZkIiwiZGQwNzIzZDQtYWY5Ny00NTUxLTkwZjEtYTI2NDdiZmM2YjJmIl0sImlhdCI6MTQ3NDY2OTI1OH0.cNnL5tXZuiNhvGke2njF6SxGe6lNhd6R4NRh2h0_FPU'
-
+        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI5MDlkMzdhNC1kMTI4LTRmOGQtYjFlMS0wYWVmMWY2MGEwMzUiLCJnaWQiOlsiMGY1MDJkZWYtMzE5Yy00ODE1LTg1ZjUtMGFhMDBhMGQ1MTFiIiwiMTM2YTAzYzUtZDcyNi00Y2I5LWI3M2YtZTYyODFjMjM0YmJhIl0sImlhdCI6MTQ3NDcxMTI2M30.CcWXVT967IAR77wiEhBR3WxNUduBwg9JQLQv9OfjjQc'
         let gallery = new torsten.views.GalleryView({
             client: client,
             showDirectories: true
