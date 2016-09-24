@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/dist/css/torsten.views.css" />
+    <!--script src="dist/torsten-.bundle.js"></script-->
+    <script src="dist/torsten.views.bundle.js"></script>
+</head>
+
+<body>
+    <div id="main">
+        <h1>Hello, World</h1>
+    </div>
+    <button id="open">Open</button>
+    <script>
+        let view = new torsten.views.Modal({
+            el: document.querySelector('#main')
+        });
+
+        view.render();
+
+        document.querySelector('#open').addEventListener('click', () => {
+            view.open()
+        })
+        
+
+
+    </script>
+</body>
+
+</html>

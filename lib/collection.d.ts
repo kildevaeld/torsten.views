@@ -10,10 +10,12 @@ export interface State {
     last: number;
     current: number;
 }
+export declare function isFileInfo(a: any): a is FileInfoModel;
 export interface FileInfoModelOptions {
     client: IClient;
 }
 export declare class FileInfoModel extends Model {
+    __torsten: string;
     _client: IClient;
     idAttribute: string;
     constructor(attr: any, options: FileInfoModelOptions);

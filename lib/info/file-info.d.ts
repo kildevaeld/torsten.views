@@ -14,4 +14,5 @@ export declare class FileInfoView extends View<HTMLDivElement> {
     onRender(): void;
     clear(): this;
     _update_ui(model: FileInfoModel): this;
+    private _onDownload(e);
 }

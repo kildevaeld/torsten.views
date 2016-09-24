@@ -56,11 +56,16 @@ function parseLinkHeaders(resp: Response): Link {
 
 }
 
+export function isFileInfo(a:any): a is FileInfoModel {
+    return (a instanceof FileInfoModel) && a.__torsten == 'FileInfoModel';
+}
+
 export interface FileInfoModelOptions {
     client: IClient;
 }
 
 export class FileInfoModel extends Model {
+    __torsten = 'FileInfoModel'
     _client: IClient;
     idAttribute = "id";
     constructor(attr: any, options: FileInfoModelOptions) {

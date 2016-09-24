@@ -1,0 +1,53 @@
+
+.torsten.modal {
+    display: none
+    position:absolute
+    transform: translate3d(-50%, -140%, 0);
+    min-width: 360px;
+    min-height: 240px
+    background-color: red
+    left: 50%
+    top:20%
+    box-sizing border-box
+    z-index:3
+}
+
+.torsten-modal-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transition: opacity 1s
+    background-color: rgba(0,0,0,0.4)
+    z-index:2
+}
+
+.torsten-modal-open {
+    .torsten-modal-overlay {
+        opacity: 1
+    }
+    .torsten.modal {
+        display: block
+        opacity: 0
+        animation-duration: 0.6s;
+        animation-fill-mode: both;
+        animation-name: slideInDown
+        animation-delay: 0.1s
+    }
+}
+
+
+@keyframes slideInDown {
+  from {
+    transform: translate3d(-50%, -140%, 0);
+    visibility: visible;
+    opacity: 0
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 1
+  }
+}

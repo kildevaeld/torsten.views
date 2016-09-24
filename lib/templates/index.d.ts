@@ -1,4 +1,5 @@
 declare var _default: {
+    "crop-editor": string;
     "file-info": string;
     "gallery": string;
     "list-item": string;

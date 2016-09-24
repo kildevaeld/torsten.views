@@ -3,7 +3,7 @@ import {View, attributes, ViewOptions} from 'views';
 import templates from '../templates/index';
 import {FileInfoModel} from '../collection';
 import {IClient} from 'torsten'
-import {Html} from 'orange.dom';
+import {Html, addClass, hasClass} from 'orange.dom';
 import {humanFileSize} from 'orange';
 
 export interface FileInfoViewOptions extends ViewOptions {
@@ -17,7 +17,10 @@ export interface FileInfoViewOptions extends ViewOptions {
         name: '.name',
         mime: '.mimetype',
         size: '.size',
-        download: '.download a'
+        download: '.download'
+    },
+    events: {
+        'click @ui.download': '_onDownload'
     }
 })
 export class FileInfoView extends View<HTMLDivElement> {
@@ -61,10 +64,31 @@ export class FileInfoView extends View<HTMLDivElement> {
         ui.size.textContent = humanFileSize(model.get('size'));
         ui.download.textContent = model.get('name');
         
-        let url = this.client.endpoint + model.fullPath + '?download=true';
-        ui.download.setAttribute('href', url);
+    
         this.el.style.opacity = "1";
         
+    }
+
+    private _onDownload(e) {
+        e.preventDefault();
+        
+        this.model.open()
+        .then( blob => {
+            let a = document.createElement('a');
+            let url = URL.createObjectURL(blob);
+            a.href = url
+            a.download = this.model.get('name');
+            document.body.appendChild(a);
+            a.click()
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);    
+            }, 100)
+            
+        }).catch( e => {
+            console.log(e)
+        })
     }
 
 }

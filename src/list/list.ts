@@ -166,7 +166,6 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 index = i;
             } else if (elementInView(img, this.el)) {
                 index = i
-                //this._blazy.load(img, true);
             }
         }
         this.index = index;
@@ -190,11 +189,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             var parent = img.parentElement
             addClass(parent, 'loading')
         
-            Downloader.instance.download(this.options.client, img.getAttribute('data-src'), { thumbnail: false})
-
-            /*this.options.client.open(img.getAttribute('data-src'), {
-                thumbnail: true
-            })*/
+            Downloader.download(this.options.client, img.getAttribute('data-src'), { thumbnail: true})
                 .then(i => {
                     img.src = URL.createObjectURL(i)
                     addClass(parent, 'loaded')
@@ -208,34 +203,20 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         let images = this.el.querySelectorAll('img');
         for (let i = 0, ii = images.length; i < ii; i++) {
             let img = <HTMLImageElement>images[i];
-            if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
+            /*if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
                 if (!elementInView(img, this.el) && hasClass(img, 'loading')) {
                     Downloader.cancel(img.getAttribute('data-src'));
                     removeClass(img, 'loading');
                 }
                 continue;
-            }
+            }*/
             if (elementInView(img, this.el))  {
                 loadImage(img)
             } 
             
         }
     }
-
-    /*private _initBlazy() {
-        this._blazy = new Blazy({
-            container: '.assets-list',
-            selector: 'img',
-            error: function (img) {
-                if (!img || !img.parentNode) return;
-                let m = img.parentNode.querySelector('.mime');
-                if (m) {
-                    m.style.display = 'block';
-                    img.style.display = 'none';
-                }
-            }
-        });
-    }*/
+    
 
     private _initHeight() {
         let parent = this.el.parentElement;

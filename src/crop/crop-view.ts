@@ -1,13 +1,13 @@
 import {View, ViewOptions, attributes} from 'views';
 import Cropper from 'cropperjs';
 import {ICropper, Cropping, getCropping} from './types';
-import {FileInfoModel} from '../collection';
+import {FileInfoModel, isFileInfo} from '../collection';
 import {CropPreView} from './crop-preview';
 import {getImageSize, emptyImage} from '../utils';
-import {imageLoaded} from 'orange.dom';
 import {extend} from 'orange';
+import {addClass, removeClass} from 'orange.dom'
 
-
+import {Progress} from '../list/circular-progress'
 
 
 function isFunction(a: any): a is Function {
@@ -50,13 +50,17 @@ export class CropView extends View<HTMLDivElement> {
 
     setModel(model) {
 
+        if (model && !isFileInfo(model)) {
+            throw new Error("not a file info model");
+        }
+
         if (this.ui['image'] == null) return this;
 
         this.deactivate();
 
         let image = <HTMLImageElement>this.ui['image'];
 
-        image.style.display = 'none';
+       // image.style.display = 'none';
         if (model == null) {
             image.src = null;
             if (this.model) this.stopListening(this.model);
@@ -71,7 +75,7 @@ export class CropView extends View<HTMLDivElement> {
 
         this._updateImage()
             .then((loaded) => {
-                if (loaded) image.style.display = 'block';
+                //if (loaded) image.style.display = 'block';
                 return loaded
             }).then((loaded) => {
                 if (!loaded) return;
@@ -173,6 +177,8 @@ export class CropView extends View<HTMLDivElement> {
             this.el.appendChild(image);
         }
 
+       
+
         this.delegateEvents();
         this.triggerMethod('render');
 
@@ -186,16 +192,33 @@ export class CropView extends View<HTMLDivElement> {
             img.src = emptyImage;
             return Promise.resolve(false);
         }
-        this.triggerMethod('before:image');
-        
-        img.src = this.model.url;
-        return imageLoaded(img).then((loaded) => {
-            this.triggerMethod('image', loaded)
-            return loaded;
-        }).catch(e => {
-            this.triggerMethod('error', new Error('image not loaded'))
-            return Promise.resolve(false);
+
+        let progress = new Progress({
+            size: 64,
+            lineWidth: 6
         });
+
+        addClass(progress.el, 'loader')
+
+        this.el.appendChild(progress.render().el)
+        
+
+        return this.model.open({
+            progress: (e) => {
+                let pc = 100 / e.total * e.loaded
+                progress.setPercent(pc);
+            }
+        }).then( blob => {
+            
+            img.src = URL.createObjectURL(blob)
+            this.triggerMethod('image', true)
+            
+            progress.remove().destroy();
+            return true
+        }).then( () => {
+            addClass(img, 'loaded');
+            return true
+        })
     }
 
     destroy() {

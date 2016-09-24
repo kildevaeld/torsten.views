@@ -65,6 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	__export(__webpack_require__(16));
 	__export(__webpack_require__(29));
 	__export(__webpack_require__(34));
+	__export(__webpack_require__(39));
 	var torsten_1 = __webpack_require__(4);
 	function createClient(options) {
 	    return new torsten_1.TorstenClient(options);
@@ -114,6 +115,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return link;
 	}
+	function isFileInfo(a) {
+	    return a instanceof FileInfoModel && a.__torsten == 'FileInfoModel';
+	}
+	exports.isFileInfo = isFileInfo;
 
 	var FileInfoModel = function (_collection_1$Model) {
 	    _inherits(FileInfoModel, _collection_1$Model);
@@ -123,6 +128,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var _this = _possibleConstructorReturn(this, (FileInfoModel.__proto__ || Object.getPrototypeOf(FileInfoModel)).call(this, attr, options));
 
+	        _this.__torsten = 'FileInfoModel';
 	        _this.idAttribute = "id";
 	        _this._client = options.client;
 	        return _this;
@@ -557,6 +563,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._download(client, path, options).then(defer.resolve).catch(defer.reject);
 	        }
 	    }], [{
+	        key: 'download',
+	        value: function download(client, path, options) {
+	            return this.instance.download(client, path, options);
+	        }
+	    }, {
 	        key: 'cancel',
 	        value: function cancel(path) {
 	            return this.instance._cancel(path);
@@ -1543,7 +1554,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var loadImage = function loadImage(img) {
 	                var parent = img.parentElement;
 	                orange_dom_1.addClass(parent, 'loading');
-	                download_1.Downloader.instance.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: false }).then(function (i) {
+	                download_1.Downloader.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
 	                    img.src = URL.createObjectURL(i);
 	                    orange_dom_1.addClass(parent, 'loaded');
 	                    orange_dom_1.removeClass(parent, 'loading');
@@ -1555,33 +1566,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var images = this.el.querySelectorAll('img');
 	            for (var i = 0, ii = images.length; i < ii; i++) {
 	                var img = images[i];
-	                if (orange_dom_1.hasClass(img.parentElement, "loaded") || orange_dom_1.hasClass(img.parentElement, "loading")) {
-	                    if (!elementInView(img, this.el) && orange_dom_1.hasClass(img, 'loading')) {
-	                        download_1.Downloader.cancel(img.getAttribute('data-src'));
-	                        orange_dom_1.removeClass(img, 'loading');
+	                /*if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
+	                    if (!elementInView(img, this.el) && hasClass(img, 'loading')) {
+	                        Downloader.cancel(img.getAttribute('data-src'));
+	                        removeClass(img, 'loading');
 	                    }
 	                    continue;
-	                }
+	                }*/
 	                if (elementInView(img, this.el)) {
 	                    loadImage(img);
 	                }
 	            }
 	        }
-	        /*private _initBlazy() {
-	            this._blazy = new Blazy({
-	                container: '.assets-list',
-	                selector: 'img',
-	                error: function (img) {
-	                    if (!img || !img.parentNode) return;
-	                    let m = img.parentNode.querySelector('.mime');
-	                    if (m) {
-	                        m.style.display = 'block';
-	                        img.style.display = 'none';
-	                    }
-	                }
-	            });
-	        }*/
-
 	    }, {
 	        key: "_initHeight",
 	        value: function _initHeight() {
@@ -2350,7 +2346,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = {
-	    "file-info": "<div class=\"preview-region\">\n</div>\n<div class=\"info-region\">  <table>  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  <a></a>  </td>  </tr>  </table>\n</div>",
+	    "crop-editor": "<div class=\"modal-container\"></div>\n<div class=\"crop-container\">\n</div>\n<!--<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>-->\n<button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n<button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>",
+	    "file-info": "<div class=\"preview-region\">\n</div>\n<div class=\"info-region\">  <table class=\"info\">  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  </td>  </tr>  </table>\n</div>",
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
 	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n"
@@ -2939,9 +2936,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ui.mime.textContent = model.get('mime');
 	            ui.size.textContent = orange_1.humanFileSize(model.get('size'));
 	            ui.download.textContent = model.get('name');
-	            var url = this.client.endpoint + model.fullPath + '?download=true';
-	            ui.download.setAttribute('href', url);
 	            this.el.style.opacity = "1";
+	        }
+	    }, {
+	        key: "_onDownload",
+	        value: function _onDownload(e) {
+	            var _this2 = this;
+
+	            e.preventDefault();
+	            this.model.open().then(function (blob) {
+	                var a = document.createElement('a');
+	                var url = URL.createObjectURL(blob);
+	                a.href = url;
+	                a.download = _this2.model.get('name');
+	                document.body.appendChild(a);
+	                a.click();
+	                setTimeout(function () {
+	                    document.body.removeChild(a);
+	                    window.URL.revokeObjectURL(url);
+	                }, 100);
+	            }).catch(function (e) {
+	                console.log(e);
+	            });
 	        }
 	    }]);
 
@@ -2956,7 +2972,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        name: '.name',
 	        mime: '.mimetype',
 	        size: '.size',
-	        download: '.download a'
+	        download: '.download'
+	    },
+	    events: {
+	        'click @ui.download': '_onDownload'
 	    }
 	}), __metadata('design:paramtypes', [Object])], FileInfoView);
 	exports.FileInfoView = FileInfoView;
@@ -3063,11 +3082,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
 	    var c = arguments.length,
@@ -3083,6 +3102,63 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(18);
 	var types_1 = __webpack_require__(36);
 	var utils_1 = __webpack_require__(26);
+	var orange_dom_1 = __webpack_require__(19);
+
+	var CropPreview = function () {
+	    function CropPreview(el, options) {
+	        _classCallCheck(this, CropPreview);
+
+	        this._el = el;
+	        orange_dom_1.addClass(el, 'torsten cropping-preview');
+	    }
+
+	    _createClass(CropPreview, [{
+	        key: "update",
+	        value: function update() {
+	            var _this = this;
+
+	            var img = this._el.querySelector("img");
+	            return utils_1.getImageSize(img).then(function (size) {
+	                var el = _this._el;
+	                if (_this._cropping == null) {
+	                    if (_this._opts.aspectRatio == null) {
+	                        return _this;
+	                    }
+	                    _this._cropping = types_1.getCropping(size, _this._opts.aspectRatio);
+	                }
+	                var cropping = _this._cropping;
+	                var cw = el.clientWidth,
+	                    ch = el.clientHeight,
+	                    rx = cw / cropping.width,
+	                    ry = ch / cropping.height;
+	                var width = size.width,
+	                    height = size.height;
+	                var e = {
+	                    width: Math.round(rx * width) + 'px',
+	                    height: Math.round(ry * height) + 'px',
+	                    marginLeft: '-' + Math.round(rx * cropping.x) + 'px',
+	                    marginTop: '-' + Math.round(ry * cropping.y) + 'px'
+	                };
+	                for (var key in e) {
+	                    img.style[key] = e[key];
+	                }
+	            });
+	        }
+	    }, {
+	        key: "cropping",
+	        set: function set(cropping) {
+	            this._cropping = cropping;
+	            this.update();
+	        },
+	        get: function get() {
+	            return this._cropping;
+	        }
+	    }]);
+
+	    return CropPreview;
+	}();
+
+	exports.CropPreview = CropPreview;
 	var CropPreView = function (_views_1$View) {
 	    _inherits(CropPreView, _views_1$View);
 
@@ -3091,10 +3167,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        _classCallCheck(this, CropPreView);
 
-	        var _this = _possibleConstructorReturn(this, (CropPreView.__proto__ || Object.getPrototypeOf(CropPreView)).call(this, options));
+	        var _this2 = _possibleConstructorReturn(this, (CropPreView.__proto__ || Object.getPrototypeOf(CropPreView)).call(this, options));
 
-	        _this.options = options;
-	        return _this;
+	        _this2.options = options;
+	        return _this2;
 	    }
 
 	    _createClass(CropPreView, [{
@@ -3117,20 +3193,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "update",
 	        value: function update() {
-	            var _this2 = this;
+	            var _this3 = this;
 
 	            this.triggerMethod('before:update');
 	            var img = this.ui['image'];
 	            return utils_1.getImageSize(img).then(function (size) {
-	                if (_this2.ui['image'] == null) return _this2;
-	                var el = _this2.el;
-	                if (_this2._cropping == null) {
-	                    if (_this2.options.aspectRatio == null) {
-	                        return _this2;
+	                if (_this3.ui['image'] == null) return _this3;
+	                var el = _this3.el;
+	                if (_this3._cropping == null) {
+	                    if (_this3.options.aspectRatio == null) {
+	                        return _this3;
 	                    }
-	                    _this2._cropping = types_1.getCropping(size, _this2.options.aspectRatio);
+	                    _this3._cropping = types_1.getCropping(size, _this3.options.aspectRatio);
 	                }
-	                var cropping = _this2._cropping;
+	                var cropping = _this3._cropping;
 	                var cw = el.clientWidth,
 	                    ch = el.clientHeight,
 	                    rx = cw / cropping.width,
@@ -3146,7 +3222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                for (var key in e) {
 	                    img.style[key] = e[key];
 	                }
-	                _this2.triggerMethod('update');
+	                _this3.triggerMethod('update');
 	            });
 	        }
 	    }, {
@@ -3230,9 +3306,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(18);
 	var cropperjs_1 = __webpack_require__(38);
 	var types_1 = __webpack_require__(36);
+	var collection_1 = __webpack_require__(1);
 	var utils_1 = __webpack_require__(26);
-	var orange_dom_1 = __webpack_require__(19);
 	var orange_1 = __webpack_require__(5);
+	var orange_dom_1 = __webpack_require__(19);
+	var circular_progress_1 = __webpack_require__(27);
 	function isFunction(a) {
 	    return typeof a === 'function';
 	}
@@ -3255,10 +3333,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function setModel(model) {
 	            var _this2 = this;
 
+	            if (model && !collection_1.isFileInfo(model)) {
+	                throw new Error("not a file info model");
+	            }
 	            if (this.ui['image'] == null) return this;
 	            this.deactivate();
 	            var image = this.ui['image'];
-	            image.style.display = 'none';
+	            // image.style.display = 'none';
 	            if (model == null) {
 	                image.src = null;
 	                if (this.model) this.stopListening(this.model);
@@ -3268,7 +3349,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _get(CropView.prototype.__proto__ || Object.getPrototypeOf(CropView.prototype), "setModel", this).call(this, model);
 	            //image.src = model.getURL();
 	            this._updateImage().then(function (loaded) {
-	                if (loaded) image.style.display = 'block';
+	                //if (loaded) image.style.display = 'block';
 	                return loaded;
 	            }).then(function (loaded) {
 	                if (!loaded) return;
@@ -3368,14 +3449,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.src = utils_1.emptyImage;
 	                return Promise.resolve(false);
 	            }
-	            this.triggerMethod('before:image');
-	            img.src = this.model.url;
-	            return orange_dom_1.imageLoaded(img).then(function (loaded) {
-	                _this4.triggerMethod('image', loaded);
-	                return loaded;
-	            }).catch(function (e) {
-	                _this4.triggerMethod('error', new Error('image not loaded'));
-	                return Promise.resolve(false);
+	            var _progress = new circular_progress_1.Progress({
+	                size: 64,
+	                lineWidth: 6
+	            });
+	            orange_dom_1.addClass(_progress.el, 'loader');
+	            this.el.appendChild(_progress.render().el);
+	            return this.model.open({
+	                progress: function progress(e) {
+	                    var pc = 100 / e.total * e.loaded;
+	                    _progress.setPercent(pc);
+	                }
+	            }).then(function (blob) {
+	                img.src = URL.createObjectURL(blob);
+	                _this4.triggerMethod('image', true);
+	                _progress.remove().destroy();
+	                return true;
+	            }).then(function () {
+	                orange_dom_1.addClass(img, 'loaded');
+	                return true;
 	            });
 	        }
 	    }, {
@@ -3417,6 +3509,120 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports) {
 
 	module.exports = __WEBPACK_EXTERNAL_MODULE_38__;
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	function __export(m) {
+	    for (var p in m) {
+	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	    }
+	}
+	__export(__webpack_require__(40));
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var __decorate = undefined && undefined.__decorate || function (decorators, target, key, desc) {
+	    var c = arguments.length,
+	        r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc,
+	        d;
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) {
+	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
+	};
+	var __metadata = undefined && undefined.__metadata || function (k, v) {
+	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+	};
+	var views_1 = __webpack_require__(18);
+	var orange_dom_1 = __webpack_require__(19);
+	var orange_1 = __webpack_require__(5);
+	var Modal = function (_views_1$View) {
+	    _inherits(Modal, _views_1$View);
+
+	    function Modal(options) {
+	        _classCallCheck(this, Modal);
+
+	        var _this = _possibleConstructorReturn(this, (Modal.__proto__ || Object.getPrototypeOf(Modal)).call(this, options));
+
+	        _this.__rendered = false;
+	        if (options.el) {
+	            orange_dom_1.addClass(_this.el, _this.className);
+	        }
+	        _this._onClose = orange_1.bind(_this._onClose, _this);
+	        return _this;
+	    }
+
+	    _createClass(Modal, [{
+	        key: "onRender",
+	        value: function onRender() {
+	            this.__rendered = true;
+	        }
+	    }, {
+	        key: "open",
+	        value: function open() {
+	            var body = document.body;
+	            if (orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	                return;
+	            }
+	            var overlay = orange_dom_1.createElement('div', {});
+	            orange_dom_1.addClass(overlay, 'torsten-modal-overlay');
+	            body.appendChild(overlay);
+	            requestAnimationFrame(function () {
+	                orange_dom_1.addClass(body, 'torsten-modal-open');
+	            });
+	            orange_dom_1.addEventListener(overlay, 'click', this._onClose);
+	        }
+	    }, {
+	        key: "_onClose",
+	        value: function _onClose() {
+	            console.log('close');
+	            this.close();
+	        }
+	    }, {
+	        key: "close",
+	        value: function close() {
+	            var body = document.body;
+	            if (!orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	                return;
+	            }
+	            var overlay = body.querySelector('.torsten-modal-overlay');
+	            orange_dom_1.removeEventListener(overlay, 'click', this._onClose);
+	            orange_dom_1.removeClass(body, 'torsten-modal-open');
+	            orange_dom_1.transitionEnd(overlay, function (e) {
+	                body.removeChild(overlay);
+	            }, null);
+	        }
+	    }, {
+	        key: "onDestroy",
+	        value: function onDestroy() {
+	            this.remove();
+	        }
+	    }]);
+
+	    return Modal;
+	}(views_1.View);
+	Modal = __decorate([views_1.attributes({
+	    tagName: 'div',
+	    className: 'torsten modal'
+	}), __metadata('design:paramtypes', [Object])], Modal);
+	exports.Modal = Modal;
 
 /***/ }
 /******/ ])

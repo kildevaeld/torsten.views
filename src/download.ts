@@ -43,6 +43,10 @@ export class Downloader extends EventEmitter {
        
     }
 
+    static download(client: IClient, path: string, options: OpenOptions): IPromise<Blob> {
+        return this.instance.download(client, path, options);
+    }
+
     static cancel(path: string) {
         return this.instance._cancel(path);
     }

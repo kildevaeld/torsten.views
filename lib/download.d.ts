@@ -11,6 +11,7 @@ export declare class Downloader extends EventEmitter {
     size: number;
     constructor();
     download(client: IClient, path: string, options: OpenOptions): IPromise<Blob>;
+    static download(client: IClient, path: string, options: OpenOptions): IPromise<Blob>;
     static cancel(path: string): void;
     private _cancel(path);
     private _download(client, path, options);

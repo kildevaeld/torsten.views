@@ -40,6 +40,12 @@
         "src/crop/index.ts",
         "src/crop/types.ts",
 
+        "src/form/index.ts",
+        "src/form/crop-view.ts",
+
+        "src/modal/index.ts",
+        "src/modal/modal.ts",
+
         "src/templates/index.ts"
 
     ]
