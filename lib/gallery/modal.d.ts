@@ -9,6 +9,9 @@ export declare class GalleryModal extends Modal {
     selected: FileInfoModel;
     root: string;
     constructor(options: GalleryModalOptions);
+    onBeforeOpen(): void;
+    onBeforeClose(): void;
+    _setHeight(): void;
     onOpen(): void;
     onRender(): void;
     private _onSelect(e);

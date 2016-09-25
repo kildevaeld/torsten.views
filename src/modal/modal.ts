@@ -17,7 +17,7 @@ export class Modal extends View<HTMLDivElement> {
         if (options.el) {
             addClass(this.el,this.className);
         }
-        this.close = bind(this.close, this);
+        this._onClose = bind(this._onClose, this);
     }
 
     render() {
@@ -48,11 +48,15 @@ export class Modal extends View<HTMLDivElement> {
         animationEnd(this.el, () => {
             this.triggerMethod('open');
         })
-        
+
+        addEventListener(this.el, 'click', this._onClose)
+        return this;
     }
 
-    _onClose () {
-        this.close();
+    _onClose (e) {
+        if (hasClass(e.target, 'views-modal')) {
+            this.close();
+        }
     }
 
     close() {
@@ -71,6 +75,8 @@ export class Modal extends View<HTMLDivElement> {
             this.triggerMethod('close');
         })
 
+        return this;
+
     }
 
     toggle () {
@@ -80,10 +86,11 @@ export class Modal extends View<HTMLDivElement> {
         } else {
             this.close();
         }
+        return this;
     }
 
     onDestroy() {
-        this.remove();
+        this.close().remove();
     }
 
 }

@@ -37,7 +37,7 @@
 }
 .file-list .file-list-empty-view {
   width: 100%;
-  margin-top: 40px;
+  margin-top: 15%;
   text-align: center;
 }
 .file-list .loader {
@@ -212,10 +212,6 @@
 .torsten-gallery .gallery-toolbar {
   height: 50px;
 }
-.gallery-modal {
-  min-width: 80% !important;
-  height: 80% !important;
-}
 @media only screen and (max-device-width: 480px) {
   .gallery-modal {
     min-width: 100% !important;
@@ -234,8 +230,8 @@
 .gallery-modal .torsten-gallery .gallery-info {
   min-width: 30%;
 }
-.gallery-modal .views-modal-body {
-  padding: 10px;
+.gallery-modal .views-modal-dialog {
+  width: 80% !important;
 }
 .gallery-modal .views-modal-content {
   background-color: #fff;
@@ -244,6 +240,7 @@
 }
 .gallery-modal .torsten-gallery {
   font-family: 'HelveticaNeue', Arial, Helvetica, sans-serif;
+  height: 500px;
 }
 .gallery-modal .torsten-gallery .gallery-list {
   min-width: 70%;
@@ -685,41 +682,26 @@ div.progress {
 .views-modal {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
   bottom: 0;
-  z-index: 2000;
+  left: 0;
+  z-index: 1050;
   visibility: hidden;
   -webkit-backface-visibility: hidden;
   -moz-backface-visibility: hidden;
   -ms-backface-visibility: hidden;
   backface-visibility: hidden;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  -webkit-transform: translateX(-50%) translateY(-20%);
-  -moz-transform: translateX(-50%) translateY(-20%);
-  -o-transform: translateX(-50%) translateY(-20%);
-  -ms-transform: translateX(-50%) translateY(-20%);
-  transform: translateX(-50%) translateY(-20%);
-  top: 20%;
-  left: 50%;
-  max-width: 630px;
-  min-width: 320px;
-  height: auto;
+  overflow-y: auto;
 }
-@media (min-width: 768px) {
-  .views-modal {
-    width: 600px;
-  }
+.views-modal.views-modal-show {
+  visibility: visible;
+}
+.views-modal .views-modal-dialog {
+  width: 600px;
+  margin: 30px auto;
 }
 .views-modal .views-modal-content {
-  background: #fff;
   position: relative;
-  margin: 0;
-}
-.views-modal .views-modal-content .views-modal-header {
-  background: #fff;
 }
 .views-modal .views-modal-content .views-modal-footer {
   padding: 15px;

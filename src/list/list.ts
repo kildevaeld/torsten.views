@@ -49,8 +49,6 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         this.sort = false;
 
         this._onSroll = throttle(bind(this._onSroll, this), 0);
-        //this._initBlazy();
-
     }
 
     onCollection(model) {
@@ -80,15 +78,6 @@ export class FileListView extends CollectionView<HTMLDivElement> {
 
         this.listenTo(this, 'childview:remove', function (view, {model}) {
             this.trigger('remove', view, model);
-            /*if (this.options.deleteable === true) {
-                let remove = true;
-                if (model.has('deleteable')) {
-                    remove = !!model.get('deleteable');
-                }
-                if (remove) model.remove();
-            } else {
-                
-            }*/
         });
 
 
@@ -97,12 +86,6 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             if (img.src === img.getAttribute('data-src')) {
                 return;
             }
-            /*setTimeout(() => {
-                if (elementInView(view.el, this.el)) {
-                    this._blazy.load(view.$('img')[0]);
-                }
-            }, 100);*/
-
         });
 
         this.listenTo(this.collection, 'before:fetch', this._showLoaderView);
@@ -116,12 +99,6 @@ export class FileListView extends CollectionView<HTMLDivElement> {
     }
 
     onRenderCollection() {
-        if (this._blazy) {
-            this._blazy.revalidate();
-        } else {
-            //this._initBlazy();
-            
-        }
         this.loadImages()
     }
 
@@ -230,7 +207,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             this._timer = void 0;
         }
 
-        this.el.style.height = parent.clientHeight + 'px';
+        //this.el.style.height = parent.clientHeight + 'px';
         this.trigger('height')
     }
 

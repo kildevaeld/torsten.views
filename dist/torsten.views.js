@@ -1156,7 +1156,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.options = options || { client: null };
 	        _this.sort = false;
 	        _this._onSroll = throttle(orange_1.bind(_this._onSroll, _this), 0);
-	        //this._initBlazy();
 	        return _this;
 	    }
 
@@ -1190,26 +1189,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var model = _ref.model;
 
 	                this.trigger('remove', view, model);
-	                /*if (this.options.deleteable === true) {
-	                    let remove = true;
-	                    if (model.has('deleteable')) {
-	                        remove = !!model.get('deleteable');
-	                    }
-	                    if (remove) model.remove();
-	                } else {
-	                    
-	                }*/
 	            });
 	            this.listenTo(this, 'childview:image', function (view) {
 	                var img = view.$('img')[0];
 	                if (img.src === img.getAttribute('data-src')) {
 	                    return;
 	                }
-	                /*setTimeout(() => {
-	                    if (elementInView(view.el, this.el)) {
-	                        this._blazy.load(view.$('img')[0]);
-	                    }
-	                }, 100);*/
 	            });
 	            this.listenTo(this.collection, 'before:fetch', this._showLoaderView);
 	            this.listenTo(this.collection, 'fetch', this._hideLoaderView);
@@ -1222,9 +1207,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "onRenderCollection",
 	        value: function onRenderCollection() {
-	            if (this._blazy) {
-	                this._blazy.revalidate();
-	            } else {}
 	            this.loadImages();
 	        }
 	    }, {
@@ -1330,7 +1312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                clearInterval(this._timer);
 	                this._timer = void 0;
 	            }
-	            this.el.style.height = parent.clientHeight + 'px';
+	            //this.el.style.height = parent.clientHeight + 'px';
 	            this.trigger('height');
 	        }
 	    }, {
@@ -1531,7 +1513,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
 	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n",
-	    "modal-gallery": "<div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>"
+	    "modal-gallery": "<div class=\"views-modal-dialog\">  <div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>\n</div>\n"
 	};
 
 /***/ },
@@ -2468,6 +2450,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(14);
 	var index_2 = __webpack_require__(17);
 	var orange_dom_1 = __webpack_require__(15);
+	var orange_1 = __webpack_require__(5);
 	var GalleryModal = function (_index_1$Modal) {
 	    _inherits(GalleryModal, _index_1$Modal);
 
@@ -2482,10 +2465,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.trigger('selected', _this.selected);
 	            _this.close();
 	        });
+	        _this._setHeight = orange_1.bind(_this._setHeight, _this);
 	        return _this;
 	    }
 
 	    _createClass(GalleryModal, [{
+	        key: "onBeforeOpen",
+	        value: function onBeforeOpen() {
+	            this._setHeight();
+	            orange_dom_1.addEventListener(window, 'resize', this._setHeight);
+	        }
+	    }, {
+	        key: "onBeforeClose",
+	        value: function onBeforeClose() {
+	            orange_dom_1.removeEventListener(window, 'resize', this._setHeight);
+	        }
+	    }, {
+	        key: "_setHeight",
+	        value: function _setHeight() {
+	            var height = window.innerHeight;
+	            var fh = this.el.querySelector('.views-modal-footer').clientHeight;
+	            var hh = this.el.querySelector('.views-modal-header').clientHeight;
+	            var rect = this.el.getBoundingClientRect();
+	            var margin = fh + hh + rect.top + 30 + 30 + 20;
+	            var gallery = this.el.querySelector('.torsten-gallery');
+	            gallery.style.height = height - margin + 'px';
+	        }
+	    }, {
 	        key: "onOpen",
 	        value: function onOpen() {
 	            this.gallery.list.loadImages();
@@ -2596,7 +2602,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (options.el) {
 	            orange_dom_1.addClass(_this.el, _this.className);
 	        }
-	        _this.close = orange_1.bind(_this.close, _this);
+	        _this._onClose = orange_1.bind(_this._onClose, _this);
 	        return _this;
 	    }
 
@@ -2630,11 +2636,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            orange_dom_1.animationEnd(this.el, function () {
 	                _this2.triggerMethod('open');
 	            });
+	            orange_dom_1.addEventListener(this.el, 'click', this._onClose);
+	            return this;
 	        }
 	    }, {
 	        key: "_onClose",
-	        value: function _onClose() {
-	            this.close();
+	        value: function _onClose(e) {
+	            if (orange_dom_1.hasClass(e.target, 'views-modal')) {
+	                this.close();
+	            }
 	        }
 	    }, {
 	        key: "close",
@@ -2653,6 +2663,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            orange_dom_1.animationEnd(this.el, function () {
 	                _this3.triggerMethod('close');
 	            });
+	            return this;
 	        }
 	    }, {
 	        key: "toggle",
@@ -2663,11 +2674,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            } else {
 	                this.close();
 	            }
+	            return this;
 	        }
 	    }, {
 	        key: "onDestroy",
 	        value: function onDestroy() {
-	            this.remove();
+	            this.close().remove();
 	        }
 	    }]);
 
