@@ -7,7 +7,7 @@
 		exports["views"] = factory(require("collection"), require("torsten"), require("orange"), require("orange.request"), require("eventsjs"), require("views"), require("orange.dom"), require("views.form"));
 	else
 		root["torsten"] = root["torsten"] || {}, root["torsten"]["views"] = factory(root["collection"], root["torsten"], root["orange"], root["orange"]["request"], root["eventsjs"], root["views"], root["orange"]["dom"], root["views"]["form"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_14__, __WEBPACK_EXTERNAL_MODULE_15__, __WEBPACK_EXTERNAL_MODULE_47__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_14__, __WEBPACK_EXTERNAL_MODULE_15__, __WEBPACK_EXTERNAL_MODULE_46__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -63,10 +63,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	__export(__webpack_require__(1));
 	__export(__webpack_require__(12));
-	__export(__webpack_require__(22));
-	__export(__webpack_require__(31));
-	__export(__webpack_require__(29));
-	__export(__webpack_require__(45));
+	__export(__webpack_require__(21));
+	__export(__webpack_require__(30));
+	__export(__webpack_require__(28));
+	__export(__webpack_require__(44));
 	var torsten_1 = __webpack_require__(4);
 	function createClient(options) {
 	    return new torsten_1.TorstenClient(options);
@@ -1142,8 +1142,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var list_item_1 = __webpack_require__(16);
 	var circular_progress_1 = __webpack_require__(20);
 	var download_1 = __webpack_require__(7);
-	//import {AssetsCollection} from '../../models/index';
-	var Blazy = __webpack_require__(21);
 	exports.FileListEmptyView = views_1.View.extend({
 	    className: 'file-list-empty-view',
 	    template: 'No files uploaded yet.'
@@ -1855,335 +1853,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-	/*!
-	  hey, [be]Lazy.js - v1.6.2 - 2016.05.09
-	  A fast, small and dependency free lazy load script (https://github.com/dinbror/blazy)
-	  (c) Bjoern Klinggaard - @bklinggaard - http://dinbror.dk/blazy
-	*/
-	;
-	(function (root, blazy) {
-	    if (true) {
-	        // AMD. Register bLazy as an anonymous module
-	        !(__WEBPACK_AMD_DEFINE_FACTORY__ = (blazy), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	    } else if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
-	        // Node. Does not work with strict CommonJS, but
-	        // only CommonJS-like environments that support module.exports,
-	        // like Node.
-	        module.exports = blazy();
-	    } else {
-	        // Browser globals. Register bLazy on window
-	        root.Blazy = blazy();
-	    }
-	})(undefined, function () {
-	    'use strict';
-
-	    //private vars
-
-	    var _source,
-	        _viewport,
-	        _isRetina,
-	        _attrSrc = 'src',
-	        _attrSrcset = 'srcset';
-
-	    // constructor
-	    return function Blazy(options) {
-	        //IE7- fallback for missing querySelectorAll support
-	        if (!document.querySelectorAll) {
-	            var s = document.createStyleSheet();
-	            document.querySelectorAll = function (r, c, i, j, a) {
-	                a = document.all, c = [], r = r.replace(/\[for\b/gi, '[htmlFor').split(',');
-	                for (i = r.length; i--;) {
-	                    s.addRule(r[i], 'k:v');
-	                    for (j = a.length; j--;) {
-	                        a[j].currentStyle.k && c.push(a[j]);
-	                    }s.removeRule(0);
-	                }
-	                return c;
-	            };
-	        }
-
-	        //options and helper vars
-	        var scope = this;
-	        var util = scope._util = {};
-	        util.elements = [];
-	        util.destroyed = true;
-	        scope.options = options || {};
-	        scope.options.error = scope.options.error || false;
-	        scope.options.offset = scope.options.offset || 100;
-	        scope.options.success = scope.options.success || false;
-	        scope.options.selector = scope.options.selector || '.b-lazy';
-	        scope.options.separator = scope.options.separator || '|';
-	        scope.options.container = scope.options.container ? document.querySelectorAll(scope.options.container) : false;
-	        scope.options.errorClass = scope.options.errorClass || 'b-error';
-	        scope.options.breakpoints = scope.options.breakpoints || false; // obsolete
-	        scope.options.loadInvisible = scope.options.loadInvisible || false;
-	        scope.options.successClass = scope.options.successClass || 'b-loaded';
-	        scope.options.validateDelay = scope.options.validateDelay || 25;
-	        scope.options.saveViewportOffsetDelay = scope.options.saveViewportOffsetDelay || 50;
-	        scope.options.srcset = scope.options.srcset || 'data-srcset';
-	        scope.options.src = _source = scope.options.src || 'data-src';
-	        _isRetina = window.devicePixelRatio > 1;
-	        _viewport = {};
-	        _viewport.top = 0 - scope.options.offset;
-	        _viewport.left = 0 - scope.options.offset;
-
-	        /* public functions
-	         ************************************/
-	        scope.revalidate = function () {
-	            initialize(this);
-	        };
-	        scope.load = function (elements, force) {
-	            var opt = this.options;
-	            if (elements.length === undefined) {
-	                loadElement(elements, force, opt);
-	            } else {
-	                each(elements, function (element) {
-	                    loadElement(element, force, opt);
-	                });
-	            }
-	        };
-	        scope.destroy = function () {
-	            var self = this;
-	            var util = self._util;
-	            if (self.options.container) {
-	                each(self.options.container, function (object) {
-	                    unbindEvent(object, 'scroll', util.validateT);
-	                });
-	            }
-	            unbindEvent(window, 'scroll', util.validateT);
-	            unbindEvent(window, 'resize', util.validateT);
-	            unbindEvent(window, 'resize', util.saveViewportOffsetT);
-	            util.count = 0;
-	            util.elements.length = 0;
-	            util.destroyed = true;
-	        };
-
-	        //throttle, ensures that we don't call the functions too often
-	        util.validateT = throttle(function () {
-	            validate(scope);
-	        }, scope.options.validateDelay, scope);
-	        util.saveViewportOffsetT = throttle(function () {
-	            saveViewportOffset(scope.options.offset);
-	        }, scope.options.saveViewportOffsetDelay, scope);
-	        saveViewportOffset(scope.options.offset);
-
-	        //handle multi-served image src (obsolete)
-	        each(scope.options.breakpoints, function (object) {
-	            if (object.width >= window.screen.width) {
-	                _source = object.src;
-	                return false;
-	            }
-	        });
-
-	        // start lazy load
-	        setTimeout(function () {
-	            initialize(scope);
-	        }); // "dom ready" fix
-	    };
-
-	    /* Private helper functions
-	     ************************************/
-	    function initialize(self) {
-	        var util = self._util;
-	        // First we create an array of elements to lazy load
-	        util.elements = toArray(self.options.selector);
-	        util.count = util.elements.length;
-	        // Then we bind resize and scroll events if not already binded
-	        if (util.destroyed) {
-	            util.destroyed = false;
-	            if (self.options.container) {
-	                each(self.options.container, function (object) {
-	                    bindEvent(object, 'scroll', util.validateT);
-	                });
-	            }
-	            bindEvent(window, 'resize', util.saveViewportOffsetT);
-	            bindEvent(window, 'resize', util.validateT);
-	            bindEvent(window, 'scroll', util.validateT);
-	        }
-	        // And finally, we start to lazy load.
-	        validate(self);
-	    }
-
-	    function validate(self) {
-	        var util = self._util;
-	        for (var i = 0; i < util.count; i++) {
-	            var element = util.elements[i];
-	            if (elementInView(element) || hasClass(element, self.options.successClass)) {
-	                self.load(element);
-	                util.elements.splice(i, 1);
-	                util.count--;
-	                i--;
-	            }
-	        }
-	        if (util.count === 0) {
-	            self.destroy();
-	        }
-	    }
-
-	    function elementInView(ele) {
-	        var rect = ele.getBoundingClientRect();
-	        return (
-	            // Intersection
-	            rect.right >= _viewport.left && rect.bottom >= _viewport.top && rect.left <= _viewport.right && rect.top <= _viewport.bottom
-	        );
-	    }
-
-	    function loadElement(ele, force, options) {
-	        // if element is visible, not loaded or forced
-	        if (!hasClass(ele, options.successClass) && (force || options.loadInvisible || ele.offsetWidth > 0 && ele.offsetHeight > 0)) {
-	            var dataSrc = ele.getAttribute(_source) || ele.getAttribute(options.src); // fallback to default 'data-src'
-	            if (dataSrc) {
-	                var dataSrcSplitted = dataSrc.split(options.separator);
-	                var src = dataSrcSplitted[_isRetina && dataSrcSplitted.length > 1 ? 1 : 0];
-	                var isImage = equal(ele, 'img');
-	                // Image or background image
-	                if (isImage || ele.src === undefined) {
-	                    var img = new Image();
-	                    // using EventListener instead of onerror and onload
-	                    // due to bug introduced in chrome v50 
-	                    // (https://productforums.google.com/forum/#!topic/chrome/p51Lk7vnP2o)
-	                    var onErrorHandler = function onErrorHandler() {
-	                        if (options.error) options.error(ele, "invalid");
-	                        addClass(ele, options.errorClass);
-	                        unbindEvent(img, 'error', onErrorHandler);
-	                        unbindEvent(img, 'load', onLoadHandler);
-	                    };
-	                    var onLoadHandler = function onLoadHandler() {
-	                        // Is element an image
-	                        if (isImage) {
-	                            setSrc(ele, src); //src
-	                            handleSource(ele, _attrSrcset, options.srcset); //srcset
-	                            //picture element
-	                            var parent = ele.parentNode;
-	                            if (parent && equal(parent, 'picture')) {
-	                                each(parent.getElementsByTagName('source'), function (source) {
-	                                    handleSource(source, _attrSrcset, options.srcset);
-	                                });
-	                            }
-	                            // or background-image
-	                        } else {
-	                            ele.style.backgroundImage = 'url("' + src + '")';
-	                        }
-	                        itemLoaded(ele, options);
-	                        unbindEvent(img, 'load', onLoadHandler);
-	                        unbindEvent(img, 'error', onErrorHandler);
-	                    };
-	                    bindEvent(img, 'error', onErrorHandler);
-	                    bindEvent(img, 'load', onLoadHandler);
-	                    setSrc(img, src); //preload
-	                } else {
-	                    // An item with src like iframe, unity, simpelvideo etc
-	                    setSrc(ele, src);
-	                    itemLoaded(ele, options);
-	                }
-	            } else {
-	                // video with child source
-	                if (equal(ele, 'video')) {
-	                    each(ele.getElementsByTagName('source'), function (source) {
-	                        handleSource(source, _attrSrc, options.src);
-	                    });
-	                    ele.load();
-	                    itemLoaded(ele, options);
-	                } else {
-	                    if (options.error) options.error(ele, "missing");
-	                    addClass(ele, options.errorClass);
-	                }
-	            }
-	        }
-	    }
-
-	    function itemLoaded(ele, options) {
-	        addClass(ele, options.successClass);
-	        if (options.success) options.success(ele);
-	        // cleanup markup, remove data source attributes
-	        ele.removeAttribute(options.src);
-	        each(options.breakpoints, function (object) {
-	            ele.removeAttribute(object.src);
-	        });
-	    }
-
-	    function setSrc(ele, src) {
-	        ele[_attrSrc] = src;
-	    }
-
-	    function handleSource(ele, attr, dataAttr) {
-	        var dataSrc = ele.getAttribute(dataAttr);
-	        if (dataSrc) {
-	            ele[attr] = dataSrc;
-	            ele.removeAttribute(dataAttr);
-	        }
-	    }
-
-	    function equal(ele, str) {
-	        return ele.nodeName.toLowerCase() === str;
-	    }
-
-	    function hasClass(ele, className) {
-	        return (' ' + ele.className + ' ').indexOf(' ' + className + ' ') !== -1;
-	    }
-
-	    function addClass(ele, className) {
-	        if (!hasClass(ele, className)) {
-	            ele.className += ' ' + className;
-	        }
-	    }
-
-	    function toArray(selector) {
-	        var array = [];
-	        var nodelist = document.querySelectorAll(selector);
-	        for (var i = nodelist.length; i--; array.unshift(nodelist[i])) {}
-	        return array;
-	    }
-
-	    function saveViewportOffset(offset) {
-	        _viewport.bottom = (window.innerHeight || document.documentElement.clientHeight) + offset;
-	        _viewport.right = (window.innerWidth || document.documentElement.clientWidth) + offset;
-	    }
-
-	    function bindEvent(ele, type, fn) {
-	        if (ele.attachEvent) {
-	            ele.attachEvent && ele.attachEvent('on' + type, fn);
-	        } else {
-	            ele.addEventListener(type, fn, false);
-	        }
-	    }
-
-	    function unbindEvent(ele, type, fn) {
-	        if (ele.detachEvent) {
-	            ele.detachEvent && ele.detachEvent('on' + type, fn);
-	        } else {
-	            ele.removeEventListener(type, fn, false);
-	        }
-	    }
-
-	    function each(object, fn) {
-	        if (object && fn) {
-	            var l = object.length;
-	            for (var i = 0; i < l && fn(object[i], i) !== false; i++) {}
-	        }
-	    }
-
-	    function throttle(fn, minDelay, scope) {
-	        var lastCall = 0;
-	        return function () {
-	            var now = +new Date();
-	            if (now - lastCall < minDelay) {
-	                return;
-	            }
-	            lastCall = now;
-	            fn.apply(scope, arguments);
-	        };
-	    }
-	});
-
-/***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
 	"use strict";
 
 	function __export(m) {
@@ -2191,11 +1860,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(23));
-	__export(__webpack_require__(28));
+	__export(__webpack_require__(22));
+	__export(__webpack_require__(27));
 
 /***/ },
-/* 23 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2224,11 +1893,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(14);
 	var orange_1 = __webpack_require__(5);
 	var index_1 = __webpack_require__(12);
-	var index_2 = __webpack_require__(24);
+	var index_2 = __webpack_require__(23);
 	var index_3 = __webpack_require__(17);
 	var collection_1 = __webpack_require__(1);
-	var dropzone_1 = __webpack_require__(26);
-	var uploader_1 = __webpack_require__(27);
+	var dropzone_1 = __webpack_require__(25);
+	var uploader_1 = __webpack_require__(26);
 	var GalleryView = function (_views_1$LayoutView) {
 	    _inherits(GalleryView, _views_1$LayoutView);
 
@@ -2356,7 +2025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.GalleryView = GalleryView;
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2366,10 +2035,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(25));
+	__export(__webpack_require__(24));
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2491,7 +2160,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.FileInfoView = FileInfoView;
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2568,7 +2237,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.DropZone = DropZone;
 
 /***/ },
-/* 27 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2714,7 +2383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Uploader = Uploader;
 
 /***/ },
-/* 28 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2740,8 +2409,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var index_1 = __webpack_require__(29);
-	var gallery_1 = __webpack_require__(23);
+	var index_1 = __webpack_require__(28);
+	var gallery_1 = __webpack_require__(22);
 	var views_1 = __webpack_require__(14);
 	var index_2 = __webpack_require__(17);
 	var orange_dom_1 = __webpack_require__(15);
@@ -2816,7 +2485,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.GalleryModal = GalleryModal;
 
 /***/ },
-/* 29 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2826,10 +2495,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(30));
+	__export(__webpack_require__(29));
 
 /***/ },
-/* 30 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2951,7 +2620,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Modal = Modal;
 
 /***/ },
-/* 31 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2961,12 +2630,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(32));
-	__export(__webpack_require__(34));
+	__export(__webpack_require__(31));
 	__export(__webpack_require__(33));
+	__export(__webpack_require__(32));
 
 /***/ },
-/* 32 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2993,7 +2662,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(14);
-	var types_1 = __webpack_require__(33);
+	var types_1 = __webpack_require__(32);
 	var utils_1 = __webpack_require__(19);
 	var orange_dom_1 = __webpack_require__(15);
 
@@ -3140,7 +2809,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropPreView = CropPreView;
 
 /***/ },
-/* 33 */
+/* 32 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -3168,7 +2837,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getCropping = getCropping;
 
 /***/ },
-/* 34 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -3197,8 +2866,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(14);
-	var cropperjs_1 = __webpack_require__(35);
-	var types_1 = __webpack_require__(33);
+	var cropperjs_1 = __webpack_require__(34);
+	var types_1 = __webpack_require__(32);
 	var collection_1 = __webpack_require__(1);
 	var utils_1 = __webpack_require__(19);
 	var orange_1 = __webpack_require__(5);
@@ -3404,7 +3073,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropView = CropView;
 
 /***/ },
-/* 35 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3415,39 +3084,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _defaults = __webpack_require__(36);
+	var _defaults = __webpack_require__(35);
 
 	var _defaults2 = _interopRequireDefault(_defaults);
 
-	var _template = __webpack_require__(37);
+	var _template = __webpack_require__(36);
 
 	var _template2 = _interopRequireDefault(_template);
 
-	var _render = __webpack_require__(38);
+	var _render = __webpack_require__(37);
 
 	var _render2 = _interopRequireDefault(_render);
 
-	var _preview = __webpack_require__(40);
+	var _preview = __webpack_require__(39);
 
 	var _preview2 = _interopRequireDefault(_preview);
 
-	var _events = __webpack_require__(41);
+	var _events = __webpack_require__(40);
 
 	var _events2 = _interopRequireDefault(_events);
 
-	var _handlers = __webpack_require__(42);
+	var _handlers = __webpack_require__(41);
 
 	var _handlers2 = _interopRequireDefault(_handlers);
 
-	var _change = __webpack_require__(43);
+	var _change = __webpack_require__(42);
 
 	var _change2 = _interopRequireDefault(_change);
 
-	var _methods = __webpack_require__(44);
+	var _methods = __webpack_require__(43);
 
 	var _methods2 = _interopRequireDefault(_methods);
 
-	var _utilities = __webpack_require__(39);
+	var _utilities = __webpack_require__(38);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -3908,7 +3577,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Cropper;
 
 /***/ },
-/* 36 */
+/* 35 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -4013,7 +3682,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 37 */
+/* 36 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -4024,7 +3693,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = '<div class="cropper-container">' + '<div class="cropper-wrap-box">' + '<div class="cropper-canvas"></div>' + '</div>' + '<div class="cropper-drag-box"></div>' + '<div class="cropper-crop-box">' + '<span class="cropper-view-box"></span>' + '<span class="cropper-dashed dashed-h"></span>' + '<span class="cropper-dashed dashed-v"></span>' + '<span class="cropper-center"></span>' + '<span class="cropper-face"></span>' + '<span class="cropper-line line-e" data-action="e"></span>' + '<span class="cropper-line line-n" data-action="n"></span>' + '<span class="cropper-line line-w" data-action="w"></span>' + '<span class="cropper-line line-s" data-action="s"></span>' + '<span class="cropper-point point-e" data-action="e"></span>' + '<span class="cropper-point point-n" data-action="n"></span>' + '<span class="cropper-point point-w" data-action="w"></span>' + '<span class="cropper-point point-s" data-action="s"></span>' + '<span class="cropper-point point-ne" data-action="ne"></span>' + '<span class="cropper-point point-nw" data-action="nw"></span>' + '<span class="cropper-point point-sw" data-action="sw"></span>' + '<span class="cropper-point point-se" data-action="se"></span>' + '</div>' + '</div>';
 
 /***/ },
-/* 38 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -4033,7 +3702,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(39);
+	var _utilities = __webpack_require__(38);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -4502,7 +4171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 39 */
+/* 38 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -5223,7 +4892,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 40 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5232,7 +4901,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(39);
+	var _utilities = __webpack_require__(38);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -5370,7 +5039,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 41 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5379,7 +5048,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(39);
+	var _utilities = __webpack_require__(38);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -5488,7 +5157,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 42 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5498,7 +5167,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.REGEXP_ACTIONS = undefined;
 
-	var _utilities = __webpack_require__(39);
+	var _utilities = __webpack_require__(38);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -5711,7 +5380,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 43 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -5720,7 +5389,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(39);
+	var _utilities = __webpack_require__(38);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -6129,7 +5798,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -6138,7 +5807,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(39);
+	var _utilities = __webpack_require__(38);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -7002,7 +6671,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -7012,10 +6681,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(46));
+	__export(__webpack_require__(45));
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
@@ -7043,10 +6712,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var index_1 = __webpack_require__(31);
-	var views_form_1 = __webpack_require__(47);
+	var index_1 = __webpack_require__(30);
+	var views_form_1 = __webpack_require__(46);
 	var views_1 = __webpack_require__(14);
-	var index_2 = __webpack_require__(22);
+	var index_2 = __webpack_require__(21);
 	var orange_dom_1 = __webpack_require__(15);
 	var orange_1 = __webpack_require__(5);
 	var _template = "\n  <div class=\"modal-container\"></div>\n  <div class=\"crop-container\">\n  </div>\n  <!--<label class=\"btn btn-sm btn-default\">\n    <span>Upload</span>\n    <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />\n  </label>-->\n  <button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n  <button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>\n";
@@ -7333,10 +7002,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropEditor = CropEditor;
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_47__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_46__;
 
 /***/ }
 /******/ ])

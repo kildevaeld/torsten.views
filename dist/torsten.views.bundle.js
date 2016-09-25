@@ -63,10 +63,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	__export(__webpack_require__(1));
 	__export(__webpack_require__(43));
-	__export(__webpack_require__(65));
-	__export(__webpack_require__(74));
-	__export(__webpack_require__(72));
-	__export(__webpack_require__(88));
+	__export(__webpack_require__(64));
+	__export(__webpack_require__(73));
+	__export(__webpack_require__(71));
+	__export(__webpack_require__(87));
 	var torsten_1 = __webpack_require__(19);
 	function createClient(options) {
 	    return new torsten_1.TorstenClient(options);
@@ -8089,8 +8089,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var list_item_1 = __webpack_require__(59);
 	var circular_progress_1 = __webpack_require__(63);
 	var download_1 = __webpack_require__(39);
-	//import {AssetsCollection} from '../../models/index';
-	var Blazy = __webpack_require__(64);
 	exports.FileListEmptyView = views_1.View.extend({
 	    className: 'file-list-empty-view',
 	    template: 'No files uploaded yet.'
@@ -10715,335 +10713,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-	/*!
-	  hey, [be]Lazy.js - v1.6.2 - 2016.05.09
-	  A fast, small and dependency free lazy load script (https://github.com/dinbror/blazy)
-	  (c) Bjoern Klinggaard - @bklinggaard - http://dinbror.dk/blazy
-	*/
-	;
-	(function (root, blazy) {
-	    if (true) {
-	        // AMD. Register bLazy as an anonymous module
-	        !(__WEBPACK_AMD_DEFINE_FACTORY__ = (blazy), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	    } else if ((typeof exports === 'undefined' ? 'undefined' : _typeof(exports)) === 'object') {
-	        // Node. Does not work with strict CommonJS, but
-	        // only CommonJS-like environments that support module.exports,
-	        // like Node.
-	        module.exports = blazy();
-	    } else {
-	        // Browser globals. Register bLazy on window
-	        root.Blazy = blazy();
-	    }
-	})(undefined, function () {
-	    'use strict';
-
-	    //private vars
-
-	    var _source,
-	        _viewport,
-	        _isRetina,
-	        _attrSrc = 'src',
-	        _attrSrcset = 'srcset';
-
-	    // constructor
-	    return function Blazy(options) {
-	        //IE7- fallback for missing querySelectorAll support
-	        if (!document.querySelectorAll) {
-	            var s = document.createStyleSheet();
-	            document.querySelectorAll = function (r, c, i, j, a) {
-	                a = document.all, c = [], r = r.replace(/\[for\b/gi, '[htmlFor').split(',');
-	                for (i = r.length; i--;) {
-	                    s.addRule(r[i], 'k:v');
-	                    for (j = a.length; j--;) {
-	                        a[j].currentStyle.k && c.push(a[j]);
-	                    }s.removeRule(0);
-	                }
-	                return c;
-	            };
-	        }
-
-	        //options and helper vars
-	        var scope = this;
-	        var util = scope._util = {};
-	        util.elements = [];
-	        util.destroyed = true;
-	        scope.options = options || {};
-	        scope.options.error = scope.options.error || false;
-	        scope.options.offset = scope.options.offset || 100;
-	        scope.options.success = scope.options.success || false;
-	        scope.options.selector = scope.options.selector || '.b-lazy';
-	        scope.options.separator = scope.options.separator || '|';
-	        scope.options.container = scope.options.container ? document.querySelectorAll(scope.options.container) : false;
-	        scope.options.errorClass = scope.options.errorClass || 'b-error';
-	        scope.options.breakpoints = scope.options.breakpoints || false; // obsolete
-	        scope.options.loadInvisible = scope.options.loadInvisible || false;
-	        scope.options.successClass = scope.options.successClass || 'b-loaded';
-	        scope.options.validateDelay = scope.options.validateDelay || 25;
-	        scope.options.saveViewportOffsetDelay = scope.options.saveViewportOffsetDelay || 50;
-	        scope.options.srcset = scope.options.srcset || 'data-srcset';
-	        scope.options.src = _source = scope.options.src || 'data-src';
-	        _isRetina = window.devicePixelRatio > 1;
-	        _viewport = {};
-	        _viewport.top = 0 - scope.options.offset;
-	        _viewport.left = 0 - scope.options.offset;
-
-	        /* public functions
-	         ************************************/
-	        scope.revalidate = function () {
-	            initialize(this);
-	        };
-	        scope.load = function (elements, force) {
-	            var opt = this.options;
-	            if (elements.length === undefined) {
-	                loadElement(elements, force, opt);
-	            } else {
-	                each(elements, function (element) {
-	                    loadElement(element, force, opt);
-	                });
-	            }
-	        };
-	        scope.destroy = function () {
-	            var self = this;
-	            var util = self._util;
-	            if (self.options.container) {
-	                each(self.options.container, function (object) {
-	                    unbindEvent(object, 'scroll', util.validateT);
-	                });
-	            }
-	            unbindEvent(window, 'scroll', util.validateT);
-	            unbindEvent(window, 'resize', util.validateT);
-	            unbindEvent(window, 'resize', util.saveViewportOffsetT);
-	            util.count = 0;
-	            util.elements.length = 0;
-	            util.destroyed = true;
-	        };
-
-	        //throttle, ensures that we don't call the functions too often
-	        util.validateT = throttle(function () {
-	            validate(scope);
-	        }, scope.options.validateDelay, scope);
-	        util.saveViewportOffsetT = throttle(function () {
-	            saveViewportOffset(scope.options.offset);
-	        }, scope.options.saveViewportOffsetDelay, scope);
-	        saveViewportOffset(scope.options.offset);
-
-	        //handle multi-served image src (obsolete)
-	        each(scope.options.breakpoints, function (object) {
-	            if (object.width >= window.screen.width) {
-	                _source = object.src;
-	                return false;
-	            }
-	        });
-
-	        // start lazy load
-	        setTimeout(function () {
-	            initialize(scope);
-	        }); // "dom ready" fix
-	    };
-
-	    /* Private helper functions
-	     ************************************/
-	    function initialize(self) {
-	        var util = self._util;
-	        // First we create an array of elements to lazy load
-	        util.elements = toArray(self.options.selector);
-	        util.count = util.elements.length;
-	        // Then we bind resize and scroll events if not already binded
-	        if (util.destroyed) {
-	            util.destroyed = false;
-	            if (self.options.container) {
-	                each(self.options.container, function (object) {
-	                    bindEvent(object, 'scroll', util.validateT);
-	                });
-	            }
-	            bindEvent(window, 'resize', util.saveViewportOffsetT);
-	            bindEvent(window, 'resize', util.validateT);
-	            bindEvent(window, 'scroll', util.validateT);
-	        }
-	        // And finally, we start to lazy load.
-	        validate(self);
-	    }
-
-	    function validate(self) {
-	        var util = self._util;
-	        for (var i = 0; i < util.count; i++) {
-	            var element = util.elements[i];
-	            if (elementInView(element) || hasClass(element, self.options.successClass)) {
-	                self.load(element);
-	                util.elements.splice(i, 1);
-	                util.count--;
-	                i--;
-	            }
-	        }
-	        if (util.count === 0) {
-	            self.destroy();
-	        }
-	    }
-
-	    function elementInView(ele) {
-	        var rect = ele.getBoundingClientRect();
-	        return (
-	            // Intersection
-	            rect.right >= _viewport.left && rect.bottom >= _viewport.top && rect.left <= _viewport.right && rect.top <= _viewport.bottom
-	        );
-	    }
-
-	    function loadElement(ele, force, options) {
-	        // if element is visible, not loaded or forced
-	        if (!hasClass(ele, options.successClass) && (force || options.loadInvisible || ele.offsetWidth > 0 && ele.offsetHeight > 0)) {
-	            var dataSrc = ele.getAttribute(_source) || ele.getAttribute(options.src); // fallback to default 'data-src'
-	            if (dataSrc) {
-	                var dataSrcSplitted = dataSrc.split(options.separator);
-	                var src = dataSrcSplitted[_isRetina && dataSrcSplitted.length > 1 ? 1 : 0];
-	                var isImage = equal(ele, 'img');
-	                // Image or background image
-	                if (isImage || ele.src === undefined) {
-	                    var img = new Image();
-	                    // using EventListener instead of onerror and onload
-	                    // due to bug introduced in chrome v50 
-	                    // (https://productforums.google.com/forum/#!topic/chrome/p51Lk7vnP2o)
-	                    var onErrorHandler = function onErrorHandler() {
-	                        if (options.error) options.error(ele, "invalid");
-	                        addClass(ele, options.errorClass);
-	                        unbindEvent(img, 'error', onErrorHandler);
-	                        unbindEvent(img, 'load', onLoadHandler);
-	                    };
-	                    var onLoadHandler = function onLoadHandler() {
-	                        // Is element an image
-	                        if (isImage) {
-	                            setSrc(ele, src); //src
-	                            handleSource(ele, _attrSrcset, options.srcset); //srcset
-	                            //picture element
-	                            var parent = ele.parentNode;
-	                            if (parent && equal(parent, 'picture')) {
-	                                each(parent.getElementsByTagName('source'), function (source) {
-	                                    handleSource(source, _attrSrcset, options.srcset);
-	                                });
-	                            }
-	                            // or background-image
-	                        } else {
-	                            ele.style.backgroundImage = 'url("' + src + '")';
-	                        }
-	                        itemLoaded(ele, options);
-	                        unbindEvent(img, 'load', onLoadHandler);
-	                        unbindEvent(img, 'error', onErrorHandler);
-	                    };
-	                    bindEvent(img, 'error', onErrorHandler);
-	                    bindEvent(img, 'load', onLoadHandler);
-	                    setSrc(img, src); //preload
-	                } else {
-	                    // An item with src like iframe, unity, simpelvideo etc
-	                    setSrc(ele, src);
-	                    itemLoaded(ele, options);
-	                }
-	            } else {
-	                // video with child source
-	                if (equal(ele, 'video')) {
-	                    each(ele.getElementsByTagName('source'), function (source) {
-	                        handleSource(source, _attrSrc, options.src);
-	                    });
-	                    ele.load();
-	                    itemLoaded(ele, options);
-	                } else {
-	                    if (options.error) options.error(ele, "missing");
-	                    addClass(ele, options.errorClass);
-	                }
-	            }
-	        }
-	    }
-
-	    function itemLoaded(ele, options) {
-	        addClass(ele, options.successClass);
-	        if (options.success) options.success(ele);
-	        // cleanup markup, remove data source attributes
-	        ele.removeAttribute(options.src);
-	        each(options.breakpoints, function (object) {
-	            ele.removeAttribute(object.src);
-	        });
-	    }
-
-	    function setSrc(ele, src) {
-	        ele[_attrSrc] = src;
-	    }
-
-	    function handleSource(ele, attr, dataAttr) {
-	        var dataSrc = ele.getAttribute(dataAttr);
-	        if (dataSrc) {
-	            ele[attr] = dataSrc;
-	            ele.removeAttribute(dataAttr);
-	        }
-	    }
-
-	    function equal(ele, str) {
-	        return ele.nodeName.toLowerCase() === str;
-	    }
-
-	    function hasClass(ele, className) {
-	        return (' ' + ele.className + ' ').indexOf(' ' + className + ' ') !== -1;
-	    }
-
-	    function addClass(ele, className) {
-	        if (!hasClass(ele, className)) {
-	            ele.className += ' ' + className;
-	        }
-	    }
-
-	    function toArray(selector) {
-	        var array = [];
-	        var nodelist = document.querySelectorAll(selector);
-	        for (var i = nodelist.length; i--; array.unshift(nodelist[i])) {}
-	        return array;
-	    }
-
-	    function saveViewportOffset(offset) {
-	        _viewport.bottom = (window.innerHeight || document.documentElement.clientHeight) + offset;
-	        _viewport.right = (window.innerWidth || document.documentElement.clientWidth) + offset;
-	    }
-
-	    function bindEvent(ele, type, fn) {
-	        if (ele.attachEvent) {
-	            ele.attachEvent && ele.attachEvent('on' + type, fn);
-	        } else {
-	            ele.addEventListener(type, fn, false);
-	        }
-	    }
-
-	    function unbindEvent(ele, type, fn) {
-	        if (ele.detachEvent) {
-	            ele.detachEvent && ele.detachEvent('on' + type, fn);
-	        } else {
-	            ele.removeEventListener(type, fn, false);
-	        }
-	    }
-
-	    function each(object, fn) {
-	        if (object && fn) {
-	            var l = object.length;
-	            for (var i = 0; i < l && fn(object[i], i) !== false; i++) {}
-	        }
-	    }
-
-	    function throttle(fn, minDelay, scope) {
-	        var lastCall = 0;
-	        return function () {
-	            var now = +new Date();
-	            if (now - lastCall < minDelay) {
-	                return;
-	            }
-	            lastCall = now;
-	            fn.apply(scope, arguments);
-	        };
-	    }
-	});
-
-/***/ },
-/* 65 */
-/***/ function(module, exports, __webpack_require__) {
-
 	"use strict";
 
 	function __export(m) {
@@ -11051,11 +10720,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(66));
-	__export(__webpack_require__(71));
+	__export(__webpack_require__(65));
+	__export(__webpack_require__(70));
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11084,11 +10753,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(45);
 	var orange_1 = __webpack_require__(21);
 	var index_1 = __webpack_require__(43);
-	var index_2 = __webpack_require__(67);
+	var index_2 = __webpack_require__(66);
 	var index_3 = __webpack_require__(60);
 	var collection_1 = __webpack_require__(1);
-	var dropzone_1 = __webpack_require__(69);
-	var uploader_1 = __webpack_require__(70);
+	var dropzone_1 = __webpack_require__(68);
+	var uploader_1 = __webpack_require__(69);
 	var GalleryView = function (_views_1$LayoutView) {
 	    _inherits(GalleryView, _views_1$LayoutView);
 
@@ -11216,7 +10885,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.GalleryView = GalleryView;
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11226,10 +10895,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(68));
+	__export(__webpack_require__(67));
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11351,7 +11020,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.FileInfoView = FileInfoView;
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11428,7 +11097,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.DropZone = DropZone;
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11574,7 +11243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Uploader = Uploader;
 
 /***/ },
-/* 71 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11600,8 +11269,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var index_1 = __webpack_require__(72);
-	var gallery_1 = __webpack_require__(66);
+	var index_1 = __webpack_require__(71);
+	var gallery_1 = __webpack_require__(65);
 	var views_1 = __webpack_require__(45);
 	var index_2 = __webpack_require__(60);
 	var orange_dom_1 = __webpack_require__(48);
@@ -11676,7 +11345,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.GalleryModal = GalleryModal;
 
 /***/ },
-/* 72 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11686,10 +11355,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(73));
+	__export(__webpack_require__(72));
 
 /***/ },
-/* 73 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11811,7 +11480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Modal = Modal;
 
 /***/ },
-/* 74 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11821,12 +11490,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(75));
-	__export(__webpack_require__(77));
+	__export(__webpack_require__(74));
 	__export(__webpack_require__(76));
+	__export(__webpack_require__(75));
 
 /***/ },
-/* 75 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11853,7 +11522,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(45);
-	var types_1 = __webpack_require__(76);
+	var types_1 = __webpack_require__(75);
 	var utils_1 = __webpack_require__(62);
 	var orange_dom_1 = __webpack_require__(48);
 
@@ -12000,7 +11669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropPreView = CropPreView;
 
 /***/ },
-/* 76 */
+/* 75 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -12028,7 +11697,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getCropping = getCropping;
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -12057,8 +11726,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(45);
-	var cropperjs_1 = __webpack_require__(78);
-	var types_1 = __webpack_require__(76);
+	var cropperjs_1 = __webpack_require__(77);
+	var types_1 = __webpack_require__(75);
 	var collection_1 = __webpack_require__(1);
 	var utils_1 = __webpack_require__(62);
 	var orange_1 = __webpack_require__(21);
@@ -12104,8 +11773,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            _get(CropView.prototype.__proto__ || Object.getPrototypeOf(CropView.prototype), "setModel", this).call(this, model);
 	            //image.src = model.getURL();
-	            var isCropping = model.has('meta.cropping');
-	            console.log(isCropping);
+	            //let isCropping = model.get('meta').cropping;
+	            console.log(model);
 	            this._updateImage().then(function (loaded) {
 	                //if (loaded) image.style.display = 'block';
 	                return loaded;
@@ -12264,7 +11933,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropView = CropView;
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12275,39 +11944,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _defaults = __webpack_require__(79);
+	var _defaults = __webpack_require__(78);
 
 	var _defaults2 = _interopRequireDefault(_defaults);
 
-	var _template = __webpack_require__(80);
+	var _template = __webpack_require__(79);
 
 	var _template2 = _interopRequireDefault(_template);
 
-	var _render = __webpack_require__(81);
+	var _render = __webpack_require__(80);
 
 	var _render2 = _interopRequireDefault(_render);
 
-	var _preview = __webpack_require__(83);
+	var _preview = __webpack_require__(82);
 
 	var _preview2 = _interopRequireDefault(_preview);
 
-	var _events = __webpack_require__(84);
+	var _events = __webpack_require__(83);
 
 	var _events2 = _interopRequireDefault(_events);
 
-	var _handlers = __webpack_require__(85);
+	var _handlers = __webpack_require__(84);
 
 	var _handlers2 = _interopRequireDefault(_handlers);
 
-	var _change = __webpack_require__(86);
+	var _change = __webpack_require__(85);
 
 	var _change2 = _interopRequireDefault(_change);
 
-	var _methods = __webpack_require__(87);
+	var _methods = __webpack_require__(86);
 
 	var _methods2 = _interopRequireDefault(_methods);
 
-	var _utilities = __webpack_require__(82);
+	var _utilities = __webpack_require__(81);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -12768,7 +12437,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = Cropper;
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -12873,7 +12542,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 80 */
+/* 79 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -12884,7 +12553,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = '<div class="cropper-container">' + '<div class="cropper-wrap-box">' + '<div class="cropper-canvas"></div>' + '</div>' + '<div class="cropper-drag-box"></div>' + '<div class="cropper-crop-box">' + '<span class="cropper-view-box"></span>' + '<span class="cropper-dashed dashed-h"></span>' + '<span class="cropper-dashed dashed-v"></span>' + '<span class="cropper-center"></span>' + '<span class="cropper-face"></span>' + '<span class="cropper-line line-e" data-action="e"></span>' + '<span class="cropper-line line-n" data-action="n"></span>' + '<span class="cropper-line line-w" data-action="w"></span>' + '<span class="cropper-line line-s" data-action="s"></span>' + '<span class="cropper-point point-e" data-action="e"></span>' + '<span class="cropper-point point-n" data-action="n"></span>' + '<span class="cropper-point point-w" data-action="w"></span>' + '<span class="cropper-point point-s" data-action="s"></span>' + '<span class="cropper-point point-ne" data-action="ne"></span>' + '<span class="cropper-point point-nw" data-action="nw"></span>' + '<span class="cropper-point point-sw" data-action="sw"></span>' + '<span class="cropper-point point-se" data-action="se"></span>' + '</div>' + '</div>';
 
 /***/ },
-/* 81 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -12893,7 +12562,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(82);
+	var _utilities = __webpack_require__(81);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -13362,7 +13031,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 82 */
+/* 81 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -14083,7 +13752,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 83 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14092,7 +13761,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(82);
+	var _utilities = __webpack_require__(81);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -14230,7 +13899,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 84 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14239,7 +13908,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(82);
+	var _utilities = __webpack_require__(81);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -14348,7 +14017,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14358,7 +14027,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	});
 	exports.REGEXP_ACTIONS = undefined;
 
-	var _utilities = __webpack_require__(82);
+	var _utilities = __webpack_require__(81);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -14571,7 +14240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 86 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14580,7 +14249,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(82);
+	var _utilities = __webpack_require__(81);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -14989,7 +14658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14998,7 +14667,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  value: true
 	});
 
-	var _utilities = __webpack_require__(82);
+	var _utilities = __webpack_require__(81);
 
 	var $ = _interopRequireWildcard(_utilities);
 
@@ -15862,7 +15531,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 88 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -15872,10 +15541,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(89));
+	__export(__webpack_require__(88));
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
@@ -15903,10 +15572,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var index_1 = __webpack_require__(74);
-	var views_form_1 = __webpack_require__(90);
+	var index_1 = __webpack_require__(73);
+	var views_form_1 = __webpack_require__(89);
 	var views_1 = __webpack_require__(45);
-	var index_2 = __webpack_require__(65);
+	var index_2 = __webpack_require__(64);
 	var orange_dom_1 = __webpack_require__(48);
 	var orange_1 = __webpack_require__(21);
 	var _template = "\n  <div class=\"modal-container\"></div>\n  <div class=\"crop-container\">\n  </div>\n  <!--<label class=\"btn btn-sm btn-default\">\n    <span>Upload</span>\n    <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />\n  </label>-->\n  <button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n  <button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>\n";
@@ -16193,7 +15862,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.CropEditor = CropEditor;
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16203,19 +15872,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(91));
-	var define_1 = __webpack_require__(97);
+	__export(__webpack_require__(90));
+	var define_1 = __webpack_require__(96);
 	exports.editor = define_1.editor;
-	var editor_1 = __webpack_require__(93);
+	var editor_1 = __webpack_require__(92);
 	exports.BaseEditor = editor_1.BaseEditor;
 	exports.BaseLayoutEditor = editor_1.BaseLayoutEditor;
-	var field_1 = __webpack_require__(92);
+	var field_1 = __webpack_require__(91);
 	exports.Field = field_1.Field;
-	__export(__webpack_require__(95));
-	__webpack_require__(98);
+	__export(__webpack_require__(94));
+	__webpack_require__(97);
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16284,7 +15953,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(45);
-	var field_1 = __webpack_require__(92);
+	var field_1 = __webpack_require__(91);
 	var orange_1 = __webpack_require__(21);
 	var Debug = __webpack_require__(40);
 	var debug = Debug('views:form');
@@ -16495,7 +16164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Form = Form;
 
 /***/ },
-/* 92 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16550,8 +16219,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(45);
 	var orange_1 = __webpack_require__(21);
 	var orange_dom_1 = __webpack_require__(48);
-	var editor_1 = __webpack_require__(93);
-	var define_1 = __webpack_require__(97);
+	var editor_1 = __webpack_require__(92);
+	var define_1 = __webpack_require__(96);
 	var Debug = __webpack_require__(40);
 	var debug = Debug('views:form:field');
 	var Field_1 = void 0;
@@ -16736,7 +16405,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Field = Field;
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16789,8 +16458,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(45);
-	var utils_1 = __webpack_require__(94);
-	var validator_1 = __webpack_require__(95);
+	var utils_1 = __webpack_require__(93);
+	var validator_1 = __webpack_require__(94);
 	var orange_1 = __webpack_require__(21);
 
 	var BaseEditor = function (_views_1$View) {
@@ -16929,7 +16598,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Editor = Editor;
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -17017,7 +16686,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.setValue = setValue;
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -17052,11 +16721,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 	}
 
-	var utils_1 = __webpack_require__(94);
+	var utils_1 = __webpack_require__(93);
 	var orange_1 = __webpack_require__(21);
 	var Debug = __webpack_require__(40);
 	var debug = Debug('views:form:validator');
-	var validURL = __webpack_require__(96);
+	var validURL = __webpack_require__(95);
 	function get_validations(el) {
 	    var required;
 	    var v = Object.keys(validators).map(function (e) {
@@ -17247,7 +16916,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.ValidateErrors = ValidateErrors;
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module) {'use strict';
@@ -17406,7 +17075,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38)(module)))
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -17430,7 +17099,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getEditor = getEditor;
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -17500,8 +17169,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var orange_1 = __webpack_require__(21);
 	var orange_dom_1 = __webpack_require__(48);
-	var editor_1 = __webpack_require__(93);
-	var define_1 = __webpack_require__(97);
+	var editor_1 = __webpack_require__(92);
+	var define_1 = __webpack_require__(96);
 	var views_1 = __webpack_require__(45);
 
 	var AutoSizer = function () {

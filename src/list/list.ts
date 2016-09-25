@@ -10,8 +10,7 @@ import {IProgress} from '../types';
 import templates from '../templates/index';
 import {IClient, OpenOptions} from 'torsten';
 import {Downloader} from '../download';
-//import {AssetsCollection} from '../../models/index';
-const Blazy = require('blazy');
+
 
 
 export interface FileListOptions extends CollectionViewOptions {
