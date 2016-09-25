@@ -1,6 +1,6 @@
 {
   "name": "torsten.views",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
@@ -56,7 +56,7 @@
     "registry": "github",
     "dependencies": {
       "orange": "github:kildevaeld/orange@master",
-      "orange.request": "github:kildevaeld/orange@master",
+      "orange.request": "github:kildevaeld/orange.request@master",
       "views": "github:kildevaeld/views@master",
       "views.forms": "github:kildevaeld/views.form@master",
       "collection": "github:kildevaeld/collectionjs@master",
