@@ -11662,6 +11662,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (overlay) {
 	                document.body.removeChild(overlay);
 	            }
+	            return this;
 	        }
 	    }]);
 

@@ -104,6 +104,7 @@ export class Modal extends View<HTMLDivElement> {
         if (overlay) {
             document.body.removeChild(overlay);
         }
+        return this;
     }
 
 }
