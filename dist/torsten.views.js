@@ -6788,6 +6788,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this = _possibleConstructorReturn(this, (CropEditor.__proto__ || Object.getPrototypeOf(CropEditor)).call(this, options));
 
 	        _this.options = options = _this._getOptions(orange_1.extend({}, options));
+	        options.root = options.root || '/';
 	        var client = options.client;
 	        if (client == null) {
 	            throw new Error("no client");
@@ -6802,7 +6803,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	        _this.drop = new dropzone_1.DropZone({
 	            el: _this.el,
-	            uploader: _this.modal.gallery.uploader
+	            uploader: _this.modal.gallery.uploader,
+	            path: options.root
 	        });
 	        var o = orange_1.extend({
 	            zoomable: false,

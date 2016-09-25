@@ -77,7 +77,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         super(options);
 
         this.options = options = this._getOptions(extend({}, options));
-
+        options.root = options.root||'/';
 
         let client = options.client;
         if (client == null) {
@@ -95,7 +95,8 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
         this.drop = new DropZone({
             el: this.el,
-            uploader: this.modal.gallery.uploader
+            uploader: this.modal.gallery.uploader,
+            path: options.root
         });
 
         let o = extend({
