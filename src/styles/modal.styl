@@ -1,89 +1,110 @@
 
-.torsten.modal {
-    display: none
-    position:absolute
-    transform: translate3d(-50%, -100%, 0);
-    min-width: 360px;
-    //min-height: 240px
-    left: 50%
-    margin: 30px auto
+.views-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0
+    z-index: 2000;
+    visibility: hidden;
+    backface-visibility: hidden;
+    
     box-sizing border-box
-    z-index:3
-
+    transform: translateX(-50%) translateY(-20%);
+    top: 20%;
+    left: 50%;
+    max-width: 630px;
+    min-width: 320px;
+    height: auto;
     @media (min-width: 768px) {
         width: 600px;
     }
-
-    .torsten-modal-header {
-        background: #fff;
-    }
-
-    .torsten-modal-content {
-        height: 100%;
-    }
-
-    .torsten-modal-footer {
-       
-        padding: 15px
-        text-align:right
-        button {
-            margin-left: 5px;
-        }
-    }
     
-}
+    .views-modal-content {
+        background: #fff
+        position:relative
+        margin: 0
+        
+        
+        
+        .views-modal-body {
+            
+            
+        
+        }
+        .views-modal-header {
+            background: #fff;
+        }
 
-.torsten-modal-overlay {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    opacity: 0;
-    transition: opacity 1s
-    background-color: rgba(0,0,0,0.4)
-    z-index:2
-}
-
-.torsten-modal-open {
-    .torsten-modal-overlay {
-        opacity: 1
-    }
-    .torsten.modal {
-        display: block
-        opacity: 0
-        animation-duration: 0.6s;
-        animation-fill-mode: both;
-        animation-name: slideInDown
-        animation-delay: 0.1s
+        .views-modal-footer {
+       
+            padding: 15px
+            text-align:right
+            button {
+                margin-left: 5px;
+            }
+        }
         
     }
+
+}
+
+/*.views-modal-show ~ .views-modal-overlay {
+    opacity: 1;
+    visibility: visible;
+}*/
+.views-modal-open .views-modal-overlay {
+    opacity: 1;
+    visibility: visible;
 }
 
 
-@keyframes slideInDown {
-  from {
-    transform: translate3d(-50%, -100%, 0);
+.views-modal-show {
     visibility: visible;
-    opacity: 0
-  }
-
-  to {
-    transform: translate3d(-50%, 0, 0);
-    opacity: 1
-  }
 }
 
-@keyframes slideOutUp {
-  from {
-    transform: translate3d(-50%, 100%, 0);
-    
-    opacity: 1
-  }
+.views-modal-overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    visibility: hidden;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    opacity: 0;
+    background: rgba(0,0,0,0.5);
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
+}
 
-  to {
-    transform: translate3d(-50%, -140%, 0);
-    visibility: visible;
-    opacity: 0
-  }
+.views-modal.scale .views-modal-content {
+    transform: scale(0.7);
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.views-modal-show.scale .views-modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+
+.views-modal.slidein-bottom .views-modal-content {
+    -webkit-transform: translateY(20%);
+    -moz-transform: translateY(20%);
+    -ms-transform: translateY(20%);
+    transform: translateY(20%);
+    opacity: 0;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    transition: all 0.3s;
+}
+
+.views-modal-show.slidein-bottom .views-modal-content {
+    -webkit-transform: translateY(0);
+    -moz-transform: translateY(0);
+    -ms-transform: translateY(0);
+    transform: translateY(0);
+    opacity: 1;
 }

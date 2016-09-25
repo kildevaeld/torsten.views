@@ -12,7 +12,7 @@ export interface GalleryModalOptions extends GalleryViewOptions, ModalOptions {
 @attributes({
     template: () => templates['modal-gallery'],
     ui: {
-        content: '.torsten-modal-content'
+        content: '.views-modal-body'
     },
     events: {
         'click .btn-close': function () { this.close() },
@@ -55,7 +55,7 @@ export class GalleryModal extends Modal {
     onRender() {
         this._gallery.render()
         this.ui['content'].appendChild(this._gallery.el); 
-        addClass(this.el, 'gallery-modal')           
+        addClass(this.el, 'gallery-modal slidein-bottom')           
     }
     
     private _onSelect (e) {

@@ -39,14 +39,20 @@
 
 .gallery-modal {
     min-width: 80% !important
-    background-color: #fff
-    box-shadow: 0 5px 15px rgba(0,0,0,.5)
-    .torsten-modal-content {
+    height: 80% !important
+    
+    @media only screen and (max-device-width:480px){
+        min-width: 100% !important
+        height: 100% !important
+    }
+
+    .views-modal-content {
         padding: 10px
     }
     .torsten-gallery {
         font-family: 'HelveticaNeue', Arial, Helvetica, sans-serif;
-        height: 500px;
+        height: 100%;
+        
         .gallery-list {
             min-width: 70%
         }
@@ -60,14 +66,17 @@
 // THEME
 .gallery-modal {
     
-    background-color: #fff
-    box-shadow: 0 5px 15px rgba(0,0,0,.5)
-    .torsten-modal-content {
+    
+    .views-modal-body {
         padding: 10px
+    }
+    .views-modal-content {
+        background-color: #fff
+        box-shadow: 0 5px 15px rgba(0,0,0,.5)
     }
     .torsten-gallery {
         font-family: 'HelveticaNeue', Arial, Helvetica, sans-serif;
-        height: 500px;
+        //height: 500px;
         .gallery-list {
             min-width: 70%
         }

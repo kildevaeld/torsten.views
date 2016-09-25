@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" href="/dist/css/torsten.views.css" />
+	<script src="/node_modules/eventsjs/dist/eventsjs.js"></script>
+    <script src="/node_modules/orange/dist/orange.js"></script>
+    <script src="/node_modules/orange.dom/dist/orange.dom.js"></script>
+    <script src="/node_modules/orange.request/dist/orange.request.js"></script>
+    <script src="/node_modules/collection/dist/collection.js"></script>
+    <script src="/node_modules/views/dist/views.js"></script>
+    <script src="/node_modules/views.form/dist/views.form.js"></script>
+    <script src="/node_modules/torsten/dist/torsten.js"></script>
+    <script src="dist/torsten.views.js"></script>
+</head>
+<body>
+	<button id="open">Open</button>
+	<div class="views-modal slidein-bottom">
+		<div class="views-modal-content">
+			<div class="views-modal-body">
+				<h3>Hello, World</h3>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		
+		var view = new torsten.views.Modal({
+			el: document.querySelector('.views-modal')
+		});
+		view.render()
+		document.querySelector('#open').onclick = function () {
+			view.open();
+		}
+
+	</script>
+</body>
+</html>

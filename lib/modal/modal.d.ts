@@ -4,7 +4,7 @@ export interface ModalOptions extends ViewOptions {
 export declare class Modal extends View<HTMLDivElement> {
     private __rendered;
     constructor(options?: ModalOptions);
-    onRender(): void;
+    render(): this;
     open(): void;
     _onClose(): void;
     close(): void;

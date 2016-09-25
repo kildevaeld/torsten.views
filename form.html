@@ -38,7 +38,7 @@
         var client = torsten.views.createClient({
             endpoint: 'http://localhost:3000'
         });
-
+        console.log(client)
         client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzZTQxODM3NC1mYjhiLTRjYTQtOGI4MC1iNGM0MmZhNGQwMjkiLCJnaWQiOlsiOWVmYjVmMjMtMTlmMC00ZjYzLTgwMTUtYzY2NWZlNzRiMDQxIiwiN2JiZTI4OTktNTVkZS00NDk1LTllZjItZWYxYjkyYzVkMWNhIl0sImlhdCI6MTQ3NDc0Mzc1N30.2m_-NnZ01W-AoYY1z8OPVw-0z9MslJwQG_5nTHVx0Vk'
         /*let view = new torsten.views.GalleryModal({
             el: document.querySelector('#main'),
@@ -55,11 +55,13 @@
 
         let form = new views.form.Form({
             el: document.querySelector('form'),
-            fields: {
+            fieldOptions: {
                 image: {
+                    editorOptions: {
                     client: client,
                     showDirectories: true,
                     root: '/'
+                }
                 }
             },
             //model: new collection.Model()

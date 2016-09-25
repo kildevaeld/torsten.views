@@ -8,7 +8,7 @@ export interface ModalOptions extends ViewOptions {
 
 @attributes({
     tagName: 'div',
-    className: 'torsten modal'
+    className: 'views-modal'
 })
 export class Modal extends View<HTMLDivElement> {
     private __rendered: boolean = false;
@@ -17,30 +17,33 @@ export class Modal extends View<HTMLDivElement> {
         if (options.el) {
             addClass(this.el,this.className);
         }
-        this._onClose = bind(this._onClose, this);
+        this.close = bind(this.close, this);
     }
 
-    onRender() {
+    render() {
+        super.render()
         this.__rendered = true;
+        let overlay = createElement('div', {})
+        addClass(overlay, 'views-modal-overlay')
+        document.body.appendChild(overlay);
+        return this;
     }
 
     open() {
-        
+        console.log('open')
         let body = document.body
-        if (hasClass(body, "torsten-modal-open")) {
+        if (hasClass(body, "views-modal-open")) {
             return;
         }
         this.triggerMethod('before:open')
-        let overlay = createElement('div', {})
-        addClass(overlay, 'torsten-modal-overlay')
-        body.appendChild(overlay);
         
-
+        
         requestAnimationFrame(() => {
-            addClass(body, 'torsten-modal-open');
+            addClass(this.el, 'views-modal-show');
+            addClass(body, 'views-modal-open')
         })
-        
-        addEventListener(overlay, 'click', this._onClose)
+        let overlay = document.body.querySelector('.views-modal-overlay');
+        addEventListener(overlay, 'click', this.close);
 
         animationEnd(this.el, () => {
             this.triggerMethod('open');
@@ -54,21 +57,17 @@ export class Modal extends View<HTMLDivElement> {
 
     close() {
         let body = document.body
-        if (!hasClass(body, "torsten-modal-open")) {
+        if (!hasClass(this.el, "views-modal-show")) {
             return;
         }
         this.triggerMethod('before:close')
-        let overlay = body.querySelector('.torsten-modal-overlay');
-        removeEventListener(overlay, 'click', this._onClose)
+        let overlay = body.querySelector('.views-modal-overlay');
+        removeEventListener(overlay, 'click', this.close)
         
-
-        removeClass(body, 'torsten-modal-open')
-
-        transitionEnd(overlay, (e) => {
-            body.removeChild(overlay);
-        }, null);
-        animationEnd(this.el, () => {
-           
+        removeClass(this.el, 'views-modal-show')
+        removeClass(body, 'views-modal-open')
+        
+        animationEnd(this.el, () => {   
             this.triggerMethod('close');
         })
 
@@ -76,7 +75,7 @@ export class Modal extends View<HTMLDivElement> {
 
     toggle () {
         let body = document.body
-        if (!hasClass(body, "torsten-modal-open")) {
+        if (!hasClass(this.el, "views-modal-show")) {
             this.open();
         } else {
             this.close();
