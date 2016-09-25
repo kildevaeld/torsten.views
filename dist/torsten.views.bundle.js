@@ -8188,8 +8188,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _showLoaderView() {
 	            if (this._progress) return;
 	            this._progress = new circular_progress_1.Progress({
-	                size: 60,
-	                lineWidth: 6
+	                size: 100,
+	                lineWidth: 5
 	            });
 	            this.el.appendChild(this._progress.render().el);
 	            orange_dom_1.addClass(this._progress.el, 'loader');
