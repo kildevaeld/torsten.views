@@ -36,7 +36,6 @@ export const FileListEmptyView = View.extend({
 })
 export class FileListView extends CollectionView<HTMLDivElement> {
     private _current: View<HTMLDivElement>;
-    private _blazy: any;
     private _timer: NodeJS.Timer;
     private _progress: IProgress;
     private index: number;
@@ -140,8 +139,8 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         if (this._progress) return;
 
         this._progress = new Progress({
-            size: 60,
-            lineWidth: 6
+            size: 100,
+            lineWidth: 5
         });
 
         this.el.appendChild(this._progress.render().el);

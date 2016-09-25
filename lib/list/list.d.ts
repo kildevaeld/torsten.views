@@ -10,7 +10,6 @@ export interface FileListOptions extends CollectionViewOptions {
 export declare const FileListEmptyView: {};
 export declare class FileListView extends CollectionView<HTMLDivElement> {
     private _current;
-    private _blazy;
     private _timer;
     private _progress;
     private index;

@@ -41,8 +41,6 @@
   text-align: center;
 }
 .file-list .loader {
-  width: 64px;
-  height: 64px;
   margin: 20% auto;
 }
 .file-list .file-list-item {

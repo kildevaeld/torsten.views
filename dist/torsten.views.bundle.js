@@ -10391,7 +10391,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
 	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n",
-	    "modal-gallery": "<div class=\"torsten-modal-header\">\n</div>\n<div class=\"torsten-modal-content\">  </div>\n<div class=\"torsten-modal-footer\">  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>\n</div>\n"
+	    "modal-gallery": "<div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>"
 	};
 
 /***/ },
@@ -11355,7 +11355,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function onRender() {
 	            this._gallery.render();
 	            this.ui['content'].appendChild(this._gallery.el);
-	            orange_dom_1.addClass(this.el, 'gallery-modal');
+	            orange_dom_1.addClass(this.el, 'gallery-modal slidein-bottom');
 	        }
 	    }, {
 	        key: "_onSelect",
@@ -11388,7 +11388,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return index_2.default['modal-gallery'];
 	    },
 	    ui: {
-	        content: '.torsten-modal-content'
+	        content: '.views-modal-body'
 	    },
 	    events: {
 	        'click .btn-close': function clickBtnClose() {
@@ -11419,6 +11419,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	"use strict";
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
@@ -11454,32 +11456,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (options.el) {
 	            orange_dom_1.addClass(_this.el, _this.className);
 	        }
-	        _this._onClose = orange_1.bind(_this._onClose, _this);
+	        _this.close = orange_1.bind(_this.close, _this);
 	        return _this;
 	    }
 
 	    _createClass(Modal, [{
-	        key: "onRender",
-	        value: function onRender() {
+	        key: "render",
+	        value: function render() {
+	            _get(Modal.prototype.__proto__ || Object.getPrototypeOf(Modal.prototype), "render", this).call(this);
 	            this.__rendered = true;
+	            var overlay = orange_dom_1.createElement('div', {});
+	            orange_dom_1.addClass(overlay, 'views-modal-overlay');
+	            document.body.appendChild(overlay);
+	            return this;
 	        }
 	    }, {
 	        key: "open",
 	        value: function open() {
 	            var _this2 = this;
 
+	            console.log('open');
 	            var body = document.body;
-	            if (orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	            if (orange_dom_1.hasClass(body, "views-modal-open")) {
 	                return;
 	            }
 	            this.triggerMethod('before:open');
-	            var overlay = orange_dom_1.createElement('div', {});
-	            orange_dom_1.addClass(overlay, 'torsten-modal-overlay');
-	            body.appendChild(overlay);
 	            requestAnimationFrame(function () {
-	                orange_dom_1.addClass(body, 'torsten-modal-open');
+	                orange_dom_1.addClass(_this2.el, 'views-modal-show');
+	                orange_dom_1.addClass(body, 'views-modal-open');
 	            });
-	            orange_dom_1.addEventListener(overlay, 'click', this._onClose);
+	            var overlay = document.body.querySelector('.views-modal-overlay');
+	            orange_dom_1.addEventListener(overlay, 'click', this.close);
 	            orange_dom_1.animationEnd(this.el, function () {
 	                _this2.triggerMethod('open');
 	            });
@@ -11495,16 +11502,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var _this3 = this;
 
 	            var body = document.body;
-	            if (!orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	            if (!orange_dom_1.hasClass(this.el, "views-modal-show")) {
 	                return;
 	            }
 	            this.triggerMethod('before:close');
-	            var overlay = body.querySelector('.torsten-modal-overlay');
-	            orange_dom_1.removeEventListener(overlay, 'click', this._onClose);
-	            orange_dom_1.removeClass(body, 'torsten-modal-open');
-	            orange_dom_1.transitionEnd(overlay, function (e) {
-	                body.removeChild(overlay);
-	            }, null);
+	            var overlay = body.querySelector('.views-modal-overlay');
+	            orange_dom_1.removeEventListener(overlay, 'click', this.close);
+	            orange_dom_1.removeClass(this.el, 'views-modal-show');
+	            orange_dom_1.removeClass(body, 'views-modal-open');
 	            orange_dom_1.animationEnd(this.el, function () {
 	                _this3.triggerMethod('close');
 	            });
@@ -11513,7 +11518,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: "toggle",
 	        value: function toggle() {
 	            var body = document.body;
-	            if (!orange_dom_1.hasClass(body, "torsten-modal-open")) {
+	            if (!orange_dom_1.hasClass(this.el, "views-modal-show")) {
 	                this.open();
 	            } else {
 	                this.close();
@@ -11530,7 +11535,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(views_1.View);
 	Modal = __decorate([views_1.attributes({
 	    tagName: 'div',
-	    className: 'torsten modal'
+	    className: 'views-modal'
 	}), __metadata('design:paramtypes', [Object])], Modal);
 	exports.Modal = Modal;
 
