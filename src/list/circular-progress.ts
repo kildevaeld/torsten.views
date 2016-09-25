@@ -37,15 +37,13 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
         let diff = Math.abs(percent - this._percent)
 
         requestAnimationFrame(() => {
-            this.ctx.clearRect(0, 0, 100, 100)
+            this.ctx.clearRect(0, 0, this.options.size, this.options.size)
             this._drawCircle(this.ctx, this.options.background, this.options.lineWidth, 100 / 100);
             this._drawCircle(this.ctx, this.options.foreground, this.options.lineWidth, percent / 100);
             this.el.querySelector('span').textContent = Math.floor(percent) + '%'
         });
 
     }
-
-    
 
     private _drawCircle(ctx:CanvasRenderingContext2D, color, lineWidth, percent) {
         var radius = (this.options.size - this.options.lineWidth) / 2;
@@ -57,6 +55,8 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
         ctx.lineWidth = lineWidth
         ctx.stroke();
     }
+
+   
 
     render() {
         super.render();

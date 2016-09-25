@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/dist/css/torsten.views.css" />
+    <link rel="stylesheet" href="/node_modules/cropperjs/cropper.css" />
     <!--script src="dist/torsten-.bundle.js"></script-->
 
     <script src="/node_modules/eventsjs/dist/eventsjs.js"></script>
@@ -34,14 +35,11 @@
     <textarea id="result"></textarea>
     <button id="open">Open</button>
     <script>
-        
         var client = torsten.views.createClient({
             endpoint: 'http://localhost:3000'
         });
 
-        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI5MDlkMzdhNC1kMTI4LTRmOGQtYjFlMS0wYWVmMWY2MGEwMzUiLCJnaWQiOlsiMGY1MDJkZWYtMzE5Yy00ODE1LTg1ZjUtMGFhMDBhMGQ1MTFiIiwiMTM2YTAzYzUtZDcyNi00Y2I5LWI3M2YtZTYyODFjMjM0YmJhIl0sImlhdCI6MTQ3NDcxMTI2M30.CcWXVT967IAR77wiEhBR3WxNUduBwg9JQLQv9OfjjQc'
-        
-
+        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIzZTQxODM3NC1mYjhiLTRjYTQtOGI4MC1iNGM0MmZhNGQwMjkiLCJnaWQiOlsiOWVmYjVmMjMtMTlmMC00ZjYzLTgwMTUtYzY2NWZlNzRiMDQxIiwiN2JiZTI4OTktNTVkZS00NDk1LTllZjItZWYxYjkyYzVkMWNhIl0sImlhdCI6MTQ3NDc0Mzc1N30.2m_-NnZ01W-AoYY1z8OPVw-0z9MslJwQG_5nTHVx0Vk'
         /*let view = new torsten.views.GalleryModal({
             el: document.querySelector('#main'),
             client: client
@@ -53,29 +51,28 @@
         view.on('select', (model) => {
             console.log('SELECT');
             document.querySelector('#result').innerHTML = JSON.stringify(model.toJSON(), null, 2);
-        })
-        document.querySelector('#open').addEventListener('click', () => {
-            view.open()
         })*/
 
         let form = new views.form.Form({
             el: document.querySelector('form'),
-            fieldOptions: {
+            fields: {
                 image: {
-                    editorOptions: {
-                        client: client,
-                        showDirectories: true,
-                        root: '/croppings'
-                    }
+                    client: client,
+                    showDirectories: true,
+                    root: '/'
                 }
-            }
+            },
+            //model: new collection.Model()
         });
+        document.querySelector('#open').addEventListener('click', () => {
+           console.log(form.update().model)
+        })
+
+        
 
         form.render()
-        
+        form.model = new collection.Model();
         console.log(form)
-
-
     </script>
 </body>
 

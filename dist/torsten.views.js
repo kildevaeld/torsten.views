@@ -1473,6 +1473,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_onDblClick",
 	        value: function _onDblClick(e) {
+	            e.preventDefault();
+	            var target = e.target;
+	            if (target === this.ui['remove']) return;
 	            this.triggerMethod('dblclick', this.model);
 	        }
 	    }, {
@@ -1796,7 +1799,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var newPercent = percent;
 	            var diff = Math.abs(percent - this._percent);
 	            requestAnimationFrame(function () {
-	                _this2.ctx.clearRect(0, 0, 100, 100);
+	                _this2.ctx.clearRect(0, 0, _this2.options.size, _this2.options.size);
 	                _this2._drawCircle(_this2.ctx, _this2.options.background, _this2.options.lineWidth, 100 / 100);
 	                _this2._drawCircle(_this2.ctx, _this2.options.foreground, _this2.options.lineWidth, percent / 100);
 	                _this2.el.querySelector('span').textContent = Math.floor(percent) + '%';
@@ -2266,6 +2269,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.trigger('dblclick');
 	        });
 	        _this.listenTo(_this.drop, 'drop', _this._onFileDrop);
+	        _this.listenTo(_this.uploader, 'done', function (file) {
+	            for (var i = 0, ii = _this.collections.length; i < ii; i++) {
+	                if (_this.collections[i].path == file.get('path')) {
+	                    _this.collections[i].add(file);
+	                }
+	            }
+	        });
+	        if (_this.options.root) {
+	            _this.root = _this.options.root;
+	        }
 	        return _this;
 	    }
 
@@ -2292,7 +2305,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_onFileDrop",
 	        value: function _onFileDrop(file) {
-	            console.log(file);
 	            var collection = this.collections[this.collections.length - 1];
 	            this.uploader.upload(collection.path, file, {
 	                progress: function progress(e) {
@@ -2306,6 +2318,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.regions['list'].show(this.list);
 	            this.regions['info'].show(this.info);
 	            this.drop.render();
+	        }
+	    }, {
+	        key: "collection",
+	        get: function get() {
+	            if (this.collections.length == 0) return null;
+	            return this.collections[this.collections.length - 1];
 	        }
 	    }, {
 	        key: "root",
@@ -2323,7 +2341,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._setCollection(this.collections[0]);
 	            this.collections[0].fetch({
 	                params: {
-	                    show_hidden: false
+	                    show_hidden: this.options.showHidden
 	                }
 	            });
 	        },
@@ -2519,6 +2537,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var views_1 = __webpack_require__(14);
 	var orange_dom_1 = __webpack_require__(15);
+	var orange_1 = __webpack_require__(5);
 	var DropZone = function (_views_1$View) {
 	    _inherits(DropZone, _views_1$View);
 
@@ -2527,7 +2546,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        _classCallCheck(this, DropZone);
 
-	        return _possibleConstructorReturn(this, (DropZone.__proto__ || Object.getPrototypeOf(DropZone)).call(this, options));
+	        var _this = _possibleConstructorReturn(this, (DropZone.__proto__ || Object.getPrototypeOf(DropZone)).call(this, options));
+
+	        _this.uploader = options.uploader;
+	        _this.path = options.path || "/";
+	        return _this;
 	    }
 
 	    _createClass(DropZone, [{
@@ -2547,11 +2570,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_onDrop",
 	        value: function _onDrop(e) {
+	            var _this2 = this;
+
 	            orange_dom_1.removeClass(this.el, 'drag-enter');
-	            console.log('drop', e.dataTransfer.files);
 	            e.preventDefault();
 	            e.stopPropagation();
-	            this.triggerMethod('drop', e.dataTransfer.files[0]);
+	            if (this.uploader) {
+	                var files = orange_1.slice(e.dataTransfer.files);
+	                orange_1.mapAsync(files, function (file) {
+	                    return _this2.uploader.upload(_this2.path, file);
+	                }, this, true);
+	            }
+	            this.triggerMethod('drop', e);
 	        }
 	    }]);
 
@@ -2573,8 +2603,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2591,6 +2619,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Debug = __webpack_require__(9);
 	var Path = torsten_1.path;
 	var debug = Debug('torsten:uploader');
+	function itemToEvent(item) {
+	    return {
+	        id: item.id,
+	        path: item.path,
+	        name: item.file.name,
+	        size: item.file.size,
+	        mime: item.file.type
+	    };
+	}
+	function itemToProgresEvent(item, e) {
+	    return orange_1.extend(itemToEvent(item), {
+	        originalEvent: e,
+	        total: e.total,
+	        loaded: e.loaded
+	    });
+	}
 
 	var Uploader = function (_eventsjs_1$EventEmit) {
 	    _inherits(Uploader, _eventsjs_1$EventEmit);
@@ -2629,50 +2673,67 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }, {
 	        key: 'upload',
-	        value: function upload(path, file, options) {
+	        value: function upload(path, file) {
+	            var _this2 = this;
+
+	            var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
 	            try {
 	                this._validateFile(file);
 	            } catch (e) {
 	                return Promise.reject(e);
 	            }
-	            if (this._uploading > this.queueSize || this._client == null) {
-	                var defer = orange_1.deferred();
-	                debug("enqueue %i : %s", this._queue.length, path);
-	                this._queue.push([path, file, defer, options]);
-	                this.trigger('queue', file.name);
-	                return defer.promise;
-	            }
-	            return this._upload(path, file, options);
+	            var item = {
+	                id: orange_1.uniqueId(),
+	                file: file,
+	                options: options,
+	                path: path,
+	                defer: orange_1.deferred()
+	            };
+	            debug("enqueue %i : %s", this._queue.length, path);
+	            this._queue.push(item);
+	            this.trigger('queue', itemToEvent(item));
+	            orange_1.nextTick(function () {
+	                return _this2._onReady();
+	            });
+	            return item.defer.promise;
 	        }
 	    }, {
 	        key: '_upload',
-	        value: function _upload(path, file) {
-	            var _this2 = this;
+	        value: function _upload(item) {
+	            var _this3 = this;
 
-	            var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-	            var emit = function emit() {
-	                _this2._uploading--;
+	            var path = item.path;
+	            var file = item.file;
+	            var options = item.options;
+	            var defer = item.defer;var event = itemToEvent(item);
+	            var emit = function emit(e, file) {
+	                _this3._uploading--;
 	                debug('upload ready %s', path);
-	                _this2.trigger('ready', file.name);
-	                _this2._onReady();
+	                if (e) {
+	                    _this3.trigger('error', orange_1.extend(event, { message: e.message }));
+	                } else {
+	                    _this3.trigger('done', file);
+	                }
 	            };
 	            path = Path.join(path, file.name);
 	            var o = orange_1.extend({}, options, {
 	                progress: function progress(e) {
-	                    _this2.trigger('progress', file, e);
+	                    _this3.trigger('progress', itemToProgresEvent(item, e));
 	                    if (options.progress) {
 	                        options.progress(e);
 	                    }
 	                }
 	            });
-	            this.trigger('started', file);
+	            this.trigger('started', event);
 	            this._uploading++;
 	            return this._client.create(path, file, o).then(function (info) {
-	                emit();
-	                return new collection_1.FileInfoModel(info, { client: _this2._client });
+	                var model = new collection_1.FileInfoModel(info, { client: _this3._client });
+	                ;
+	                emit(null, model);
+	                return model;
 	            }).catch(function (e) {
-	                emit();
+	                emit(e);
 	                return Promise.reject(e);
 	            });
 	        }
@@ -2682,26 +2743,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (!this._queue.length || this._uploading > this.queueSize) {
 	                return;
 	            }
-
-	            var _queue$shift = this._queue.shift();
-
-	            var _queue$shift2 = _slicedToArray(_queue$shift, 4);
-
-	            var path = _queue$shift2[0];
-	            var file = _queue$shift2[1];
-	            var defer = _queue$shift2[2];
-	            var options = _queue$shift2[3];
-
-	            this._upload(path, file, options).then(defer.resolve).catch(defer.reject);
+	            while (this._uploading < this.queueSize) {
+	                var i = this._queue.shift();
+	                this._upload(i).then(i.defer.resolve).catch(i.defer.reject);
+	                if (this._queue.length === 0) return;
+	            }
 	        }
 	    }, {
 	        key: 'client',
 	        set: function set(client) {
-	            var _this3 = this;
+	            var _this4 = this;
 
 	            if (this._client == null && this._queue.length > 0) {
 	                orange_1.nextTick(function () {
-	                    return _this3._onReady();
+	                    return _this4._onReady();
 	                });
 	            }
 	            this._client = client;
@@ -2778,7 +2833,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: "_onSelect",
 	        value: function _onSelect(e) {
 	            e.preventDefault();
-	            console.log('on select');
+	            if (this.selected) this.trigger('select', this.selected);
+	            this.close();
 	        }
 	    }, {
 	        key: "gallery",
@@ -3243,9 +3299,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return;
 	            }
 	            _get(CropView.prototype.__proto__ || Object.getPrototypeOf(CropView.prototype), "setModel", this).call(this, model);
-	            //image.src = model.getURL();
-	            //let isCropping = model.get('meta').cropping;
-	            console.log(model);
 	            this._updateImage().then(function (loaded) {
 	                //if (loaded) image.style.display = 'block';
 	                return loaded;
@@ -7018,8 +7071,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
-	    ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
 	"use strict";
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -7043,13 +7094,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
+	/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
+	    ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
+	var dropzone_1 = __webpack_require__(26);
 	var index_1 = __webpack_require__(31);
 	var views_form_1 = __webpack_require__(47);
 	var views_1 = __webpack_require__(14);
 	var index_2 = __webpack_require__(22);
 	var orange_dom_1 = __webpack_require__(15);
 	var orange_1 = __webpack_require__(5);
-	var _template = "\n  <div class=\"modal-container\"></div>\n  <div class=\"crop-container\">\n  </div>\n  <!--<label class=\"btn btn-sm btn-default\">\n    <span>Upload</span>\n    <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />\n  </label>-->\n  <button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n  <button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>\n";
+	var index_3 = __webpack_require__(17);
+	var circular_progress_1 = __webpack_require__(20);
+	;
 	var CropEditor = function (_views_form_1$BaseEdi) {
 	    _inherits(CropEditor, _views_form_1$BaseEdi);
 
@@ -7061,10 +7117,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.options = options = _this._getOptions(orange_1.extend({}, options));
 	        var client = options.client;
 	        if (client == null) {
-	            /*if (options.host == null) throw new Error('client or host expected');
-	            client = createClient({
-	                endpoint: options.host,
-	            });*/
 	            throw new Error("no client");
 	        }
 	        _this.modal = new index_2.GalleryModal({
@@ -7072,48 +7124,73 @@ return /******/ (function(modules) { // webpackBootstrap
 	            showDirectories: false,
 	            accept: ["image/*"],
 	            maxSize: _this.options.maxSize,
-	            uploader: _this.options.uploader
+	            uploader: _this.options.uploader,
+	            root: _this.options.root
 	        });
-	        _this.modal.root = _this.options.root;
-	        if (_this.options.cropping != null) {
-	            var o = orange_1.extend({
-	                zoomable: false,
-	                scalable: false,
-	                autoCropArea: 0.6,
-	                resize: true
-	            }, orange_1.omit(_this.options, ['el']));
-	            _this.crop = new index_1.CropView(o);
-	        }
-	        /*this.uploader = new FileUploader({
-	            url: client.url,
-	            maxSize: this.options.maxSize,
-	            mimeType: this.options.mimeType
-	        });*/
-	        _this.listenTo(_this.modal, 'selected', _this.onAssetSelected);
-	        //this.listenTo('crop', '')
+	        _this.drop = new dropzone_1.DropZone({
+	            el: _this.el,
+	            uploader: _this.modal.gallery.uploader
+	        });
+	        var o = orange_1.extend({
+	            zoomable: false,
+	            scalable: false,
+	            autoCropArea: 0.6,
+	            resize: true
+	        }, orange_1.omit(_this.options, ['el']));
+	        _this.crop = new index_1.CropView(o);
+	        _this.listenTo(_this.modal, 'selected', _this._onFileSelected);
+	        var up = _this.modal.gallery.uploader;
+	        _this.progress = new circular_progress_1.Progress({
+	            size: 100,
+	            lineWidth: 5
+	        });
+	        _this.listenTo(up, 'started', function (e) {
+	            _this.clear();
+	            _this._removeDropIndicator();
+	            _this.progress.el.style.display = 'block';
+	        });
+	        _this.listenTo(up, 'progress', function (e) {
+	            var pc = 100 / e.total * e.loaded;
+	            _this.progress.setPercent(pc);
+	        });
+	        _this.listenTo(up, 'done', function (file) {
+	            _this.progress.el.style.display = 'none';
+	            _this.value = file;
+	        });
+	        _this.progress.el.style.display = 'none';
 	        return _this;
 	    }
 
 	    _createClass(CropEditor, [{
 	        key: "getValue",
 	        value: function getValue() {
-	            return this.model;
+	            if (!this.model) return null;
+	            return {
+	                file: this.model,
+	                cropping: this.crop.cropping
+	            };
 	        }
 	    }, {
 	        key: "setValue",
-	        value: function setValue(model) {
-	            if (this.model === model) return;
-	            this.model = model;
+	        value: function setValue(result) {
+	            if (result == null) {
+	                this.model = null;
+	                return;
+	            }
+	            if (result.file !== this.model) {
+	                this.model = result.file;
+	            }
+	            if (!orange_1.equal(result.cropping, this.crop.cropping)) {
+	                this.crop.cropping = result.cropping;
+	            }
 	        }
 	    }, {
 	        key: "onModel",
 	        value: function onModel(model) {
 	            if (model) this._removeDropIndicator();
-	            if (this.crop) {
-	                this._toggled = false;
-	                orange_dom_1.Html.query('.crop-btn').removeClass('active');
-	                this.crop.model = model;
-	            }
+	            this._toggled = false;
+	            orange_dom_1.Html.query('.crop-btn').removeClass('active');
+	            this.crop.model = model;
 	        }
 	    }, {
 	        key: "onSetElement",
@@ -7172,6 +7249,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            } else {
 	                this.ui['crop'].appendChild(preview.el);
 	            }
+	            this.drop.render();
+	            this.crop.el.appendChild(this.progress.render().el);
 	            this._showDropIndicator();
 	        }
 	    }, {
@@ -7220,74 +7299,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	    }, {
-	        key: "_onDrop",
-	        value: function _onDrop(e) {
-	            e.preventDefault();
-	            var files = e.dataTransfer.files;
-	            if (!files.length) {
-	                return;
-	            }
-	            var file = files.item(0);
-	            try {
-	                this._validateFile(file);
-	            } catch (e) {
-	                console.log('validate error');
-	                return;
-	            }
-	            var div = this.crop.el.querySelector('.upload-progress');
-	            console.log('upload file', file);
-	            /*this.uploader.upload(file, (loaded, total) => {
-	                let progress = (loaded / total * 100 || 0);
-	                if (div) div.style.width = progress + '%';
-	            }).then(b => {
-	                if (div) div.style.width = '0';
-	                let model = new this.modal.gallery.collection.Model(b as any)
-	                this.modal.gallery.collection.add(model);
-	                this.modal.value = model;
-	                this.onAssetSelected();
-	            }).catch(e => {
-	                console.log(e)
-	                if (div) div.style.width = '0';
-	            })*/
-	        }
-	    }, {
-	        key: "_cancel",
-	        value: function _cancel(e) {
-	            if (e.preventDefault) {
-	                e.preventDefault();
-	            }
-	            var el = orange_dom_1.Html.query(this.crop.el);
-	            //if (!e.dataTransfer.files.length) return false;
-	            if (e.type == 'dragenter') {
-	                el.addClass('dragenter');
-	            } else if (e.type == 'dragleave') {
-	                el.removeClass('dragenter');
-	            }
-	            return false;
-	        }
-	    }, {
-	        key: "_validateFile",
-	        value: function _validateFile(file) {
-	            var maxSize = this.options.maxSize * 1000;
-	            if (maxSize !== 0 && file.size > maxSize) {
-	                throw new Error('file to big');
-	            }
-	            var type = file.type;
-	            var mimeTypes;
-	            if (typeof this.options.mimeType === 'string') {
-	                mimeTypes = [this.options.mimeType];
-	            } else {
-	                mimeTypes = this.options.mimeType;
-	            }
-	            if (!mimeTypes) return;
-	            for (var i = 0; i < mimeTypes.length; i++) {
-	                var mime = new RegExp(mimeTypes[i].replace('*', '.*'));
-	                if (mime.test(type)) return;else throw new Error('Wrong mime type');
-	            }
-	        }
-	    }, {
-	        key: "onAssetSelected",
-	        value: function onAssetSelected(model) {
+	        key: "_onFileSelected",
+	        value: function _onFileSelected(model) {
 	            //let value = this.modal.selected;
 	            this.model = model;
 	            //(<HTMLImageElement>this.crop.ui['image']).src = value.getURL();
@@ -7305,6 +7318,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            this.crop.destroy();
 	            this.modal.destroy();
+	            this.drop.destroy();
+	            this.progress.destroy();
 	        }
 	    }]);
 
@@ -7312,17 +7327,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(views_form_1.BaseEditor);
 	CropEditor = __decorate([views_1.attributes({
 	    template: function template() {
-	        return _template;
+	        return index_3.default['crop-editor'];
 	    },
 	    ui: {
 	        modal: '.modal-container',
 	        crop: '.crop-container'
 	    },
 	    events: {
-	        drop: '_onDrop',
+	        /*drop: '_onDrop',
 	        dragenter: '_cancel',
 	        dragover: '_cancel',
-	        dragleave: '_cancel',
+	        dragleave: '_cancel',*/
 	        'click .gallery-btn': function clickGalleryBtn(e) {
 	            e.preventDefault();
 	            this.modal.toggle();

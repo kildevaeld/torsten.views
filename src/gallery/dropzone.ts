@@ -1,8 +1,11 @@
 
 import {View, ViewOptions, events} from 'views';
 import {addClass, removeClass} from 'orange.dom';
-
+import {mapAsync, slice} from 'orange'
+import {Uploader} from '../uploader';
 export interface DropZoneOptions extends ViewOptions {
+    uploader?: Uploader;
+    path?:string;
 }
 
 @events({
@@ -14,10 +17,12 @@ export interface DropZoneOptions extends ViewOptions {
     dragover: '_onDragEnter'
 })
 export class DropZone extends View<HTMLDivElement> {
-
+    private uploader: Uploader;
+    path: string;
     constructor(options: DropZoneOptions = {}) {
         super(options);
-
+        this.uploader = options.uploader;
+        this.path = options.path||"/";
     }
 
    private _onDragEnter (e:DragEvent) {
@@ -34,10 +39,20 @@ export class DropZone extends View<HTMLDivElement> {
 
    private _onDrop(e:DragEvent) {
        removeClass(this.el, 'drag-enter')
-       console.log('drop', e.dataTransfer.files)
+       
        e.preventDefault();
        e.stopPropagation();
-       this.triggerMethod('drop', e.dataTransfer.files[0]);
+       
+       if (this.uploader) {
+        let files = <File[]>slice(e.dataTransfer.files);
+        mapAsync(files, (file) => {
+            return this.uploader.upload(this.path, file)
+        }, this, true)
+       }
+
+       this.triggerMethod('drop', e);
+
+       
    }
 
 }

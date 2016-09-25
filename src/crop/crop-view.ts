@@ -74,9 +74,7 @@ export class CropView extends View<HTMLDivElement> {
 
         super.setModel(model);
 
-        //image.src = model.getURL();
-        //let isCropping = model.get('meta').cropping;
-        console.log(model)
+        
 
         this._updateImage()
             .then((loaded) => {
@@ -85,6 +83,7 @@ export class CropView extends View<HTMLDivElement> {
             }).then((loaded) => {
                 if (!loaded) return;
                 let cropping = model.get('meta.cropping');
+                
                 if (cropping) {
                     this.cropping = cropping;
                     //this.triggerMethod('crop', cropping);
@@ -99,6 +98,7 @@ export class CropView extends View<HTMLDivElement> {
                         this.trigger('error', e);
                     });
                 }
+                
             })
 
 

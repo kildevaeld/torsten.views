@@ -8,6 +8,21 @@ export interface UploaderOptions {
     maxSize?: number;
     queueSize?: number;
 }
+export interface UploadEvent {
+    name: string;
+    size: number;
+    mime: string;
+    path: string;
+    id: string;
+}
+export interface UploadProgressEvent extends UploadEvent {
+    originalEvent: ProgressEvent;
+    loaded: number;
+    total: number;
+}
+export interface UploadErrorEvent extends UploadEvent {
+    message: string;
+}
 export declare class Uploader extends EventEmitter {
     _client: IClient;
     private _queue;
@@ -19,6 +34,6 @@ export declare class Uploader extends EventEmitter {
     constructor(options?: UploaderOptions);
     private _validateFile(file);
     upload(path: string, file: File, options?: CreateOptions): IPromise<FileInfoModel>;
-    private _upload(path, file, options?);
+    private _upload(item);
     private _onReady();
 }

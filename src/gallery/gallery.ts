@@ -31,6 +31,10 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     client: IClient;
     collections: FileCollection[] = [];
     
+    get collection () {
+        if (this.collections.length == 0) return null;
+        return this.collections[this.collections.length - 1];
+    }
 
     private _root: string;
     set root (path:string) {
@@ -51,7 +55,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this._setCollection(this.collections[0]);
         this.collections[0].fetch({
                 params: {
-                    show_hidden: false
+                    show_hidden: this.options.showHidden
                 }
             });
     }
@@ -109,6 +113,20 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
             this.trigger('dblclick');
         })
         this.listenTo(this.drop, 'drop', this._onFileDrop);
+
+        this.listenTo(this.uploader, 'done', (file: FileInfoModel) => {
+            
+            for (let i = 0, ii = this.collections.length; i < ii; i++ ) {
+                if (this.collections[i].path == file.get('path')) {
+                    this.collections[i].add(file);
+                }
+            }
+        })
+        
+
+        if (this.options.root) {
+            this.root = this.options.root;
+        }
     }
 
     private _onFileInfoSelected(view, model:FileInfoModel) {
@@ -131,7 +149,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     }
 
     private _onFileDrop(file:File) {
-        console.log(file);
+        
         let collection = this.collections[this.collections.length - 1];
         
         this.uploader.upload(collection.path, file, {
