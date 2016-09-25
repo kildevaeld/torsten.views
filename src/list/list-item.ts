@@ -66,12 +66,16 @@ export class FileListItemView extends View<HTMLDivElement> {
     private _onClick(e: Event) {
         e.preventDefault();
         let target = e.target;
+        
         if (target === this.ui['remove']) return;
 
         this.triggerMethod('click', this.model);
     }
 
     private _onDblClick(e) {
+        e.preventDefault();
+        let target = e.target;
+        if (target === this.ui['remove']) return;
         this.triggerMethod('dblclick', this.model);
     }
 

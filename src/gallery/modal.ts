@@ -60,6 +60,8 @@ export class GalleryModal extends Modal {
     
     private _onSelect (e) {
         e.preventDefault();
-        console.log('on select')
+        if (this.selected)
+            this.trigger('select', this.selected);
+        this.close();
     }
 }

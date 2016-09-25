@@ -122,9 +122,9 @@ export abstract class RestCollection<T extends IModel> extends Collection<T> {
     protected _options: FileCollectionOptions<T>
     constructor(models: any, options: FileCollectionOptions<T>) {
         super(models, options)
-        options = options||{};
+        options = <any>options||{};
         if (!options.limit) options.limit = 50;
-        console.log(options)
+        
         this._options = options;
 
         this.state = { first: 1, last: -1, current: 1}

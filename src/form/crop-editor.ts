@@ -1,73 +1,76 @@
 
 /*import {CropView, AssetsModel, CropViewOptions, CropPreView,
     ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
+import { DropZone } from '../gallery/dropzone'
+import { IClient } from 'torsten';
+import { CropViewOptions, CropView, CropPreView, Cropping } from '../crop/index';
+import { FileInfoModel } from '../collection';
+import { BaseEditor, Form, validate, editor, IEditorOptions } from 'views.form';
+import { attributes } from 'views';
+import { GalleryModal, GalleryViewOptions } from '../gallery/index';
 
-import {IClient} from 'torsten';
-import {CropViewOptions, CropView, CropPreView} from '../crop/index';
-import {FileInfoModel} from '../collection';
-import {BaseEditor, Form, validate, editor, IEditorOptions} from 'views.form';
-import {attributes} from 'views';
-import {GalleryModal, GalleryViewOptions} from '../gallery/index';
+import { addClass, removeClass, Html } from 'orange.dom';
+import { omit, extend , equal} from 'orange';
+import templates from '../templates/index';
+import { Progress } from '../list/circular-progress';
 
-import {addClass, removeClass, Html} from 'orange.dom';
-import {omit, extend} from 'orange';
-
-const template = `
-  <div class="modal-container"></div>
-  <div class="crop-container">
-  </div>
-  <!--<label class="btn btn-sm btn-default">
-    <span>Upload</span>
-    <input style="display:none;" type="file" class="upload-btn" name="upload-button" />
-  </label>-->
-  <button class="gallery-btn btn btn-sm btn-default" title="Vælg fra galleri">Vælg</button>
-  <button class="crop-btn btn btn-sm btn-default pull-right">Beskær</button>
-`;
-
-export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, IEditorOptions {
-    //client?: IClient;
-    //maxSize?: number;
-    cropping?: boolean;
-    root?: string;
+export interface CropResult {
+    file: FileInfoModel;
+    cropping: Cropping;
 }
 
-
+export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, IEditorOptions {
+    cropping?: boolean;
+    root?: string;
+};
 
 @attributes({
-    template: () => template,
+    template: () => templates['crop-editor'],
     ui: {
         modal: '.modal-container',
         crop: '.crop-container'
     },
     events: {
-        drop: '_onDrop',
+        /*drop: '_onDrop',
         dragenter: '_cancel',
         dragover: '_cancel',
-        dragleave: '_cancel',
+        dragleave: '_cancel',*/
         'click .gallery-btn': function (e) {
             e.preventDefault();
-        
             this.modal.toggle();
-
         },
         'click .crop-btn': '_onToggleCropper',
     },
 })
 @editor('torsten.crop')
-export class CropEditor extends BaseEditor<HTMLDivElement, FileInfoModel> {
+export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     model: FileInfoModel;
     modal: GalleryModal;
     crop: CropView
+    drop: DropZone;
+    progress: Progress;
     //uploader: FileUploader;
     options: CropEditorOptions
     _toggled: boolean;
-    getValue(): FileInfoModel {
-        return this.model;
+    getValue(): CropResult {
+        if (!this.model) return null;
+        return {
+            file: this.model,
+            cropping: this.crop.cropping
+        };
     }
 
-    setValue(model: FileInfoModel) {
-        if (this.model === model) return;
-        this.model = model;
+    setValue(result: CropResult) {
+        if (result == null) {
+            this.model = null;
+            return;
+        }
+        if (result.file !== this.model) {
+            this.model = result.file;
+        }
+        if (!equal(result.cropping, this.crop.cropping)) {
+            this.crop.cropping = result.cropping;
+        }
     }
 
     constructor(options: CropEditorOptions) {
@@ -78,10 +81,6 @@ export class CropEditor extends BaseEditor<HTMLDivElement, FileInfoModel> {
 
         let client = options.client;
         if (client == null) {
-            /*if (options.host == null) throw new Error('client or host expected');
-            client = createClient({
-                endpoint: options.host,
-            });*/
             throw new Error("no client");
         }
 
@@ -90,43 +89,59 @@ export class CropEditor extends BaseEditor<HTMLDivElement, FileInfoModel> {
             showDirectories: false,
             accept: ["image/*"],
             maxSize: this.options.maxSize,
-            uploader: this.options.uploader
+            uploader: this.options.uploader,
+            root: this.options.root
         });
 
-        this.modal.root = this.options.root
+        this.drop = new DropZone({
+            el: this.el,
+            uploader: this.modal.gallery.uploader
+        });
 
-        if (this.options.cropping != null) {
-            let o = extend({
-                zoomable: false,
-                scalable: false,
-                autoCropArea: 0.6,
-                resize: true,
-            }, omit(this.options, ['el']));
+        let o = extend({
+            zoomable: false,
+            scalable: false,
+            autoCropArea: 0.6,
+            resize: true,
+        }, omit(this.options, ['el']));
 
-            this.crop = new CropView(o);
-        }
+        this.crop = new CropView(o);
 
+        this.listenTo(this.modal, 'selected', this._onFileSelected);
 
-        /*this.uploader = new FileUploader({
-            url: client.url,
-            maxSize: this.options.maxSize,
-            mimeType: this.options.mimeType
-        });*/
+        let up = this.modal.gallery.uploader;
 
-        this.listenTo(this.modal, 'selected', this.onAssetSelected);
+        this.progress = new Progress({
+            size: 100,
+            lineWidth: 5
+        });
 
+        this.listenTo(up, 'started', (e) => {
+            this.clear();
+            this._removeDropIndicator();
+            this.progress.el.style.display = 'block'
 
-        //this.listenTo('crop', '')
+        });
+
+        this.listenTo(up, 'progress', (e) => {
+            let pc = 100 / e.total * e.loaded;
+            this.progress.setPercent(pc);
+        });
+
+        this.listenTo(up, 'done', (file) => {
+            this.progress.el.style.display = 'none'
+            this.value = file;
+        })
+
+        this.progress.el.style.display = 'none'
 
     }
 
     onModel(model: FileInfoModel) {
         if (model) this._removeDropIndicator();
-        if (this.crop) {
-            this._toggled = false;
-            Html.query('.crop-btn').removeClass('active');
-            this.crop.model = model;
-        }
+        this._toggled = false;
+        Html.query('.crop-btn').removeClass('active');
+        this.crop.model = model;
 
     }
 
@@ -194,6 +209,8 @@ export class CropEditor extends BaseEditor<HTMLDivElement, FileInfoModel> {
             this.ui['crop'].appendChild(preview.el);
         }
 
+        this.drop.render();
+        this.crop.el.appendChild(this.progress.render().el);
         this._showDropIndicator();
 
     }
@@ -218,7 +235,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, FileInfoModel> {
                 left: '50%'
             })
         $i.text('Drop Here');
-        
+
 
         preview.appendChild(i);
 
@@ -243,89 +260,9 @@ export class CropEditor extends BaseEditor<HTMLDivElement, FileInfoModel> {
         }
     }
 
-    private _onDrop(e: DragEvent) {
-        e.preventDefault();
-        let files = e.dataTransfer.files;
-
-        if (!files.length) {
-            return;
-        }
-
-        let file = files.item(0);
-
-        try {
-            this._validateFile(file);
-        } catch (e) {
-            console.log('validate error')
-            return;
-        }
-
-        let div = <HTMLElement>this.crop.el.querySelector('.upload-progress')
-        console.log('upload file', file);
-        /*this.uploader.upload(file, (loaded, total) => {
-            let progress = (loaded / total * 100 || 0);
-            if (div) div.style.width = progress + '%';
-        }).then(b => {
-            if (div) div.style.width = '0';
-            let model = new this.modal.gallery.collection.Model(b as any)
-            this.modal.gallery.collection.add(model);
-            this.modal.value = model;
-            this.onAssetSelected();
-        }).catch(e => {
-            console.log(e)
-            if (div) div.style.width = '0';
-        })*/
-
-    }
-
-    private _cancel(e: DragEvent) {
-        if (e.preventDefault) { e.preventDefault(); }
-
-        let el = Html.query(this.crop.el);
-
-        //if (!e.dataTransfer.files.length) return false;
-
-        if (e.type == 'dragenter') {
-            el.addClass('dragenter');
-        } else if (e.type == 'dragleave') {
-            el.removeClass('dragenter');
-        }
-
-        return false;
-    }
-
-    private _validateFile(file: File) {
-
-        let maxSize = this.options.maxSize * 1000
-
-        if (maxSize !== 0 && file.size > maxSize) {
-            throw new Error('file to big');
-        }
-
-        var type = file.type;
-
-        var mimeTypes: any
-
-        if (typeof this.options.mimeType === 'string') {
-            mimeTypes = [this.options.mimeType];
-        } else {
-            mimeTypes = this.options.mimeType;
-        }
-
-        if (!mimeTypes) return;
 
 
-        for (var i = 0; i < mimeTypes.length; i++) {
-            let mime = new RegExp(mimeTypes[i].replace('*', '.*'));
-            if (mime.test(type))
-                return
-            else
-                throw new Error('Wrong mime type');
-        }
-
-    }
-
-    private onAssetSelected(model) {
+    private _onFileSelected(model) {
         //let value = this.modal.selected;
         this.model = model;
         //(<HTMLImageElement>this.crop.ui['image']).src = value.getURL();
@@ -342,6 +279,8 @@ export class CropEditor extends BaseEditor<HTMLDivElement, FileInfoModel> {
         }
         this.crop.destroy();
         this.modal.destroy();
+        this.drop.destroy();
+        this.progress.destroy();
 
     }
 
