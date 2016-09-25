@@ -10,4 +10,5 @@ export declare class Modal extends View<HTMLDivElement> {
     close(): this;
     toggle(): this;
     onDestroy(): void;
+    remove(): void;
 }

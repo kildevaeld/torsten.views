@@ -2611,9 +2611,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function render() {
 	            _get(Modal.prototype.__proto__ || Object.getPrototypeOf(Modal.prototype), "render", this).call(this);
 	            this.__rendered = true;
-	            var overlay = orange_dom_1.createElement('div', {});
-	            orange_dom_1.addClass(overlay, 'views-modal-overlay');
-	            document.body.appendChild(overlay);
+	            var overlay = document.body.querySelector('.views-modal-overlay');
+	            if (!overlay) {
+	                overlay = orange_dom_1.createElement('div', {});
+	                orange_dom_1.addClass(overlay, 'views-modal-overlay');
+	                document.body.appendChild(overlay);
+	            }
 	            return this;
 	        }
 	    }, {
@@ -2631,12 +2634,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                orange_dom_1.addClass(_this2.el, 'views-modal-show');
 	                orange_dom_1.addClass(body, 'views-modal-open');
 	            });
-	            var overlay = document.body.querySelector('.views-modal-overlay');
-	            orange_dom_1.addEventListener(overlay, 'click', this.close);
 	            orange_dom_1.animationEnd(this.el, function () {
 	                _this2.triggerMethod('open');
 	            });
-	            orange_dom_1.addEventListener(this.el, 'click', this._onClose);
 	            return this;
 	        }
 	    }, {
@@ -2681,13 +2681,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function onDestroy() {
 	            this.close().remove();
 	        }
+	    }, {
+	        key: "remove",
+	        value: function remove() {
+	            _get(Modal.prototype.__proto__ || Object.getPrototypeOf(Modal.prototype), "remove", this).call(this);
+	            var overlay = document.body.querySelector('.views-modal-overlay');
+	            if (overlay) {
+	                document.body.removeChild(overlay);
+	            }
+	        }
 	    }]);
 
 	    return Modal;
 	}(views_1.View);
 	Modal = __decorate([views_1.attributes({
 	    tagName: 'div',
-	    className: 'views-modal'
+	    className: 'views-modal',
+	    events: {
+	        'click': '_onClose'
+	    }
 	}), __metadata('design:paramtypes', [Object])], Modal);
 	exports.Modal = Modal;
 

@@ -8,7 +8,10 @@ export interface ModalOptions extends ViewOptions {
 
 @attributes({
     tagName: 'div',
-    className: 'views-modal'
+    className: 'views-modal',
+    events: {
+        'click': '_onClose'
+    }
 })
 export class Modal extends View<HTMLDivElement> {
     private __rendered: boolean = false;
@@ -23,9 +26,14 @@ export class Modal extends View<HTMLDivElement> {
     render() {
         super.render()
         this.__rendered = true;
-        let overlay = createElement('div', {})
-        addClass(overlay, 'views-modal-overlay')
-        document.body.appendChild(overlay);
+
+        let overlay = <HTMLElement>document.body.querySelector('.views-modal-overlay');
+        if (!overlay) {
+            overlay = createElement('div', {})
+            addClass(overlay, 'views-modal-overlay')
+            document.body.appendChild(overlay);
+        }
+        
         return this;
     }
 
@@ -42,14 +50,11 @@ export class Modal extends View<HTMLDivElement> {
             addClass(this.el, 'views-modal-show');
             addClass(body, 'views-modal-open')
         })
-        let overlay = document.body.querySelector('.views-modal-overlay');
-        addEventListener(overlay, 'click', this.close);
-
+        
         animationEnd(this.el, () => {
             this.triggerMethod('open');
         })
 
-        addEventListener(this.el, 'click', this._onClose)
         return this;
     }
 
@@ -91,6 +96,14 @@ export class Modal extends View<HTMLDivElement> {
 
     onDestroy() {
         this.close().remove();
+    }
+
+    remove() {
+        super.remove();
+        let overlay = document.body.querySelector('.views-modal-overlay');
+        if (overlay) {
+            document.body.removeChild(overlay);
+        }
     }
 
 }
