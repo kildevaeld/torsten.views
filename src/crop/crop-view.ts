@@ -1,5 +1,5 @@
 import {View, ViewOptions, attributes} from 'views';
-import Cropper from 'cropperjs';
+import * as Cropper from 'cropperjs';
 import {ICropper, Cropping, getCropping} from './types';
 import {FileInfoModel, isFileInfo} from '../collection';
 import {CropPreView} from './crop-preview';
