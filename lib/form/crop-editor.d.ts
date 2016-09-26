@@ -1,5 +1,5 @@
 import { DropZone } from '../gallery/dropzone';
-import { CropViewOptions, CropView, Cropping } from '../crop/index';
+import { CropViewOptions, CropView, CropPreView, Cropping } from '../crop/index';
 import { FileInfoModel } from '../collection';
 import { BaseEditor, IEditorOptions } from 'views.form';
 import { GalleryModal, GalleryViewOptions } from '../gallery/index';
@@ -18,6 +18,7 @@ export declare class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     crop: CropView;
     drop: DropZone;
     progress: Progress;
+    preview: CropPreView;
     options: CropEditorOptions;
     _toggled: boolean;
     getValue(): CropResult;
@@ -30,6 +31,8 @@ export declare class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     clear(): void;
     private _showDropIndicator();
     private _removeDropIndicator();
+    private _showError(e);
+    private _removeError();
     private _onToggleCropper(e);
     private _onFileSelected(model);
     destroy(): void;

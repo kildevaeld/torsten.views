@@ -1,6 +1,8 @@
 import { IView } from 'views';
 export interface IProgress extends IView {
     setPercent(percent: number): any;
+    show(): any;
+    hide(): any;
 }
 export interface Size {
     width: number;

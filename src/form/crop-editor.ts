@@ -13,6 +13,7 @@ import { addClass, removeClass, Html } from 'orange.dom';
 import { omit, extend , equal} from 'orange';
 import templates from '../templates/index';
 import { Progress } from '../list/circular-progress';
+import {UploadErrorEvent, UploadProgressEvent, UploadEvent} from '../uploader';
 
 export interface CropResult {
     file: FileInfoModel;
@@ -49,6 +50,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     crop: CropView
     drop: DropZone;
     progress: Progress;
+    preview: CropPreView
     //uploader: FileUploader;
     options: CropEditorOptions
     _toggled: boolean;
@@ -99,42 +101,64 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             path: options.root
         });
 
+        this.progress = new Progress({
+            size: 100,
+            lineWidth: 5
+        });
+        
+
         let o = extend({
             zoomable: false,
             scalable: false,
             autoCropArea: 0.6,
             resize: true,
+            progress: this.progress
+
         }, omit(this.options, ['el']));
 
         this.crop = new CropView(o);
+
+        this.preview = new CropPreView({
+            el: this.crop.el,
+    
+        });
+
+        this.crop.options.previewView = this.preview
 
         this.listenTo(this.modal, 'selected', this._onFileSelected);
 
         let up = this.modal.gallery.uploader;
 
-        this.progress = new Progress({
-            size: 100,
-            lineWidth: 5
-        });
+        
 
         this.listenTo(up, 'started', (e) => {
             this.clear();
             this._removeDropIndicator();
-            this.progress.el.style.display = 'block'
+            this.progress.setPercent(0);
+            this.progress.show();
 
         });
 
-        this.listenTo(up, 'progress', (e) => {
+        this.listenTo(up, 'progress', (e:UploadProgressEvent) => {
             let pc = 100 / e.total * e.loaded;
             this.progress.setPercent(pc);
         });
 
-        this.listenTo(up, 'done', (file) => {
+        this.listenTo(up, 'done', (file: FileInfoModel) => {
             this.progress.el.style.display = 'none'
-            this.value = file;
+            this.value = {
+                file: file,
+                cropping: null
+            };
+        });
+
+        this.listenTo(up, 'error', (e:UploadErrorEvent) => {
+            this.progress.hide();
+            this._showError(e);
+            setTimeout(() => { this._showDropIndicator() }, 2000)  
         })
 
-        this.progress.el.style.display = 'none'
+        this.progress.hide();
 
     }
 
@@ -178,13 +202,13 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             addClass(this.crop.el, 'crop-preview cropping-preview')
             addClass(this.crop.ui['image'], 'content');
 
-            if (this.crop.options.previewView) {
+            /*if (this.crop.options.previewView) {
                 this.crop.options.previewView.destroy();
-            }
+            }*/
         }
 
 
-        let preview = new CropPreView({
+        /*let preview = new CropPreView({
             el: this.crop ? this.crop.el : null
         });
 
@@ -194,13 +218,14 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             let el = this.el.querySelector('.crop-btn')
             el.parentElement.removeChild(el);
         } else {
-            this.crop.options.previewView = preview;
-        }
-
-        preview.render();
+            
+        }*/
 
 
-        if (this.crop) {
+        this.preview.render();
+
+
+        /*if (this.crop) {
             let el = Html.query(document.createElement('div'))
                 .addClass('upload-progress-container')
                 .css({ display: 'none' });
@@ -208,11 +233,13 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             this.crop.el.appendChild(el.get(0));
         } else {
             this.ui['crop'].appendChild(preview.el);
-        }
+        }*/
 
         this.drop.render();
         this.crop.el.appendChild(this.progress.render().el);
-        this._showDropIndicator();
+        //this._showDropIndicator();
+
+        //this._showError(new Error('Image already exists'));
 
     }
 
@@ -222,6 +249,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     }
 
     private _showDropIndicator() {
+        this._removeError();
         let preview = this.el.querySelector('.crop-preview');
         if (!preview) return;
         let i = preview.querySelector('.drop-indicator');
@@ -245,6 +273,27 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     private _removeDropIndicator() {
         let i = this.el.querySelector('.drop-indicator')
         if (i && i.parentElement) i.parentElement.removeChild(i);
+    }
+    private _showError(e) {
+        this._removeDropIndicator();
+        let i = <HTMLDivElement>this.crop.el.querySelector('.error');
+        if (!i) {
+            i = document.createElement('div')
+            addClass(i, "error");
+            this.crop.el.appendChild(i);
+        }
+        
+        i.innerHTML = `
+            <h3>Could not upload image!</h3>
+            <p>${e.message}</p>
+        `;
+    }
+
+    private _removeError() {
+        let i = <HTMLDivElement>this.crop.el.querySelector('.error')
+        if (i && i.parentElement) {
+           this.crop.el.removeChild(i);
+        }
     }
 
     private _onToggleCropper(e: MouseEvent) {

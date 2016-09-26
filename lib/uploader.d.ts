@@ -1,5 +1,5 @@
 import { EventEmitter } from 'eventsjs';
-import { IClient, CreateOptions } from 'torsten';
+import { IClient, CreateOptions, ErrorCode } from 'torsten';
 import { IPromise } from 'orange';
 import { FileInfoModel } from './collection';
 export interface UploaderOptions {
@@ -22,6 +22,7 @@ export interface UploadProgressEvent extends UploadEvent {
 }
 export interface UploadErrorEvent extends UploadEvent {
     message: string;
+    code: ErrorCode;
 }
 export declare class Uploader extends EventEmitter {
     _client: IClient;

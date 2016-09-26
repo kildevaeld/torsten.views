@@ -1,6 +1,6 @@
 
 import { EventEmitter } from 'eventsjs';
-import { IClient, CreateOptions, path } from 'torsten';
+import { IClient, CreateOptions, path, ErrorCode, TorstenClientError} from 'torsten';
 import { Deferred, deferred, IPromise, nextTick, extend, uniqueId } from 'orange';
 import { FileInfoModel } from './collection';
 import { TorstenValidateError } from './error'
@@ -31,6 +31,7 @@ export interface UploadProgressEvent extends UploadEvent {
 
 export interface UploadErrorEvent extends UploadEvent {
     message: string;
+    code: ErrorCode;
 }
 
 interface QueueItem {
@@ -126,11 +127,11 @@ export class Uploader extends EventEmitter {
         let {path, file, options, defer} = item,
             event = itemToEvent(item);
 
-        const emit = (e?:Error, file?:FileInfoModel) => {
+        const emit = (e?:TorstenClientError, file?:FileInfoModel) => {
             this._uploading--;
             debug('upload ready %s', path)
             if (e) {
-                this.trigger('error', extend(event, {message: e.message}))
+                this.trigger('error', extend(event, {message: e.message, code: e.code}))
             } else {
                 this.trigger('done', file);
             }

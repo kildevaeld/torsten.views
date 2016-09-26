@@ -3,6 +3,8 @@ import {IView} from 'views';
 
 export interface IProgress extends IView {
     setPercent(percent:number);
+    show();
+    hide();
 }
 
 export interface Size {

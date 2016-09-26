@@ -2,9 +2,11 @@ import { View, ViewOptions } from 'views';
 import { ICropper, Cropping } from './types';
 import { FileInfoModel } from '../collection';
 import { CropPreView } from './crop-preview';
+import { Progress } from '../list/circular-progress';
 export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
     resize: boolean;
     previewView?: CropPreView;
+    progress?: Progress;
 }
 export declare class CropView extends View<HTMLDivElement> {
     model: FileInfoModel;

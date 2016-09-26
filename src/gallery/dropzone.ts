@@ -47,7 +47,9 @@ export class DropZone extends View<HTMLDivElement> {
         let files = <File[]>slice(e.dataTransfer.files);
         mapAsync(files, (file) => {
             return this.uploader.upload(this.path, file)
-        }, this, true)
+        }, this, true).catch(e => {
+            this.trigger('error', e);
+        })
        }
 
        this.triggerMethod('drop', e);

@@ -14,5 +14,7 @@ export declare class Progress extends View<HTMLDivElement> implements IProgress 
     constructor(options?: ProgressOptions);
     setPercent(percent: number): void;
     private _drawCircle(ctx, color, lineWidth, percent);
+    show(): void;
+    hide(): void;
     render(): this;
 }

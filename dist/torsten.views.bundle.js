@@ -2912,29 +2912,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	var torsten_1 = __webpack_require__(19);
 
 	var TorstenGuiError = function (_torsten_1$TorstenCli) {
-	  _inherits(TorstenGuiError, _torsten_1$TorstenCli);
+	    _inherits(TorstenGuiError, _torsten_1$TorstenCli);
 
-	  function TorstenGuiError() {
-	    _classCallCheck(this, TorstenGuiError);
+	    function TorstenGuiError(message) {
+	        _classCallCheck(this, TorstenGuiError);
 
-	    return _possibleConstructorReturn(this, (TorstenGuiError.__proto__ || Object.getPrototypeOf(TorstenGuiError)).apply(this, arguments));
-	  }
+	        return _possibleConstructorReturn(this, (TorstenGuiError.__proto__ || Object.getPrototypeOf(TorstenGuiError)).call(this, torsten_1.ErrorCode.Unknown, message));
+	    }
 
-	  return TorstenGuiError;
+	    return TorstenGuiError;
 	}(torsten_1.TorstenClientError);
 
 	exports.TorstenGuiError = TorstenGuiError;
 
 	var TorstenValidateError = function (_torsten_1$TorstenCli2) {
-	  _inherits(TorstenValidateError, _torsten_1$TorstenCli2);
+	    _inherits(TorstenValidateError, _torsten_1$TorstenCli2);
 
-	  function TorstenValidateError() {
-	    _classCallCheck(this, TorstenValidateError);
+	    function TorstenValidateError(message) {
+	        _classCallCheck(this, TorstenValidateError);
 
-	    return _possibleConstructorReturn(this, (TorstenValidateError.__proto__ || Object.getPrototypeOf(TorstenValidateError)).apply(this, arguments));
-	  }
+	        return _possibleConstructorReturn(this, (TorstenValidateError.__proto__ || Object.getPrototypeOf(TorstenValidateError)).call(this, torsten_1.ErrorCode.Unknown, message));
+	    }
 
-	  return TorstenValidateError;
+	    return TorstenValidateError;
 	}(torsten_1.TorstenClientError);
 
 	exports.TorstenValidateError = TorstenValidateError;
@@ -2952,13 +2952,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	__export(__webpack_require__(20));
 	__export(__webpack_require__(39));
-	var error_1 = __webpack_require__(35);
-	exports.TorstenClientError = error_1.TorstenClientError;
+	__export(__webpack_require__(35));
 	var utils_1 = __webpack_require__(29);
 	exports.readBlobAsText = utils_1.readBlobAsText;
 	exports.readBlobAsArrayBuffer = utils_1.readBlobAsArrayBuffer;
 	exports.readBlobAsDataURL = utils_1.readBlobAsDataURL;
 	exports.path = utils_1.path;
+	__export(__webpack_require__(34));
 
 /***/ },
 /* 20 */
@@ -2977,7 +2977,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var request = __webpack_require__(36);
 	var orange_request_1 = __webpack_require__(37);
 	function validateConfig(options) {
-	    if (options == null) throw error_1.createError("options");
+	    if (options == null) throw error_1.createError(0, "options");
 	}
 
 	var TorstenClient = function () {
@@ -2994,7 +2994,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function create(path, data) {
 	            var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-	            if (data == null) return Promise.reject(error_1.createError("no data"));
+	            if (data == null) return Promise.reject(error_1.createError(error_1.ErrorCode.NullData, "no data"));
 	            var req = orange_1.extend({}, options, {
 	                token: this.token
 	            });
@@ -3006,7 +3006,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return res.json();
 	            }).then(function (json) {
 	                if (json.message != "ok") {
-	                    throw error_1.createError("invalid response");
+	                    throw error_1.createError(error_1.ErrorCode.Unknown, "invalid response: " + json.message);
 	                }
 	                return json.data;
 	            });
@@ -3121,13 +3121,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.TorstenClient = TorstenClient;
 	function getResponse(res) {
 	    if (!res.isValid) {
+	        switch (res.status) {
+	            case error_1.ErrorCode.NotFound:
+	                throw error_1.createError(error_1.ErrorCode.NotFound, "Not Found");
+	            case error_1.ErrorCode.AlreadyExists:
+	                throw error_1.createError(error_1.ErrorCode.AlreadyExists, "Already Exists");
+	            case error_1.ErrorCode.Unauthorized:
+	                throw error_1.createError(error_1.ErrorCode.Unauthorized, "Unauthorized");
+	        }
 	        if (/text\/plain/.test(res.headers.get('Content-Type'))) {
 	            return res.text().then(function (t) {
-	                return Promise.reject(new Error(t));
+	                error_1.createError(error_1.ErrorCode.Unauthorized, t);
 	            });
 	        } else if (/application\/json/.test(res.headers.get('Content-Type'))) {
 	            return res.json().then(function (json) {
-	                return Promise.reject(new error_1.TorstenJSONError("response", json));
+	                return Promise.reject(new error_1.TorstenJSONError(error_1.ErrorCode.Unknown, "response", json));
 	            });
 	        }
 	    }
@@ -6364,7 +6372,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var orange_1 = __webpack_require__(21);
-	var props = ['name', 'mime', 'size', 'ctime', 'mtime', 'mode', 'gid', 'uid', 'meta', 'path', 'is_dir', 'hidden'];
+	var props = ['name', 'mime', 'size', 'ctime', 'mtime', 'mode', 'gid', 'uid', 'meta', 'path', 'is_dir', 'hidden', 'id'];
 
 	var FileInfo = function () {
 	    function FileInfo() {
@@ -6405,23 +6413,45 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+	(function (ErrorCode) {
+	    ErrorCode[ErrorCode["AlreadyExists"] = 409] = "AlreadyExists";
+	    ErrorCode[ErrorCode["NotFound"] = 404] = "NotFound";
+	    ErrorCode[ErrorCode["Unauthorized"] = 401] = "Unauthorized";
+	    ErrorCode[ErrorCode["Unknown"] = 500] = "Unknown";
+	    ErrorCode[ErrorCode["NullData"] = 600] = "NullData";
+	})(exports.ErrorCode || (exports.ErrorCode = {}));
+	var ErrorCode = exports.ErrorCode;
+
 	var TorstenClientError = function (_Error) {
 	    _inherits(TorstenClientError, _Error);
 
-	    function TorstenClientError(message) {
+	    function TorstenClientError(code, message) {
 	        _classCallCheck(this, TorstenClientError);
 
 	        var _this = _possibleConstructorReturn(this, (TorstenClientError.__proto__ || Object.getPrototypeOf(TorstenClientError)).call(this, message));
 
+	        _this.code = code;
 	        _this.message = message;
 	        return _this;
 	    }
+
+	    _createClass(TorstenClientError, [{
+	        key: "toJSON",
+	        value: function toJSON() {
+	            return {
+	                message: this.message,
+	                code: this.code
+	            };
+	        }
+	    }]);
 
 	    return TorstenClientError;
 	}(Error);
@@ -6431,10 +6461,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var TorstenJSONError = function (_TorstenClientError) {
 	    _inherits(TorstenJSONError, _TorstenClientError);
 
-	    function TorstenJSONError(message, json) {
+	    function TorstenJSONError(code, message, json) {
 	        _classCallCheck(this, TorstenJSONError);
 
-	        var _this2 = _possibleConstructorReturn(this, (TorstenJSONError.__proto__ || Object.getPrototypeOf(TorstenJSONError)).call(this, message));
+	        var _this2 = _possibleConstructorReturn(this, (TorstenJSONError.__proto__ || Object.getPrototypeOf(TorstenJSONError)).call(this, code, message));
 
 	        _this2.json = json;
 	        return _this2;
@@ -6444,8 +6474,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(TorstenClientError);
 
 	exports.TorstenJSONError = TorstenJSONError;
-	function createError(msg) {
-	    return new TorstenClientError(msg);
+	function createError(code, msg) {
+	    return new TorstenClientError(code, msg);
 	}
 	exports.createError = createError;
 
@@ -10770,6 +10800,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ctx.stroke();
 	        }
 	    }, {
+	        key: "show",
+	        value: function show() {
+	            this.el.style.display = 'block';
+	        }
+	    }, {
+	        key: "hide",
+	        value: function hide() {
+	            this.el.style.display = 'none';
+	        }
+	    }, {
 	        key: "render",
 	        value: function render() {
 	            _get(Progress.prototype.__proto__ || Object.getPrototypeOf(Progress.prototype), "render", this).call(this);
@@ -10886,6 +10926,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            maxSize: options.maxSize || 2048,
 	            accept: options.accept || ['*']
 	        });
+	        if (options.accept) _this.uploader.accept = options.accept;
+	        if (options.maxSize > 0) _this.uploader.maxSize = options.maxSize;
 	        _this.listenTo(_this.list, 'selected', _this._onFileInfoSelected);
 	        _this.listenTo(_this.list, 'remove', _this._onFileInfoRemoved);
 	        _this.listenTo(_this.list, 'dblclick', function () {
@@ -11202,7 +11244,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var files = orange_1.slice(e.dataTransfer.files);
 	                orange_1.mapAsync(files, function (file) {
 	                    return _this2.uploader.upload(_this2.path, file);
-	                }, this, true);
+	                }, this, true).catch(function (e) {
+	                    _this2.trigger('error', e);
+	                });
 	            }
 	            this.triggerMethod('drop', e);
 	        }
@@ -11334,7 +11378,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this3._uploading--;
 	                debug('upload ready %s', path);
 	                if (e) {
-	                    _this3.trigger('error', orange_1.extend(event, { message: e.message }));
+	                    _this3.trigger('error', orange_1.extend(event, { message: e.message, code: e.code }));
 	                } else {
 	                    _this3.trigger('done', file);
 	                }
@@ -11438,6 +11482,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.trigger('selected', _this.selected);
 	            _this.close();
 	        });
+	        _this.listenTo(_this._gallery, 'selected', function () {
+	            _this.trigger('selected', _this.selected);
+	        });
 	        _this._setHeight = orange_1.bind(_this._setHeight, _this);
 	        return _this;
 	    }
@@ -11480,7 +11527,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: "_onSelect",
 	        value: function _onSelect(e) {
 	            e.preventDefault();
-	            if (this.selected) this.trigger('select', this.selected);
+	            if (this.selected) this.trigger('selected', this.selected);
 	            this.close();
 	        }
 	    }, {
@@ -11930,7 +11977,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var utils_1 = __webpack_require__(63);
 	var orange_1 = __webpack_require__(21);
 	var orange_dom_1 = __webpack_require__(49);
-	var circular_progress_1 = __webpack_require__(64);
 	function isFunction(a) {
 	    return typeof a === 'function';
 	}
@@ -12065,21 +12111,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.src = utils_1.emptyImage;
 	                return Promise.resolve(false);
 	            }
-	            var _progress = new circular_progress_1.Progress({
+	            /*let progress = new Progress({
 	                size: 52,
 	                lineWidth: 5
 	            });
-	            orange_dom_1.addClass(_progress.el, 'loader');
-	            this.el.appendChild(_progress.render().el);
+	             addClass(progress.el, 'loader')
+	            this.el.appendChild(progress.render().el)*/
+	            var _progress = this.options.progress;
+	            if (_progress) {
+	                _progress.show();
+	            }
 	            return this.model.open({
 	                progress: function progress(e) {
 	                    var pc = 100 / e.total * e.loaded;
-	                    _progress.setPercent(pc);
+	                    if (_progress) _progress.setPercent(pc);
 	                }
 	            }).then(function (blob) {
+	                var fn = function fn(e) {
+	                    if (_progress) _progress.hide();
+	                    img.removeEventListener('load', fn);
+	                };
+	                img.addEventListener('load', fn);
 	                img.src = URL.createObjectURL(blob);
 	                _this4.triggerMethod('image', true);
-	                _progress.remove().destroy();
+	                //if (progress) progress.hide();
+	                //progress.remove().destroy();
 	                return true;
 	            }).then(function () {
 	                orange_dom_1.addClass(img, 'loaded');
@@ -15797,23 +15853,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	            uploader: _this.modal.gallery.uploader,
 	            path: options.root
 	        });
-	        var o = orange_1.extend({
-	            zoomable: false,
-	            scalable: false,
-	            autoCropArea: 0.6,
-	            resize: true
-	        }, orange_1.omit(_this.options, ['el']));
-	        _this.crop = new index_1.CropView(o);
-	        _this.listenTo(_this.modal, 'selected', _this._onFileSelected);
-	        var up = _this.modal.gallery.uploader;
 	        _this.progress = new circular_progress_1.Progress({
 	            size: 100,
 	            lineWidth: 5
 	        });
+	        var o = orange_1.extend({
+	            zoomable: false,
+	            scalable: false,
+	            autoCropArea: 0.6,
+	            resize: true,
+	            progress: _this.progress
+	        }, orange_1.omit(_this.options, ['el']));
+	        _this.crop = new index_1.CropView(o);
+	        _this.preview = new index_1.CropPreView({
+	            el: _this.crop.el
+	        });
+	        _this.crop.options.previewView = _this.preview;
+	        _this.listenTo(_this.modal, 'selected', _this._onFileSelected);
+	        var up = _this.modal.gallery.uploader;
 	        _this.listenTo(up, 'started', function (e) {
 	            _this.clear();
 	            _this._removeDropIndicator();
-	            _this.progress.el.style.display = 'block';
+	            _this.progress.setPercent(0);
+	            _this.progress.show();
 	        });
 	        _this.listenTo(up, 'progress', function (e) {
 	            var pc = 100 / e.total * e.loaded;
@@ -15821,9 +15883,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	        _this.listenTo(up, 'done', function (file) {
 	            _this.progress.el.style.display = 'none';
-	            _this.value = file;
+	            _this.value = {
+	                file: file,
+	                cropping: null
+	            };
 	        });
-	        _this.progress.el.style.display = 'none';
+	        _this.listenTo(up, 'error', function (e) {
+	            _this.progress.hide();
+	            _this._showError(e);
+	            setTimeout(function () {
+	                _this._showDropIndicator();
+	            }, 2000);
+	        });
+	        _this.progress.hide();
 	        return _this;
 	    }
 
@@ -15892,32 +15964,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.ui['crop'].appendChild(this.crop.render().el);
 	                orange_dom_1.addClass(this.crop.el, 'crop-preview cropping-preview');
 	                orange_dom_1.addClass(this.crop.ui['image'], 'content');
-	                if (this.crop.options.previewView) {
-	                    this.crop.options.previewView.destroy();
-	                }
 	            }
-	            var preview = new index_1.CropPreView({
+	            /*let preview = new CropPreView({
 	                el: this.crop ? this.crop.el : null
 	            });
-	            if (!this.crop) {
+	             if (!this.crop) {
 	                preview.el.innerHTML = '<img class="content" />';
-	                orange_dom_1.addClass(preview.el, 'crop-preview cropping-preview');
-	                var el = this.el.querySelector('.crop-btn');
+	                addClass(preview.el, 'crop-preview cropping-preview')
+	                let el = this.el.querySelector('.crop-btn')
 	                el.parentElement.removeChild(el);
 	            } else {
-	                this.crop.options.previewView = preview;
-	            }
-	            preview.render();
-	            if (this.crop) {
-	                var _el = orange_dom_1.Html.query(document.createElement('div')).addClass('upload-progress-container').css({ display: 'none' });
-	                _el.html('<div class="upload-progress" style="width:0;"></div>');
-	                this.crop.el.appendChild(_el.get(0));
+	                
+	            }*/
+	            this.preview.render();
+	            /*if (this.crop) {
+	                let el = Html.query(document.createElement('div'))
+	                    .addClass('upload-progress-container')
+	                    .css({ display: 'none' });
+	                el.html('<div class="upload-progress" style="width:0;"></div>');
+	                this.crop.el.appendChild(el.get(0));
 	            } else {
 	                this.ui['crop'].appendChild(preview.el);
-	            }
+	            }*/
 	            this.drop.render();
 	            this.crop.el.appendChild(this.progress.render().el);
-	            this._showDropIndicator();
+	            //this._showDropIndicator();
+	            //this._showError(new Error('Image already exists'));
 	        }
 	    }, {
 	        key: "clear",
@@ -15928,6 +16000,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_showDropIndicator",
 	        value: function _showDropIndicator() {
+	            this._removeError();
 	            var preview = this.el.querySelector('.crop-preview');
 	            if (!preview) return;
 	            var i = preview.querySelector('.drop-indicator');
@@ -15948,6 +16021,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _removeDropIndicator() {
 	            var i = this.el.querySelector('.drop-indicator');
 	            if (i && i.parentElement) i.parentElement.removeChild(i);
+	        }
+	    }, {
+	        key: "_showError",
+	        value: function _showError(e) {
+	            this._removeDropIndicator();
+	            var i = this.crop.el.querySelector('.error');
+	            if (!i) {
+	                i = document.createElement('div');
+	                orange_dom_1.addClass(i, "error");
+	                this.crop.el.appendChild(i);
+	            }
+	            i.innerHTML = "\n            <h3>Could not upload image!</h3>\n            <p>" + e.message + "</p>\n        ";
+	        }
+	    }, {
+	        key: "_removeError",
+	        value: function _removeError() {
+	            var i = this.crop.el.querySelector('.error');
+	            if (i && i.parentElement) {
+	                this.crop.el.removeChild(i);
+	            }
 	        }
 	    }, {
 	        key: "_onToggleCropper",

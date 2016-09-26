@@ -17,7 +17,7 @@ function isFunction(a: any): a is Function {
 export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
     resize: boolean;
     previewView?: CropPreView;
-
+    progress?: Progress;
 }
 
 @attributes({
@@ -189,25 +189,39 @@ export class CropView extends View<HTMLDivElement> {
             return Promise.resolve(false);
         }
 
-        let progress = new Progress({
+        /*let progress = new Progress({
             size: 52,
             lineWidth: 5
         });
 
         addClass(progress.el, 'loader')
-        this.el.appendChild(progress.render().el)
+        this.el.appendChild(progress.render().el)*/
+
+
+        let progress = this.options.progress;
+        if (progress) {
+            
+            
+            progress.show();
+        }
         
         return this.model.open({
             progress: (e) => {
                 let pc = 100 / e.total * e.loaded
-                progress.setPercent(pc);
+                if (progress) progress.setPercent(pc);
             }
         }).then( blob => {
-            
+            var fn = (e) => {
+                if (progress) progress.hide()
+                img.removeEventListener('load', fn);
+            }
+            img.addEventListener('load', fn);
+
             img.src = URL.createObjectURL(blob)
             this.triggerMethod('image', true)
             
-            progress.remove().destroy();
+            //if (progress) progress.hide();
+            //progress.remove().destroy();
             return true
         }).then( () => {
             addClass(img, 'loaded');

@@ -43,9 +43,13 @@ export class GalleryModal extends Modal {
         this._gallery = new GalleryView(options);
 
         this.listenTo(this._gallery, 'dblclick', () => {
-            this.trigger('selected', this.selected)
+            this.trigger('selected', this.selected);
             this.close();
         });
+
+        this.listenTo(this._gallery, 'selected', () => {
+            this.trigger('selected', this.selected);
+        })
 
         this._setHeight = bind(this._setHeight, this);
 
@@ -85,7 +89,7 @@ export class GalleryModal extends Modal {
     private _onSelect (e) {
         e.preventDefault();
         if (this.selected)
-            this.trigger('select', this.selected);
+            this.trigger('selected', this.selected);
         this.close();
     }
 }

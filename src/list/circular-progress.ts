@@ -56,7 +56,14 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
         ctx.stroke();
     }
 
+
+    show() {
+        this.el.style.display = 'block';
+    }
    
+    hide() {
+        this.el.style.display = 'none';
+    }
 
     render() {
         super.render();

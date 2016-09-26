@@ -107,6 +107,9 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
             accept: options.accept||['*']
         }));
 
+        if (options.accept) this.uploader.accept = options.accept;
+        if (options.maxSize > 0) this.uploader.maxSize = options.maxSize;
+
         this.listenTo(this.list, 'selected', this._onFileInfoSelected);
         this.listenTo(this.list, 'remove', this._onFileInfoRemoved)
         this.listenTo(this.list, 'dblclick', () => {
