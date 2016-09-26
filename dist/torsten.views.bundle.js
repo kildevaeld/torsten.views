@@ -8342,13 +8342,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var images = this.el.querySelectorAll('img');
 	            for (var i = 0, ii = images.length; i < ii; i++) {
 	                var img = images[i];
-	                /*if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
-	                    if (!elementInView(img, this.el) && hasClass(img, 'loading')) {
+	                if (orange_dom_1.hasClass(img.parentElement, "loaded") || orange_dom_1.hasClass(img.parentElement, "loading")) {
+	                    /*if (!elementInView(img, this.el) && hasClass(img, 'loading')) {
 	                        Downloader.cancel(img.getAttribute('data-src'));
 	                        removeClass(img, 'loading');
-	                    }
+	                    }*/
 	                    continue;
-	                }*/
+	                }
 	                if (elementInView(img, this.el)) {
 	                    loadImage(img);
 	                }
@@ -11971,14 +11971,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            _get(CropView.prototype.__proto__ || Object.getPrototypeOf(CropView.prototype), "setModel", this).call(this, model);
 	            this._updateImage().then(function (loaded) {
-	                //if (loaded) image.style.display = 'block';
-	                return loaded;
-	            }).then(function (loaded) {
-	                if (!loaded) return;
-	                var cropping = model.get('meta.cropping');
-	                if (cropping) {
-	                    _this2.cropping = cropping;
-	                } else if (_this2.options.aspectRatio != null) {
+	                if (loaded && _this2.options.aspectRatio != null) {
 	                    utils_1.getImageSize(image).then(function (size) {
 	                        _this2.cropping = types_1.getCropping(size, _this2.options.aspectRatio);
 	                        //this.triggerMethod('crop', cropping);
@@ -15967,7 +15960,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                orange_dom_1.addClass(e.target, 'active');
 	            } else {
 	                orange_dom_1.removeClass(e.target, 'active');
-	                this.model.set('meta.cropping', this.crop.cropping);
+	                //this.model.set('meta.cropping', this.crop.cropping);
 	                this.triggerMethod('change');
 	            }
 	        }

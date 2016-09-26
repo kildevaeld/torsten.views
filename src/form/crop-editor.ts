@@ -256,7 +256,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             addClass(<any>e.target, 'active');
         } else {
             removeClass(<any>e.target, 'active');
-            this.model.set('meta.cropping', this.crop.cropping);
+            //this.model.set('meta.cropping', this.crop.cropping);
             this.triggerMethod('change');
         }
     }

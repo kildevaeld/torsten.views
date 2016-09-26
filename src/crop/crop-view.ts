@@ -78,17 +78,7 @@ export class CropView extends View<HTMLDivElement> {
 
         this._updateImage()
             .then((loaded) => {
-                //if (loaded) image.style.display = 'block';
-                return loaded
-            }).then((loaded) => {
-                if (!loaded) return;
-                let cropping = model.get('meta.cropping');
-                
-                if (cropping) {
-                    this.cropping = cropping;
-                    //this.triggerMethod('crop', cropping);
-
-                } else if (this.options.aspectRatio != null) {
+                if (loaded && this.options.aspectRatio != null) {
 
                     getImageSize(image).then(size => {
                         this.cropping = getCropping(size, this.options.aspectRatio);
