@@ -10438,11 +10438,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.setAttribute('data-src', this.model.fullPath);
 	                this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
 	            }
-	            //let url = model.getURL();
-	            /*let img = new Image();
-	            img.src = "data:image/png;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAI="
-	            img.setAttribute('data-src', `${url}?thumbnail=true`)*/
-	            //*/
 	        }
 	    }, {
 	        key: "_onClick",
@@ -10868,6 +10863,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -10921,12 +10918,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.drop = new dropzone_1.DropZone({
 	            el: _this.el
 	        });
-	        _this.uploader = options.uploader || new uploader_1.Uploader({
-	            client: _this.client,
-	            maxSize: options.maxSize || 2048,
-	            accept: options.accept || ['*'],
-	            mode: options.mode
-	        });
+	        _this.uploader = options.uploader;
+	        if (!_this.uploader) {
+	            _this.uploader = new uploader_1.Uploader({
+	                client: _this.client,
+	                maxSize: options.maxSize,
+	                accept: options.accept || ['*'],
+	                mode: options.mode
+	            });
+	            _this._const_upload = true;
+	        }
 	        if (options.accept) _this.uploader.accept = options.accept;
 	        if (options.maxSize > 0) _this.uploader.maxSize = options.maxSize;
 	        _this.listenTo(_this.list, 'selected', _this._onFileInfoSelected);
@@ -10984,6 +10985,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.regions['list'].show(this.list);
 	            this.regions['info'].show(this.info);
 	            this.drop.render();
+	        }
+	    }, {
+	        key: "destroy",
+	        value: function destroy() {
+	            this.list.destroy();
+	            this.info.destroy();
+	            this.drop.destroy();
+	            if (this._const_upload) {
+	                this.uploader.destroy();
+	            }
+	            _get(GalleryView.prototype.__proto__ || Object.getPrototypeOf(GalleryView.prototype), "destroy", this).call(this);
+	            return this;
 	        }
 	    }, {
 	        key: "collection",
@@ -11320,7 +11333,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this._queue = [];
 	        _this._uploading = 0;
 	        _this.accept = ["*"];
-	        _this.maxSize = 2048;
+	        _this.maxSize = 1024 * 1024 * 2;
 	        _this.queueSize = 10;
 	        _this.mode = 500;
 	        orange_1.extend(_this, options);
@@ -11331,7 +11344,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: '_validateFile',
 	        value: function _validateFile(file) {
 	            if (file.size > this.maxSize) {
-	                throw new error_1.TorstenValidateError("file to large");
+	                throw new error_1.TorstenValidateError("file to large. The maximum size is: " + orange_1.humanFileSize(this.maxSize));
 	            }
 	            var mimeValid = false;
 	            for (var i = 0, ii = this.accept.length; i < ii; i++) {
@@ -11543,6 +11556,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            e.preventDefault();
 	            if (this.selected) this.trigger('selected', this.selected);
 	            this.close();
+	        }
+	    }, {
+	        key: "onDestroy",
+	        value: function onDestroy() {
+	            this.close();
+	            this._gallery.destroy();
 	        }
 	    }, {
 	        key: "gallery",

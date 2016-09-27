@@ -1,7 +1,7 @@
 
 import { EventEmitter } from 'eventsjs';
 import { IClient, CreateOptions, path, ErrorCode, TorstenClientError, FileMode} from 'torsten';
-import { Deferred, deferred, IPromise, nextTick, extend, uniqueId } from 'orange';
+import { Deferred, deferred, IPromise, nextTick, extend, uniqueId, humanFileSize } from 'orange';
 import { FileInfoModel } from './collection';
 import { TorstenValidateError } from './error'
 import * as Debug from 'debug';
@@ -67,7 +67,7 @@ export class Uploader extends EventEmitter {
     private _uploading: number = 0;
 
     accept: string[] = ["*"];
-    maxSize: number = 2048;
+    maxSize: number = 1024*1024*2;
     queueSize: number = 10;
     mode: FileMode = 500;
 
@@ -85,7 +85,7 @@ export class Uploader extends EventEmitter {
 
     private _validateFile(file: File) {
         if (file.size > this.maxSize) {
-            throw new TorstenValidateError("file to large")
+            throw new TorstenValidateError("file to large. The maximum size is: " + humanFileSize(this.maxSize))
         }
         var mimeValid = false;
         for (let i = 0, ii = this.accept.length; i < ii; i++) {

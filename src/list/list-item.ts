@@ -52,15 +52,6 @@ export class FileListItemView extends View<HTMLDivElement> {
             this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
             
         }
-
-
-        //let url = model.getURL();
-
-		/*let img = new Image();
-		img.src = "data:image/png;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAI="
-		img.setAttribute('data-src', `${url}?thumbnail=true`)*/
-
-        //*/
     }
 
     private _onClick(e: Event) {

@@ -15,4 +15,5 @@ export declare class GalleryModal extends Modal {
     onOpen(): void;
     onRender(): void;
     private _onSelect(e);
+    onDestroy(): void;
 }

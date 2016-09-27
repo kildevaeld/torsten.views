@@ -92,4 +92,9 @@ export class GalleryModal extends Modal {
             this.trigger('selected', this.selected);
         this.close();
     }
+
+    onDestroy() {
+        this.close();
+        this._gallery.destroy();
+    }
 }

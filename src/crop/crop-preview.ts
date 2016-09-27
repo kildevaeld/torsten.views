@@ -27,7 +27,7 @@ export class CropPreview {
 
     update(): IPromise<any> {
         
-        let img = this._el.querySelector("img")
+        let img = <HTMLImageElement>this._el.querySelector("img")
         
         return getImageSize(img)
             .then(size => {

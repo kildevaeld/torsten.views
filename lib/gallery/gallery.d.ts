@@ -19,6 +19,7 @@ export declare class GalleryView extends LayoutView<HTMLDivElement> {
     list: FileListView;
     drop: DropZone;
     uploader: Uploader;
+    _const_upload: boolean;
     client: IClient;
     collections: FileCollection[];
     collection: FileCollection;
@@ -32,4 +33,5 @@ export declare class GalleryView extends LayoutView<HTMLDivElement> {
     private _setCollection(collection);
     private _onFileDrop(file);
     onRender(): void;
+    destroy(): this;
 }
