@@ -1744,11 +1744,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var views_1 = __webpack_require__(14);
 	var orange_1 = __webpack_require__(5);
-	(function (ProgressMode) {
-	    ProgressMode[ProgressMode["Indeterminate"] = 0] = "Indeterminate";
-	    ProgressMode[ProgressMode["Determinate"] = 1] = "Determinate";
-	})(exports.ProgressMode || (exports.ProgressMode = {}));
-	var ProgressMode = exports.ProgressMode;
 	var Progress = function (_views_1$View) {
 	    _inherits(Progress, _views_1$View);
 
@@ -1764,11 +1759,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            lineWidth: 15,
 	            rotate: 0,
 	            background: '#efefef',
-	            foreground: '#555555',
-	            mode: ProgressMode.Determinate
+	            foreground: '#555555'
 	        }, options);
 	        _this._percent = 0;
-	        _this._mode = _this.options.mode;
 	        return _this;
 	    }
 
@@ -1784,11 +1777,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this2._drawCircle(_this2.ctx, _this2.options.background, _this2.options.lineWidth, 100 / 100);
 	                _this2._drawCircle(_this2.ctx, _this2.options.foreground, _this2.options.lineWidth, percent / 100);
 	                var text = _this2.el.querySelector('span');
-	                if (_this2.mode == ProgressMode.Determinate) {
-	                    text.textContent = Math.floor(percent) + '%';
-	                } else {
-	                    text.textContent = '';
-	                }
+	                text.textContent = Math.floor(percent) + '%';
 	            });
 	        }
 	    }, {
@@ -1838,39 +1827,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            span.style.width = options.size + 'px';
 	            span.style.fontSize = options.size / 5 + 'px';
 	            this.ctx = ctx;
-	            if (this.mode == ProgressMode.Determinate) {
-	                this.setPercent(0);
-	            }
-	            this._isRendered = true;
+	            this.setPercent(0);
 	            return this;
-	        }
-	    }, {
-	        key: "mode",
-	        set: function set(mode) {
-	            var _this3 = this;
-
-	            if (!this._isRendered) {
-	                this.once('render', function () {
-	                    setTimeout(function () {
-	                        return _this3.mode = mode;
-	                    }, 200);
-	                });
-	            }
-	            if (this._timer) clearInterval(this._timer);
-	            if (mode === ProgressMode.Indeterminate) {
-	                (function () {
-	                    var last = 0;
-	                    _this3.setPercent(0);
-	                    _this3._timer = setInterval(function () {
-	                        last = last == 100 ? 0 : last + 1;
-	                        _this3.setPercent(last);
-	                    }, 100);
-	                })();
-	            }
-	            this._mode = mode;
-	        },
-	        get: function get() {
-	            return this._mode;
 	        }
 	    }]);
 

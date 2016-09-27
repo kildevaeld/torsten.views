@@ -19,10 +19,15 @@
 
 	<script>
 		
-		var view = new torsten.views.Progress();
-        view.mode = 0
+		var view = new torsten.views.Progress({
+			lineWidth: 5
+		});
+        
+
 
 		document.body.appendChild(view.render().el)
+
+		 view.setPercent(40)
 
 	</script>
 </body>
