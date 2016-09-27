@@ -101,7 +101,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             el: this.el,
             uploader: this.modal.gallery.uploader,
             path: options.root,
-            mode: this.options.mode|500
+            mode: this.options.mode
         });
 
         this.progress = new Progress({

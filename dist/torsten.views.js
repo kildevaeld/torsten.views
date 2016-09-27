@@ -6883,7 +6883,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            el: _this.el,
 	            uploader: _this.modal.gallery.uploader,
 	            path: options.root,
-	            mode: _this.options.mode | 500
+	            mode: _this.options.mode
 	        });
 	        _this.progress = new circular_progress_1.Progress({
 	            size: 100,
