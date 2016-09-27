@@ -127,7 +127,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this.listenTo(this.uploader, 'done', (file: FileInfoModel) => {
 
             for (let i = 0, ii = this.collections.length; i < ii; i++) {
-                if (this.collections[i].path == file.get('path')) {
+                if (this.collections[i].path + '/' == file.get('path')) {
                     this.collections[i].add(file);
                 }
             }

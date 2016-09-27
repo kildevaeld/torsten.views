@@ -3,12 +3,18 @@ import {View, ViewOptions, attributes} from 'views'
 import {extend} from 'orange';
 import {IProgress} from '../types';
 
+export enum ProgressMode {
+    Indeterminate,
+    Determinate
+}
+
 export interface ProgressOptions extends ViewOptions {
     size?: number;
     lineWidth?: number;
     rotate?: number;
     background?: string;
-    foreground?: string
+    foreground?: string;
+    mode?: ProgressMode
 }
 
 
@@ -18,6 +24,9 @@ export interface ProgressOptions extends ViewOptions {
 export class Progress extends View<HTMLDivElement> implements IProgress {
     options: ProgressOptions;
     _percent: number;
+    _timer: NodeJS.Timer;
+    _mode: ProgressMode;
+    _isRendered: boolean;
     ctx: CanvasRenderingContext2D;
     constructor(options: ProgressOptions = {}) {
         super(options)
@@ -26,10 +35,33 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
             lineWidth: 15,
             rotate: 0,
             background: '#efefef',
-            foreground: '#555555'
+            foreground: '#555555',
+            mode: ProgressMode.Determinate
         }, options);
         this._percent = 0;
+        this._mode = this.options.mode;
     }
+
+    set mode(mode: ProgressMode) {
+        if (!this._isRendered) {
+            this.once('render', () => {
+                setTimeout(() => this.mode = mode, 200);
+            });
+        }
+        if (this._timer) clearInterval(this._timer);
+
+        if (mode === ProgressMode.Indeterminate) {
+            let last = 0;
+            this.setPercent(0)
+            this._timer = setInterval( () => {
+                last = last == 100 ? 0 : last+1; 
+                this.setPercent(last);
+            }, 100)
+        }   
+        this._mode = mode;
+    }
+
+    get mode() { return this._mode; }
 
     setPercent(percent: number) {
 
@@ -40,10 +72,18 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
             this.ctx.clearRect(0, 0, this.options.size, this.options.size)
             this._drawCircle(this.ctx, this.options.background, this.options.lineWidth, 100 / 100);
             this._drawCircle(this.ctx, this.options.foreground, this.options.lineWidth, percent / 100);
-            this.el.querySelector('span').textContent = Math.floor(percent) + '%'
+            let text = this.el.querySelector('span')
+            if (this.mode == ProgressMode.Determinate) {
+                text.textContent = Math.floor(percent) + '%'
+            } else {
+                text.textContent = '';
+            }
+            
         });
 
     }
+
+
 
     private _drawCircle(ctx:CanvasRenderingContext2D, color, lineWidth, percent) {
         var radius = (this.options.size - this.options.lineWidth) / 2;
@@ -100,7 +140,12 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
 
         this.ctx = ctx;
 
-        this.setPercent(0)
+        if (this.mode == ProgressMode.Determinate) {
+            this.setPercent(0)
+        }
+        
+
+        this._isRendered = true;
 
         return this;
     }

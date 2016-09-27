@@ -10747,6 +10747,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var views_1 = __webpack_require__(46);
 	var orange_1 = __webpack_require__(21);
+	(function (ProgressMode) {
+	    ProgressMode[ProgressMode["Indeterminate"] = 0] = "Indeterminate";
+	    ProgressMode[ProgressMode["Determinate"] = 1] = "Determinate";
+	})(exports.ProgressMode || (exports.ProgressMode = {}));
+	var ProgressMode = exports.ProgressMode;
 	var Progress = function (_views_1$View) {
 	    _inherits(Progress, _views_1$View);
 
@@ -10762,9 +10767,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            lineWidth: 15,
 	            rotate: 0,
 	            background: '#efefef',
-	            foreground: '#555555'
+	            foreground: '#555555',
+	            mode: ProgressMode.Determinate
 	        }, options);
 	        _this._percent = 0;
+	        _this._mode = _this.options.mode;
 	        return _this;
 	    }
 
@@ -10779,7 +10786,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this2.ctx.clearRect(0, 0, _this2.options.size, _this2.options.size);
 	                _this2._drawCircle(_this2.ctx, _this2.options.background, _this2.options.lineWidth, 100 / 100);
 	                _this2._drawCircle(_this2.ctx, _this2.options.foreground, _this2.options.lineWidth, percent / 100);
-	                _this2.el.querySelector('span').textContent = Math.floor(percent) + '%';
+	                var text = _this2.el.querySelector('span');
+	                if (_this2.options.mode == ProgressMode.Determinate) {
+	                    text.textContent = Math.floor(percent) + '%';
+	                } else {
+	                    text.textContent = '';
+	                }
 	            });
 	        }
 	    }, {
@@ -10829,8 +10841,39 @@ return /******/ (function(modules) { // webpackBootstrap
 	            span.style.width = options.size + 'px';
 	            span.style.fontSize = options.size / 5 + 'px';
 	            this.ctx = ctx;
-	            this.setPercent(0);
+	            if (this.mode == ProgressMode.Determinate) {
+	                this.setPercent(0);
+	            }
+	            this._isRendered = true;
 	            return this;
+	        }
+	    }, {
+	        key: "mode",
+	        set: function set(mode) {
+	            var _this3 = this;
+
+	            if (!this._isRendered) {
+	                this.once('render', function () {
+	                    setTimeout(function () {
+	                        return _this3.mode = mode;
+	                    }, 200);
+	                });
+	            }
+	            if (this._timer) clearInterval(this._timer);
+	            if (mode === ProgressMode.Indeterminate) {
+	                (function () {
+	                    var last = 0;
+	                    _this3.setPercent(0);
+	                    _this3._timer = setInterval(function () {
+	                        last = last == 100 ? 0 : last + 10;
+	                        _this3.setPercent(last);
+	                    }, 500);
+	                })();
+	            }
+	            this._mode = mode;
+	        },
+	        get: function get() {
+	            return this._mode;
 	        }
 	    }]);
 
@@ -10938,7 +10981,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.listenTo(_this.drop, 'drop', _this._onFileDrop);
 	        _this.listenTo(_this.uploader, 'done', function (file) {
 	            for (var i = 0, ii = _this.collections.length; i < ii; i++) {
-	                if (_this.collections[i].path == file.get('path')) {
+	                if (_this.collections[i].path + '/' == file.get('path')) {
 	                    _this.collections[i].add(file);
 	                }
 	            }

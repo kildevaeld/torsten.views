@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" href="/dist/css/torsten.views.css" />
+	<script src="/node_modules/eventsjs/dist/eventsjs.js"></script>
+    <script src="/node_modules/orange/dist/orange.js"></script>
+    <script src="/node_modules/orange.dom/dist/orange.dom.js"></script>
+    <script src="/node_modules/orange.request/dist/orange.request.js"></script>
+    <script src="/node_modules/collection/dist/collection.js"></script>
+    <script src="/node_modules/views/dist/views.js"></script>
+    <script src="/node_modules/views.form/dist/views.form.js"></script>
+    <script src="/node_modules/torsten/dist/torsten.js"></script>
+    <script src="dist/torsten.views.js"></script>
+</head>
+<body>
+	<button id="open">Open</button>
+
+
+	<script>
+		
+		var view = new torsten.views.Progress();
+        view.mode = 0
+
+		document.body.appendChild(view.render().el)
+
+	</script>
+</body>
+</html>
