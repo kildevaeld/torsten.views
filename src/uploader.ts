@@ -102,7 +102,15 @@ export class Uploader extends EventEmitter {
 
         try {
             this._validateFile(file);
-        } catch (e) {
+        } catch (e: Error) {
+            this.trigger('error',  {
+                name: file.name,
+                mime: file.type,
+                size: file.size,
+                path: path,
+                id: uniqueId(),
+                message: e.message
+            });
             return Promise.reject<FileInfoModel>(e)
         }
 

@@ -2350,6 +2350,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            try {
 	                this._validateFile(file);
 	            } catch (e) {
+	                this.trigger('error', {
+	                    name: file.name,
+	                    mime: file.type,
+	                    size: file.size,
+	                    path: path,
+	                    id: orange_1.uniqueId(),
+	                    message: e.message
+	                });
 	                return Promise.reject(e);
 	            }
 	            var item = {
