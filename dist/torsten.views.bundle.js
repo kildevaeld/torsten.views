@@ -7603,7 +7603,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        _this2._queue = [];
 	        _this2._downloading = 0;
-	        _this2.size = 20;
+	        _this2.size = 50;
 	        _this2.listenTo(_this2, 'ready', _this2._onReady);
 	        return _this2;
 	    }
@@ -10924,7 +10924,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.uploader = options.uploader || new uploader_1.Uploader({
 	            client: _this.client,
 	            maxSize: options.maxSize || 2048,
-	            accept: options.accept || ['*']
+	            accept: options.accept || ['*'],
+	            mode: options.mode
 	        });
 	        if (options.accept) _this.uploader.accept = options.accept;
 	        if (options.maxSize > 0) _this.uploader.maxSize = options.maxSize;
@@ -11215,6 +11216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        _this.uploader = options.uploader;
 	        _this.path = options.path || "/";
+	        if (options.mode) _this.mode = options.mode;
 	        return _this;
 	    }
 
@@ -11240,10 +11242,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            orange_dom_1.removeClass(this.el, 'drag-enter');
 	            e.preventDefault();
 	            e.stopPropagation();
+	            var options = {};
+	            if (this.mode) options.mode = this.mode;
 	            if (this.uploader) {
 	                var files = orange_1.slice(e.dataTransfer.files);
 	                orange_1.mapAsync(files, function (file) {
-	                    return _this2.uploader.upload(_this2.path, file);
+	                    return _this2.uploader.upload(_this2.path, file, options);
 	                }, this, true).catch(function (e) {
 	                    _this2.trigger('error', e);
 	                });
@@ -11318,6 +11322,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.accept = ["*"];
 	        _this.maxSize = 2048;
 	        _this.queueSize = 10;
+	        _this.mode = 500;
 	        orange_1.extend(_this, options);
 	        return _this;
 	    }
@@ -11326,7 +11331,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: '_validateFile',
 	        value: function _validateFile(file) {
 	            if (file.size > this.maxSize) {
-	                return new error_1.TorstenValidateError("file to large");
+	                throw new error_1.TorstenValidateError("file to large");
 	            }
 	            var mimeValid = false;
 	            for (var i = 0, ii = this.accept.length; i < ii; i++) {
@@ -11392,6 +11397,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	            });
+	            if (!o.mode) o.mode = this.mode;
 	            this.trigger('started', event);
 	            this._uploading++;
 	            return this._client.create(path, file, o).then(function (info) {
@@ -15844,6 +15850,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            client: client,
 	            showDirectories: false,
 	            accept: ["image/*"],
+	            mode: _this.options.mode,
 	            maxSize: _this.options.maxSize,
 	            uploader: _this.options.uploader,
 	            root: _this.options.root
@@ -15851,7 +15858,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.drop = new dropzone_1.DropZone({
 	            el: _this.el,
 	            uploader: _this.modal.gallery.uploader,
-	            path: options.root
+	            path: options.root,
+	            mode: _this.options.mode | 500
 	        });
 	        _this.progress = new circular_progress_1.Progress({
 	            size: 100,

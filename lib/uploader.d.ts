@@ -1,5 +1,5 @@
 import { EventEmitter } from 'eventsjs';
-import { IClient, CreateOptions, ErrorCode } from 'torsten';
+import { IClient, CreateOptions, ErrorCode, FileMode } from 'torsten';
 import { IPromise } from 'orange';
 import { FileInfoModel } from './collection';
 export interface UploaderOptions {
@@ -7,6 +7,7 @@ export interface UploaderOptions {
     accept?: string[];
     maxSize?: number;
     queueSize?: number;
+    mode?: FileMode;
 }
 export interface UploadEvent {
     name: string;
@@ -31,6 +32,7 @@ export declare class Uploader extends EventEmitter {
     accept: string[];
     maxSize: number;
     queueSize: number;
+    mode: FileMode;
     client: IClient;
     constructor(options?: UploaderOptions);
     private _validateFile(file);

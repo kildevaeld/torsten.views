@@ -1,5 +1,5 @@
 import { LayoutView, ViewOptions } from 'views';
-import { IClient } from 'torsten';
+import { IClient, FileMode } from 'torsten';
 import { FileListView } from '../list/index';
 import { FileInfoView } from '../info/index';
 import { FileInfoModel, FileCollection } from '../collection';
@@ -11,6 +11,7 @@ export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     showHidden?: boolean;
     root?: string;
     uploader?: Uploader;
+    mode?: FileMode;
 }
 export declare class GalleryView extends LayoutView<HTMLDivElement> {
     options: GalleryViewOptions;

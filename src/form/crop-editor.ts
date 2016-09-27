@@ -2,7 +2,7 @@
 /*import {CropView, AssetsModel, CropViewOptions, CropPreView,
     ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
 import { DropZone } from '../gallery/dropzone'
-import { IClient } from 'torsten';
+import { IClient, FileMode } from 'torsten';
 import { CropViewOptions, CropView, CropPreView, Cropping } from '../crop/index';
 import { FileInfoModel } from '../collection';
 import { BaseEditor, Form, validate, editor, IEditorOptions } from 'views.form';
@@ -23,6 +23,7 @@ export interface CropResult {
 export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, IEditorOptions {
     cropping?: boolean;
     root?: string;
+    mode?: FileMode
 };
 
 @attributes({
@@ -90,6 +91,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             client: client,
             showDirectories: false,
             accept: ["image/*"],
+            mode: this.options.mode,
             maxSize: this.options.maxSize,
             uploader: this.options.uploader,
             root: this.options.root
@@ -98,7 +100,8 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         this.drop = new DropZone({
             el: this.el,
             uploader: this.modal.gallery.uploader,
-            path: options.root
+            path: options.root,
+            mode: this.options.mode|500
         });
 
         this.progress = new Progress({

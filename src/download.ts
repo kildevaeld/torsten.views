@@ -22,7 +22,7 @@ export class Downloader extends EventEmitter {
 
     private _queue: [string, Deferred<any>, OpenOptions, IClient][] = []
     private _downloading: number = 0
-    size: number = 20
+    size: number = 50
     
     constructor() {
         super();

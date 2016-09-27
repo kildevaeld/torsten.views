@@ -1,7 +1,7 @@
 
 import {LayoutView, attributes, ViewOptions} from 'views';
 import {extend} from 'orange';
-import {IClient} from 'torsten'
+import {IClient, FileMode} from 'torsten'
 
 import {FileListView} from '../list/index';
 import {FileInfoView} from '../info/index'
@@ -16,6 +16,7 @@ export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     showHidden?: boolean;
     root?: string;
     uploader?: Uploader;
+    mode?: FileMode
 }
 
 @attributes({
@@ -104,7 +105,8 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this.uploader = options.uploader||(new Uploader({
             client: this.client,
             maxSize: options.maxSize||2048,
-            accept: options.accept||['*']
+            accept: options.accept||['*'],
+            mode: options.mode
         }));
 
         if (options.accept) this.uploader.accept = options.accept;

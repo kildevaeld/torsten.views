@@ -1,6 +1,6 @@
 
 import { EventEmitter } from 'eventsjs';
-import { IClient, CreateOptions, path, ErrorCode, TorstenClientError} from 'torsten';
+import { IClient, CreateOptions, path, ErrorCode, TorstenClientError, FileMode} from 'torsten';
 import { Deferred, deferred, IPromise, nextTick, extend, uniqueId } from 'orange';
 import { FileInfoModel } from './collection';
 import { TorstenValidateError } from './error'
@@ -13,6 +13,7 @@ export interface UploaderOptions {
     accept?: string[];
     maxSize?: number;
     queueSize?: number;
+    mode?: FileMode
 }
 
 export interface UploadEvent {
@@ -68,6 +69,7 @@ export class Uploader extends EventEmitter {
     accept: string[] = ["*"];
     maxSize: number = 2048;
     queueSize: number = 10;
+    mode: FileMode = 500;
 
     set client(client: IClient) {
         if (this._client == null && this._queue.length > 0) {
@@ -83,7 +85,7 @@ export class Uploader extends EventEmitter {
 
     private _validateFile(file: File) {
         if (file.size > this.maxSize) {
-            return new TorstenValidateError("file to large")
+            throw new TorstenValidateError("file to large")
         }
         var mimeValid = false;
         for (let i = 0, ii = this.accept.length; i < ii; i++) {
@@ -139,15 +141,17 @@ export class Uploader extends EventEmitter {
 
         path = Path.join(path, file.name);
 
-        let o = extend({}, options, {
+        let o: CreateOptions = extend({}, options, {
             progress: (e) => {
                 this.trigger('progress', itemToProgresEvent(item, e));
                 if (options.progress) {
                     options.progress(e);
                 }
             }
-        })
+        });
 
+        if (!o.mode) o.mode = this.mode;
+        
         this.trigger('started', event);
         this._uploading++;
         return this._client.create(path, file, o)

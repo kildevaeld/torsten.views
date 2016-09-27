@@ -1,4 +1,5 @@
 import { DropZone } from '../gallery/dropzone';
+import { FileMode } from 'torsten';
 import { CropViewOptions, CropView, CropPreView, Cropping } from '../crop/index';
 import { FileInfoModel } from '../collection';
 import { BaseEditor, IEditorOptions } from 'views.form';
@@ -11,6 +12,7 @@ export interface CropResult {
 export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, IEditorOptions {
     cropping?: boolean;
     root?: string;
+    mode?: FileMode;
 }
 export declare class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     model: FileInfoModel;
