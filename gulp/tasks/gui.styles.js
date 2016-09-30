@@ -20,7 +20,7 @@ const gulp = require('gulp'),
     .pipe(gulp.dest('dist/images'));
 })*/
 const URL = 'https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/faenza-icon-theme/faenza-icon-theme_1.3.zip'
-gulp.task('gui:styles:mime:download', function () {
+gulp.task('styles:mime:download', function () {
 
     return request.get(URL)
         .pipe(source('faenza.tar.gz'))
@@ -31,7 +31,7 @@ gulp.task('gui:styles:mime:download', function () {
 
 });
 
-gulp.task('gui:styles:mime:unzip', function () {
+gulp.task('styles:mime:unzip', function () {
 
     return gulp.src('./mimetypes/Faenza.tar.gz')
         .pipe(gunzip())
@@ -39,7 +39,7 @@ gulp.task('gui:styles:mime:unzip', function () {
         .pipe(gulp.dest('mimetypes/icons'))
 });
 
-gulp.task('gui:styles:mime', () => {
+gulp.task('styles:mime', () => {
     let files = [
         'mimetypes/icons/Faenza/mimetypes/64/*.png',
         'mimetypes/icons/Faenza/places/64/folder.png'
@@ -70,7 +70,7 @@ gulp.task('gui:styles:mime', () => {
     return merge(imgStream, cssStream);
 })
 
-gulp.task('gui:styles', function () {
+gulp.task('styles', function () {
     return gulp.src('./src/styles/index.styl')
         .pipe(stylus({
             use: nib(),
@@ -84,6 +84,6 @@ gulp.task('gui:styles', function () {
         .pipe(gulp.dest('./dist/css'));
 });
 
-gulp.task('gui:styles:watch', function () {
-    gulp.watch('./src/styles/*.styl', ['gui:styles']);
+gulp.task('styles:watch', function () {
+    gulp.watch('./src/styles/*.styl', ['styles']);
 });

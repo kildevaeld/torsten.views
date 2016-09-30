@@ -1,10 +1,11 @@
 
 const gulp = require('gulp'),
     wpstream = require('webpack-stream'),
-    babel = require('babel-loader'),
+    //babel = require('babel-loader'),
     webpack = require('webpack'),
     merge = require('merge2'),
-    tsc = require('gulp-typescript');
+    tsc = require('gulp-typescript'),
+    babel = require('gulp-babel');
 
 var JsonpTemplatePlugin = require('../../node_modules/webpack/lib/JsonpTemplatePlugin');
 var FunctionModulePlugin = require('../../node_modules/webpack/lib/FunctionModulePlugin');
@@ -24,7 +25,7 @@ var webpackNode = {
 };
 
 
-gulp.task('gui:webpack', ['gui:typescript'], () => {
+gulp.task('webpack', ['typescript'], () => {
     var output = {
         library: ['torsten', 'views'],
         libraryTarget: 'umd',
@@ -33,7 +34,7 @@ gulp.task('gui:webpack', ['gui:typescript'], () => {
     return gulp.src('lib/index.js')
         .pipe(wpstream({
             output: output,
-            target: function (compiler) {
+            /*target: function (compiler) {
                 compiler.apply(
                     new JsonpTemplatePlugin(output),
                     new FunctionModulePlugin(output),
@@ -50,11 +51,11 @@ gulp.task('gui:webpack', ['gui:typescript'], () => {
                     { test: /\.js$/, loader: 'babel', query: { presets: ['es2015'] } },
 
                 ]
-            },
+            },*/
             resolve: {
                 alias: {
                     "debug": process.cwd() + "/node_modules/debug/browser.js",
-                    "cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
+                    //"cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
                 }
             },
             externals: {
@@ -86,7 +87,7 @@ gulp.task('gui:webpack', ['gui:typescript'], () => {
         })).pipe(gulp.dest('dist'))
 });
 
-gulp.task('gui:webpack:bundle', ['gui:typescript'], () => {
+gulp.task('webpack:bundle', ['typescript'], () => {
     var output = {
         library: ['torsten', 'views'],
         libraryTarget: 'umd',
@@ -104,40 +105,45 @@ gulp.task('gui:webpack:bundle', ['gui:typescript'], () => {
                     new LoaderTargetPlugin('web')
                 );
             },*/
-            module: {
+            /*module: {
                 loaders: [
                     { test: /\.json/, loader: 'json-loader' },
                     { test: /\.js$/, loader: 'babel', query: { presets: ['es2015'] } },
 
                 ]
-            },
+            },*/
             resolve: {
                 alias: {
-                    "orange.request": process.cwd() + "/node_modules/orange.request/dist/orange.request.js",
+                    "orange.request": process.cwd() + "/node_modules/orange.request/lib/browser.js",
                     "debug": process.cwd() + "/node_modules/debug/browser.js",
-                    "cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
+                    //"cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
                 }
             }
         })).pipe(gulp.dest('dist'))
 });
 
-gulp.task('gui:typescript', ['gui:templates'], () => {
+gulp.task('typescript', ['templates'], () => {
     var project = tsc.createProject('tsconfig.json')
 
     let p = project.src()
         .pipe(tsc(project))
 
+    let js = p.js
+    .pipe(babel({
+        presets: ['es2015']
+    }));
+
 
     return merge([
-        p.js.pipe(gulp.dest('lib')),
+        js.pipe(gulp.dest('lib')),
         p.dts.pipe(gulp.dest('lib'))
     ]);
 
 })
 
-gulp.task('gui:default', ['gui:webpack', 'gui:webpack:bundle', 'gui:styles'])
+gulp.task('default', ['webpack', 'webpack:bundle', 'styles', 'templates'])
 
 
-gulp.task('gui:watch', ['gui:templates:watch', 'gui:styles:watch'], () => {
-    gulp.watch('./src/**/*.ts', [ 'gui:webpack'])
+gulp.task('watch', ['templates:watch', 'styles:watch'], () => {
+    gulp.watch('./src/**/*.ts', [ 'webpack'])
 })

@@ -4,7 +4,7 @@ const gulp = require('gulp'),
     es = require('event-stream'),
     fs = require('fs');
 
-gulp.task('gui:templates', (done) => {
+gulp.task('templates', (done) => {
     
     var output = [];
     var templates = {};
@@ -29,6 +29,6 @@ gulp.task('gui:templates', (done) => {
     
 });
 
-gulp.task('gui:templates:watch', () => {
-    return gulp.watch('./src/templates/**/*.html', ['gui:templates']);
+gulp.task('templates:watch', () => {
+    return gulp.watch('./src/templates/**/*.html', ['templates']);
 })
