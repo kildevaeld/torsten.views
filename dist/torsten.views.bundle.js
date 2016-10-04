@@ -11859,7 +11859,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var views_1 = __webpack_require__(53);
-	var Cropper = __webpack_require__(85);
+	var cropperjs_1 = __webpack_require__(85);
 	var types_1 = __webpack_require__(83);
 	var collection_1 = __webpack_require__(1);
 	var utils_1 = __webpack_require__(70);
@@ -11949,8 +11949,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (isFunction(o.cropend)) o.cropend(e);
 	                }
 	            };
+	            console.log(cropperjs_1.default);
 	            opts = orange_1.extend({}, this.options, opts);
-	            this._cropper = new Cropper(this.ui['image'], opts);
+	            this._cropper = new cropperjs_1.default(this.ui['image'], opts);
 	            return this;
 	        }
 	    }, {

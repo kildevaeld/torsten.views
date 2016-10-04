@@ -5,13 +5,21 @@ const gulp = require('gulp'),
     webpack = require('webpack'),
     merge = require('merge2'),
     tsc = require('gulp-typescript'),
-    babel = require('gulp-babel');
+    babel = require('gulp-babel'),
+    bump = require('gulp-bump');
 
 var JsonpTemplatePlugin = require('../../node_modules/webpack/lib/JsonpTemplatePlugin');
 var FunctionModulePlugin = require('../../node_modules/webpack/lib/FunctionModulePlugin');
 var NodeTargetPlugin = require('../../node_modules/webpack/lib/node/NodeTargetPlugin');
 var NodeTemplatePlugin = require('../../node_modules/webpack/lib/node/NodeTemplatePlugin');
 var LoaderTargetPlugin = require('../../node_modules/webpack/lib/LoaderTargetPlugin');
+
+
+gulp.task('bump', () => {
+    return gulp.src('./package.json')
+    .pipe(bump())
+    .pipe(gulp.dest('./'));
+});
 
 
 var webpackNode = {

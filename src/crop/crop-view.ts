@@ -1,5 +1,5 @@
 import {View, ViewOptions, attributes} from 'views';
-import * as Cropper from 'cropperjs';
+import Cropper from 'cropperjs';
 import {ICropper, Cropping, getCropping} from './types';
 import {FileInfoModel, isFileInfo} from '../collection';
 import {CropPreView} from './crop-preview';
@@ -132,7 +132,7 @@ export class CropView extends View<HTMLDivElement> {
                 if (isFunction(o.cropend)) o.cropend(e);
             }
         };
-
+        console.log(Cropper)
         opts = extend({}, this.options, opts);
         
         this._cropper = new Cropper(<HTMLImageElement>this.ui['image'], opts);
