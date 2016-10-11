@@ -148,7 +148,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         });
 
         this.listenTo(up, 'done', (file: FileInfoModel) => {
-            this.progress.el.style.display = 'none'
+            this.progress.hide();
             this.value = {
                 file: file,
                 cropping: null

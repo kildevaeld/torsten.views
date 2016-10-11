@@ -38,9 +38,10 @@
         var client = torsten.views.createClient({
             endpoint: 'http://localhost:4000'
         });
-        console.log(client)
-        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI3NGJmNDgwOC02YTkxLTRlOTgtYjA0Ny1hZGUzYWRkYWY5YWIiLCJnaWQiOlsiMDQ3OGQwNGMtY2I4Ni00ZGYwLWIxODktMzE2ZWYxZjQ4YzA4IiwiNmZhMzJiYmQtYzYxYy00ZWQwLWJjY2ItYjg4ZTdmY2NlZDk3Il0sImlhdCI6MTQ3NTIzODg0NH0.rwO8GWgz-JBFTCo2EvlWRXb8pddkk7A4MmtkYIJ-zMs'
-        /*let view = new torsten.views.GalleryModal({
+        
+        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI3NGJmNDgwOC02YTkxLTRlOTgtYjA0Ny1hZGUzYWRkYWY5YWIiLCJnaWQiOlsiODZjYmU2OWItZWRjNC00MTFiLWI1OGUtODkzYzE5MWRmOTE3IiwiNmZhMzJiYmQtYzYxYy00ZWQwLWJjY2ItYjg4ZTdmY2NlZDk3Il0sImlhdCI6MTQ3NjIyMTIyN30.OSPMsaSWh2ISF9ukND19I_-OdZJOcvvSOFxOUzFvZRg'
+        
+         /*let view = new torsten.views.GalleryModal({
             el: document.querySelector('#main'),
             client: client
         });

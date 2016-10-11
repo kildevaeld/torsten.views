@@ -186,9 +186,8 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 continue;
             }
             if (elementInView(img, this.el))  {
-                loadImage(img)
-            } 
-            
+                loadImage(img);
+            }
         }
     }
     

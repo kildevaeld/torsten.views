@@ -82,14 +82,12 @@ export class CropView extends View<HTMLDivElement> {
 
                     getImageSize(image).then(size => {
                         this.cropping = getCropping(size, this.options.aspectRatio);
-
-                        //this.triggerMethod('crop', cropping);
                     }).catch(e => {
                         this.trigger('error', e);
                     });
                 }
                 
-            })
+            });
 
 
         return this;
@@ -172,8 +170,6 @@ export class CropView extends View<HTMLDivElement> {
             this.el.appendChild(image);
         }
 
-       
-
         this.delegateEvents();
         this.triggerMethod('render');
 
@@ -189,19 +185,8 @@ export class CropView extends View<HTMLDivElement> {
             return Promise.resolve(false);
         }
 
-        /*let progress = new Progress({
-            size: 52,
-            lineWidth: 5
-        });
-
-        addClass(progress.el, 'loader')
-        this.el.appendChild(progress.render().el)*/
-
-
         let progress = this.options.progress;
         if (progress) {
-            
-            
             progress.show();
         }
         
@@ -215,17 +200,23 @@ export class CropView extends View<HTMLDivElement> {
                 if (progress) progress.hide()
                 img.removeEventListener('load', fn);
             }
-            img.addEventListener('load', fn);
+            
+            if (!/image\/.*/.test(blob.type)) {
+                this.triggerMethod('image', false);
+                if (progress) progress.hide();
 
+                throw new Error('not a image');
+            }
+            
+            img.addEventListener('load', fn);
             img.src = URL.createObjectURL(blob)
             this.triggerMethod('image', true)
-            
-            //if (progress) progress.hide();
-            //progress.remove().destroy();
             return true
         }).then( () => {
             addClass(img, 'loaded');
             return true
+        }).catch( e => {
+            console.error('error', e)
         })
     }
 

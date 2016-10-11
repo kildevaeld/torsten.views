@@ -3073,7 +3073,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (loaded && _this2.options.aspectRatio != null) {
 	                    utils_1.getImageSize(image).then(function (size) {
 	                        _this2.cropping = types_1.getCropping(size, _this2.options.aspectRatio);
-	                        //this.triggerMethod('crop', cropping);
 	                    }).catch(function (e) {
 	                        _this2.trigger('error', e);
 	                    });
@@ -3165,12 +3164,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.src = utils_1.emptyImage;
 	                return Promise.resolve(false);
 	            }
-	            /*let progress = new Progress({
-	                size: 52,
-	                lineWidth: 5
-	            });
-	             addClass(progress.el, 'loader')
-	            this.el.appendChild(progress.render().el)*/
 	            var _progress = this.options.progress;
 	            if (_progress) {
 	                _progress.show();
@@ -3185,15 +3178,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (_progress) _progress.hide();
 	                    img.removeEventListener('load', fn);
 	                };
+	                if (!/image\/.*/.test(blob.type)) {
+	                    _this4.triggerMethod('image', false);
+	                    if (_progress) _progress.hide();
+	                    throw new Error('not a image');
+	                }
 	                img.addEventListener('load', fn);
 	                img.src = URL.createObjectURL(blob);
 	                _this4.triggerMethod('image', true);
-	                //if (progress) progress.hide();
-	                //progress.remove().destroy();
 	                return true;
 	            }).then(function () {
 	                orange_dom_1.addClass(img, 'loaded');
 	                return true;
+	            }).catch(function (e) {
+	                console.error('error', e);
 	            });
 	        }
 	    }, {
@@ -7010,7 +7008,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.progress.setPercent(pc);
 	        });
 	        _this.listenTo(up, 'done', function (file) {
-	            _this.progress.el.style.display = 'none';
+	            _this.progress.hide();
 	            _this.value = {
 	                file: file,
 	                cropping: null
