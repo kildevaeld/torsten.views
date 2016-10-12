@@ -104,6 +104,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         });
 
         this.uploader = options.uploader
+        
         if (!this.uploader) {
             this.uploader = new Uploader({
                 client: this.client,
@@ -118,14 +119,14 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         if (options.maxSize > 0) this.uploader.maxSize = options.maxSize;
 
         this.listenTo(this.list, 'selected', this._onFileInfoSelected);
-        this.listenTo(this.list, 'remove', this._onFileInfoRemoved)
+        this.listenTo(this.list, 'remove', this._onFileInfoRemoved);
         this.listenTo(this.list, 'dblclick', () => {
             this.trigger('dblclick');
-        })
+        });
+
         this.listenTo(this.drop, 'drop', this._onFileDrop);
 
         this.listenTo(this.uploader, 'done', (file: FileInfoModel) => {
-
             for (let i = 0, ii = this.collections.length; i < ii; i++) {
                 if (this.collections[i].path + '/' == file.get('path')) {
                     this.collections[i].add(file);
