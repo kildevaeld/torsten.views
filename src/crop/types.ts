@@ -23,8 +23,6 @@ export interface ICropper {
 }
 
 
-
-
 export function getCropping(size: Size, ratio: number) {
 
     let width = size.width,
