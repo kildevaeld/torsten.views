@@ -324,13 +324,6 @@ i.mimetype {
 .torsten.cropping-view {
   border: 2px dashed #ccc;
   position: relative;
-/*.loader {
-      position: absolute;
-      position: relative;
-      top: 50%;
-      transform: translateY(-50%);
-      margin: auto
-    }*/
 }
 .torsten.cropping-view> img {
   -webkit-transition: opacity 0.5s;
@@ -359,6 +352,34 @@ i.mimetype {
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
   margin: 0;
+  background-color: transparent !important;
+  border: none !important;
+}
+.torsten.cropping-view .message {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  left: 50%;
+  opacity: 0;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+  filter: alpha(opacity=0);
+  -webkit-transition: opacity 0.5s;
+  -moz-transition: opacity 0.5s;
+  -o-transition: opacity 0.5s;
+  -ms-transition: opacity 0.5s;
+  transition: opacity 0.5s;
+  text-align: center;
+  font-size: 1.4rem;
+  font-family: 'HelveticaNueue', 'Arial', 'sans-serif';
+}
+.torsten.cropping-view .message.shown {
+  opacity: 1;
+  -ms-filter: none;
+  filter: none;
 }
 .torsten.cropping-view .error {
   position: absolute;

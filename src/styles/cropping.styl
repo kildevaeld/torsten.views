@@ -19,18 +19,27 @@
       top: 50%;
       transform: translate(-50%,-50%)
       margin: 0
-      
-
+      background-color: transparent !important;
+      border: none !important
     }
-
-    /*.loader {
+    
+    .message {
       position: absolute;
-      position: relative;
-      top: 50%;
-      transform: translateY(-50%);
-      margin: auto
-    }*/
-
+      top: 50%
+      transform: translate(-50%, -50%)
+      left: 50%
+      //visibility: hidden
+      opacity: 0
+      transition: opacity 0.5s
+      text-align: center
+      font-size: 1.4rem
+      font-family: 'HelveticaNueue', 'Arial', 'sans-serif';
+      &.shown {
+        opacity: 1
+        //visibility: visible
+      }
+    }
+    
     .error {
       position: absolute;
       left: 50%;

@@ -10,10 +10,10 @@ import { attributes } from 'views';
 import { GalleryModal, GalleryViewOptions } from '../gallery/index';
 
 import { addClass, removeClass, Html } from 'orange.dom';
-import { omit, extend , equal} from 'orange';
+import { omit, extend, equal } from 'orange';
 import templates from '../templates/index';
 import { Progress } from '../list/circular-progress';
-import {UploadErrorEvent, UploadProgressEvent, UploadEvent} from '../uploader';
+import { UploadErrorEvent, UploadProgressEvent, UploadEvent } from '../uploader';
 
 export interface CropResult {
     file: FileInfoModel;
@@ -68,19 +68,21 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             this.model = null;
             return;
         }
-        if (result.file !== this.model) {
-            this.model = result.file;
-        }
         if (!equal(result.cropping, this.crop.cropping)) {
             this.crop.cropping = result.cropping;
         }
+
+        if (result.file !== this.model) {
+            this.model = result.file;
+        }
+
     }
 
     constructor(options: CropEditorOptions) {
         super(options);
 
         this.options = options = this._getOptions(extend({}, options));
-        options.root = options.root||'/';
+        options.root = options.root || '/';
 
         let client = options.client;
         if (client == null) {
@@ -108,7 +110,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             size: 100,
             lineWidth: 5
         });
-        
+
 
         let o = extend({
             zoomable: false,
@@ -123,7 +125,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
         this.preview = new CropPreView({
             el: this.crop.el,
-    
+
         });
 
         this.crop.options.previewView = this.preview
@@ -132,7 +134,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
         let up = this.modal.gallery.uploader;
 
-        
+
 
         this.listenTo(up, 'started', (e) => {
             this.clear();
@@ -142,7 +144,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
         });
 
-        this.listenTo(up, 'progress', (e:UploadProgressEvent) => {
+        this.listenTo(up, 'progress', (e: UploadProgressEvent) => {
             let pc = 100 / e.total * e.loaded;
             this.progress.setPercent(pc);
         });
@@ -155,11 +157,20 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             };
         });
 
-        this.listenTo(up, 'error', (e:UploadErrorEvent) => {
+        this.listenTo(up, 'error', (e: UploadErrorEvent) => {
             this.progress.hide();
-            this._showError(e);
-            setTimeout(() => { this._showDropIndicator() }, 2000)  
-        })
+            this.crop.showMessage(e.message);
+            setTimeout(() => { this._showDropIndicator() }, 4000)
+        });
+
+        this.listenTo(this.crop, 'error', () => {
+            setTimeout(() => this._showDropIndicator(), 4000);
+        });
+
+        this.listenTo(this.drop, 'before:drop', () => {
+            this.model = null;
+            this.crop.hideMessage();
+        });
 
         this.progress.hide();
 
@@ -205,54 +216,23 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             addClass(this.crop.el, 'crop-preview cropping-preview')
             addClass(this.crop.ui['image'], 'content');
 
-            /*if (this.crop.options.previewView) {
-                this.crop.options.previewView.destroy();
-            }*/
+
         }
-
-
-        /*let preview = new CropPreView({
-            el: this.crop ? this.crop.el : null
-        });
-
-        if (!this.crop) {
-            preview.el.innerHTML = '<img class="content" />';
-            addClass(preview.el, 'crop-preview cropping-preview')
-            let el = this.el.querySelector('.crop-btn')
-            el.parentElement.removeChild(el);
-        } else {
-            
-        }*/
-
 
         this.preview.render();
 
-
-        /*if (this.crop) {
-            let el = Html.query(document.createElement('div'))
-                .addClass('upload-progress-container')
-                .css({ display: 'none' });
-            el.html('<div class="upload-progress" style="width:0;"></div>');
-            this.crop.el.appendChild(el.get(0));
-        } else {
-            this.ui['crop'].appendChild(preview.el);
-        }*/
-
         this.drop.render();
         this.crop.el.appendChild(this.progress.render().el);
-        //this._showDropIndicator();
-
-        //this._showError(new Error('Image already exists'));
 
     }
 
     clear() {
         this.model = null;
-        this._showDropIndicator();
+        this.crop.showMessage("Drag'n'Drop image here")
     }
 
     private _showDropIndicator() {
-        this._removeError();
+        /*this._removeError();
         let preview = this.el.querySelector('.crop-preview');
         if (!preview) return;
         let i = preview.querySelector('.drop-indicator');
@@ -269,13 +249,15 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         $i.text('Drop Here');
 
 
-        preview.appendChild(i);
+        preview.appendChild(i);*/
+        this.crop.showMessage("Drag'n'Drop image here");
 
     }
 
     private _removeDropIndicator() {
-        let i = this.el.querySelector('.drop-indicator')
-        if (i && i.parentElement) i.parentElement.removeChild(i);
+        //let i = this.el.querySelector('.drop-indicator')
+        //if (i && i.parentElement) i.parentElement.removeChild(i);
+        this.crop.hideMessage();
     }
     private _showError(e) {
         this._removeDropIndicator();
@@ -285,7 +267,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             addClass(i, "error");
             this.crop.el.appendChild(i);
         }
-        
+
         i.innerHTML = `
             <h3>Could not upload image!</h3>
             <p>${e.message}</p>
@@ -295,7 +277,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     private _removeError() {
         let i = <HTMLDivElement>this.crop.el.querySelector('.error')
         if (i && i.parentElement) {
-           this.crop.el.removeChild(i);
+            this.crop.el.removeChild(i);
         }
     }
 

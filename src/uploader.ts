@@ -1,6 +1,6 @@
 
 import { EventEmitter } from 'eventsjs';
-import { IClient, CreateOptions, path, ErrorCode, TorstenClientError, FileMode} from 'torsten';
+import { IClient, CreateOptions, path, ErrorCode, TorstenClientError, FileMode } from 'torsten';
 import { Deferred, deferred, IPromise, nextTick, extend, uniqueId, humanFileSize } from 'orange';
 import { FileInfoModel } from './collection';
 import { TorstenValidateError } from './error'
@@ -53,7 +53,7 @@ function itemToEvent(item: QueueItem): UploadEvent {
     };
 }
 
-function itemToProgresEvent(item: QueueItem, e:ProgressEvent): UploadProgressEvent {
+function itemToProgresEvent(item: QueueItem, e: ProgressEvent): UploadProgressEvent {
     return extend(itemToEvent(item), {
         originalEvent: e,
         total: e.total,
@@ -67,7 +67,7 @@ export class Uploader extends EventEmitter {
     private _uploading: number = 0;
 
     accept: string[] = ["*"];
-    maxSize: number = 1024*1024*2;
+    maxSize: number = 1024 * 1024 * 2;
     queueSize: number = 10;
     mode: FileMode = 500;
 
@@ -85,7 +85,7 @@ export class Uploader extends EventEmitter {
 
     private _validateFile(file: File) {
         if (file.size > this.maxSize) {
-            throw new TorstenValidateError("file to large. The maximum size is: " + humanFileSize(this.maxSize))
+            throw new TorstenValidateError("The file is to large. The maximum size is: " + humanFileSize(this.maxSize))
         }
         var mimeValid = false;
         for (let i = 0, ii = this.accept.length; i < ii; i++) {
@@ -95,15 +95,15 @@ export class Uploader extends EventEmitter {
                 break;
             }
         }
-        if (!mimeValid) throw new TorstenValidateError("file wrong type");
+        if (!mimeValid) throw new TorstenValidateError("Cannot upload a file of type: " + file.type);
     }
 
-    upload(path: string, file: File, options: CreateOptions={}): IPromise<FileInfoModel> {
+    upload(path: string, file: File, options: CreateOptions = {}): IPromise<FileInfoModel> {
 
         try {
             this._validateFile(file);
         } catch (e) {
-            this.trigger('error',  {
+            this.trigger('error', {
                 name: file.name,
                 mime: file.type,
                 size: file.size,
@@ -137,11 +137,11 @@ export class Uploader extends EventEmitter {
         let {path, file, options, defer} = item,
             event = itemToEvent(item);
 
-        const emit = (e?:TorstenClientError, file?:FileInfoModel) => {
+        const emit = (e?: TorstenClientError, file?: FileInfoModel) => {
             this._uploading--;
             debug('upload ready %s', path)
             if (e) {
-                this.trigger('error', extend(event, {message: e.message, code: e.code}))
+                this.trigger('error', extend(event, { message: e.message, code: e.code }))
             } else {
                 this.trigger('done', file);
             }
@@ -159,7 +159,7 @@ export class Uploader extends EventEmitter {
         });
 
         if (!o.mode) o.mode = this.mode;
-        
+
         this.trigger('started', event);
         this._uploading++;
         return this._client.create(path, file, o)

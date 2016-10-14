@@ -2275,6 +2275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var _this2 = this;
 
 	            orange_dom_1.removeClass(this.el, 'drag-enter');
+	            this.triggerMethod('before:drop', e);
 	            e.preventDefault();
 	            e.stopPropagation();
 	            var options = {};
@@ -2366,7 +2367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: '_validateFile',
 	        value: function _validateFile(file) {
 	            if (file.size > this.maxSize) {
-	                throw new error_1.TorstenValidateError("file to large. The maximum size is: " + orange_1.humanFileSize(this.maxSize));
+	                throw new error_1.TorstenValidateError("The file is to large. The maximum size is: " + orange_1.humanFileSize(this.maxSize));
 	            }
 	            var mimeValid = false;
 	            for (var i = 0, ii = this.accept.length; i < ii; i++) {
@@ -2376,7 +2377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    break;
 	                }
 	            }
-	            if (!mimeValid) throw new error_1.TorstenValidateError("file wrong type");
+	            if (!mimeValid) throw new error_1.TorstenValidateError("Cannot upload a file of type: " + file.type);
 	        }
 	    }, {
 	        key: 'upload',
@@ -2988,7 +2989,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        nw = height * ratio;
 	        nh = nw / ratio;
 	    }
-	    console.log(width, height, nw, nh);
 	    return {
 	        x: 0,
 	        y: 0,
@@ -3063,6 +3063,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (model && !collection_1.isFileInfo(model)) {
 	                throw new Error("not a file info model");
 	            }
+	            if (model && !/^image\/.*/.test(model.get('mime'))) {
+	                this.showMessage("The file is not an image", true);
+	            }
 	            if (this.ui['image'] == null) return this;
 	            this.deactivate();
 	            var image = this.ui['image'];
@@ -3093,6 +3096,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function activate() {
 	            var _this3 = this;
 
+	            if (this.model == null) return;
 	            if (this._cropper != null) {
 	                return this;
 	            }
@@ -3121,7 +3125,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (isFunction(o.cropend)) o.cropend(e);
 	                }
 	            };
-	            console.log(cropperjs_1.default);
 	            opts = orange_1.extend({}, this.options, opts);
 	            this._cropper = new cropperjs_1.default(this.ui['image'], opts);
 	            return this;
@@ -3157,14 +3160,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	                image = document.createElement('img');
 	                this.el.appendChild(image);
 	            }
+	            var $i = orange_dom_1.Html.query(document.createElement('div'));
+	            $i.addClass('message');
+	            this._message = $i;
+	            this.el.appendChild($i.get(0));
 	            this.delegateEvents();
 	            this.triggerMethod('render');
 	            return this;
 	        }
 	    }, {
+	        key: "showMessage",
+	        value: function showMessage(str) {
+	            var _this4 = this;
+
+	            var error = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+	            var timeout = arguments[2];
+
+	            this._message.html(str).addClass('shown');
+	            if (error) this._message.addClass('error');else this._message.removeClass('error');
+	            if (timeout) {
+	                setTimeout(function () {
+	                    return _this4.hideMessage();
+	                }, timeout);
+	            }
+	            return this;
+	        }
+	    }, {
+	        key: "hideMessage",
+	        value: function hideMessage() {
+	            this._message.removeClass('shown');
+	            return this;
+	        }
+	    }, {
 	        key: "_updateImage",
 	        value: function _updateImage() {
-	            var _this4 = this;
+	            var _this5 = this;
 
 	            var img = this.el.querySelector('img');
 	            orange_dom_1.removeClass(img, 'loaded');
@@ -3172,14 +3202,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.src = utils_1.emptyImage;
 	                return Promise.resolve(false);
 	            }
+	            this.hideMessage();
 	            var _progress = this.options.progress;
 	            if (_progress) {
 	                _progress.show();
 	            }
 	            return this.model.open({
 	                progress: function progress(e) {
-	                    var pc = 100 / e.total * e.loaded;
-	                    if (_progress) _progress.setPercent(pc);
+	                    if (e.total == 0) return;
+	                    if (_progress) _progress.setPercent(100 / e.total * e.loaded);
 	                }
 	            }, this.client).then(function (blob) {
 	                var fn = function fn(e) {
@@ -3187,19 +3218,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    img.removeEventListener('load', fn);
 	                };
 	                if (!/image\/.*/.test(blob.type)) {
-	                    _this4.triggerMethod('image', false);
-	                    if (_progress) _progress.hide();
-	                    throw new Error('not a image');
+	                    _this5.triggerMethod('image', false);
+	                    throw new Error('The file is not an image');
 	                }
 	                img.addEventListener('load', fn);
 	                img.src = URL.createObjectURL(blob);
-	                _this4.triggerMethod('image', true);
+	                _this5.triggerMethod('image', true);
 	                return true;
 	            }).then(function () {
 	                orange_dom_1.addClass(img, 'loaded');
 	                return true;
 	            }).catch(function (e) {
-	                console.error('error', e);
+	                if (_progress) _progress.hide();
+	                _this5.trigger('error', e);
+	                _this5.showMessage(e.message, true);
 	            });
 	        }
 	    }, {
@@ -7024,10 +7056,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	        _this.listenTo(up, 'error', function (e) {
 	            _this.progress.hide();
-	            _this._showError(e);
+	            _this.crop.showMessage(e.message);
 	            setTimeout(function () {
 	                _this._showDropIndicator();
-	            }, 2000);
+	            }, 4000);
+	        });
+	        _this.listenTo(_this.crop, 'error', function () {
+	            setTimeout(function () {
+	                return _this._showDropIndicator();
+	            }, 4000);
+	        });
+	        _this.listenTo(_this.drop, 'before:drop', function () {
+	            _this.model = null;
+	            _this.crop.hideMessage();
 	        });
 	        _this.progress.hide();
 	        return _this;
@@ -7049,11 +7090,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.model = null;
 	                return;
 	            }
-	            if (result.file !== this.model) {
-	                this.model = result.file;
-	            }
 	            if (!orange_1.equal(result.cropping, this.crop.cropping)) {
 	                this.crop.cropping = result.cropping;
+	            }
+	            if (result.file !== this.model) {
+	                this.model = result.file;
 	            }
 	        }
 	    }, {
@@ -7099,62 +7140,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	                orange_dom_1.addClass(this.crop.el, 'crop-preview cropping-preview');
 	                orange_dom_1.addClass(this.crop.ui['image'], 'content');
 	            }
-	            /*let preview = new CropPreView({
-	                el: this.crop ? this.crop.el : null
-	            });
-	             if (!this.crop) {
-	                preview.el.innerHTML = '<img class="content" />';
-	                addClass(preview.el, 'crop-preview cropping-preview')
-	                let el = this.el.querySelector('.crop-btn')
-	                el.parentElement.removeChild(el);
-	            } else {
-	                
-	            }*/
 	            this.preview.render();
-	            /*if (this.crop) {
-	                let el = Html.query(document.createElement('div'))
-	                    .addClass('upload-progress-container')
-	                    .css({ display: 'none' });
-	                el.html('<div class="upload-progress" style="width:0;"></div>');
-	                this.crop.el.appendChild(el.get(0));
-	            } else {
-	                this.ui['crop'].appendChild(preview.el);
-	            }*/
 	            this.drop.render();
 	            this.crop.el.appendChild(this.progress.render().el);
-	            //this._showDropIndicator();
-	            //this._showError(new Error('Image already exists'));
 	        }
 	    }, {
 	        key: "clear",
 	        value: function clear() {
 	            this.model = null;
-	            this._showDropIndicator();
+	            this.crop.showMessage("Drag'n'Drop image here");
 	        }
 	    }, {
 	        key: "_showDropIndicator",
 	        value: function _showDropIndicator() {
-	            this._removeError();
-	            var preview = this.el.querySelector('.crop-preview');
+	            /*this._removeError();
+	            let preview = this.el.querySelector('.crop-preview');
 	            if (!preview) return;
-	            var i = preview.querySelector('.drop-indicator');
+	            let i = preview.querySelector('.drop-indicator');
 	            if (i) return;
 	            i = document.createElement('div');
-	            var $i = orange_dom_1.Html.query(i);
-	            $i.addClass('drop-indicator').css({
-	                position: 'absolute',
-	                top: '50%',
-	                transform: 'translate(-50%, -50%)',
-	                left: '50%'
-	            });
+	            let $i = Html.query(<any>i);
+	            $i.addClass('drop-indicator')
+	                .css({
+	                    position: 'absolute',
+	                    top: '50%',
+	                    transform: 'translate(-50%, -50%)',
+	                    left: '50%'
+	                })
 	            $i.text('Drop Here');
-	            preview.appendChild(i);
+	              preview.appendChild(i);*/
+	            this.crop.showMessage("Drag'n'Drop image here");
 	        }
 	    }, {
 	        key: "_removeDropIndicator",
 	        value: function _removeDropIndicator() {
-	            var i = this.el.querySelector('.drop-indicator');
-	            if (i && i.parentElement) i.parentElement.removeChild(i);
+	            //let i = this.el.querySelector('.drop-indicator')
+	            //if (i && i.parentElement) i.parentElement.removeChild(i);
+	            this.crop.hideMessage();
 	        }
 	    }, {
 	        key: "_showError",

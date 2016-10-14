@@ -15,6 +15,7 @@ export declare class CropView extends View<HTMLDivElement> {
     client: IClient;
     private _cropper;
     protected _cropping: Cropping;
+    private _message;
     options: CropViewOptions;
     cropper: ICropper;
     cropping: Cropping;
@@ -25,6 +26,8 @@ export declare class CropView extends View<HTMLDivElement> {
     toggle(): this;
     onCrop(cropping: cropperjs.Data): void;
     render(): this;
+    showMessage(str: string, error?: boolean, timeout?: number): this;
+    hideMessage(): this;
     private _updateImage();
     destroy(): void;
 }

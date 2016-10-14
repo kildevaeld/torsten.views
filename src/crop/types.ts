@@ -38,7 +38,8 @@ export function getCropping(size: Size, ratio: number) {
         nw = height * ratio
         nh = nw / ratio;
     }
-    console.log(width, height, nw, nh)
+
+
     return {
         x: 0,
         y: 0,

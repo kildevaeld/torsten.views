@@ -5,7 +5,7 @@ import { FileInfoModel, isFileInfo } from '../collection';
 import { CropPreView } from './crop-preview';
 import { getImageSize, emptyImage } from '../utils';
 import { extend } from 'orange';
-import { addClass, removeClass } from 'orange.dom'
+import { addClass, removeClass, Html } from 'orange.dom'
 import { IClient } from 'torsten'
 import { Progress } from '../list/circular-progress'
 
@@ -19,6 +19,7 @@ export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
     previewView?: CropPreView;
     progress?: Progress;
     client: IClient;
+
 }
 
 @attributes({
@@ -32,6 +33,7 @@ export class CropView extends View<HTMLDivElement> {
     client: IClient;
     private _cropper: ICropper;
     protected _cropping: Cropping;
+    private _message: Html;
     options: CropViewOptions;
 
     get cropper() {
@@ -52,8 +54,14 @@ export class CropView extends View<HTMLDivElement> {
 
     setModel(model) {
 
+
+
         if (model && !isFileInfo(model)) {
             throw new Error("not a file info model");
+        }
+
+        if (model && !/^image\/.*/.test(model.get('mime'))) {
+            this.showMessage("The file is not an image", true);
         }
 
         if (this.ui['image'] == null) return this;
@@ -104,6 +112,8 @@ export class CropView extends View<HTMLDivElement> {
 
     activate() {
 
+        if (this.model == null) return;
+
         if (this._cropper != null) {
             return this;
         }
@@ -134,7 +144,7 @@ export class CropView extends View<HTMLDivElement> {
                 if (isFunction(o.cropend)) o.cropend(e);
             }
         };
-        console.log(Cropper)
+
         opts = extend({}, this.options, opts);
 
         this._cropper = new Cropper(<HTMLImageElement>this.ui['image'], opts);
@@ -174,11 +184,34 @@ export class CropView extends View<HTMLDivElement> {
             this.el.appendChild(image);
         }
 
+        let $i = Html.query(document.createElement('div'));
+        $i.addClass('message');
+
+        this._message = $i
+        this.el.appendChild($i.get(0));
+
         this.delegateEvents();
         this.triggerMethod('render');
 
         return this;
 
+    }
+
+
+    showMessage(str: string, error: boolean = false, timeout?: number) {
+        this._message.html(str)
+            .addClass('shown')
+        if (error) this._message.addClass('error')
+        else this._message.removeClass('error');
+        if (timeout) {
+            setTimeout(() => this.hideMessage(), timeout);
+        }
+        return this;
+    }
+
+    hideMessage() {
+        this._message.removeClass('shown');
+        return this;
     }
 
     private _updateImage() {
@@ -188,6 +221,7 @@ export class CropView extends View<HTMLDivElement> {
             img.src = emptyImage;
             return Promise.resolve(false);
         }
+        this.hideMessage();
 
         let progress = this.options.progress;
         if (progress) {
@@ -196,8 +230,8 @@ export class CropView extends View<HTMLDivElement> {
 
         return this.model.open({
             progress: (e) => {
-                let pc = 100 / e.total * e.loaded
-                if (progress) progress.setPercent(pc);
+                if (e.total == 0) return;
+                if (progress) progress.setPercent((100 / e.total) * e.loaded);
             }
         }, this.client).then(blob => {
             var fn = (e) => {
@@ -207,9 +241,7 @@ export class CropView extends View<HTMLDivElement> {
 
             if (!/image\/.*/.test(blob.type)) {
                 this.triggerMethod('image', false);
-                if (progress) progress.hide();
-
-                throw new Error('not a image');
+                throw new Error('The file is not an image');
             }
 
             img.addEventListener('load', fn);
@@ -220,7 +252,9 @@ export class CropView extends View<HTMLDivElement> {
             addClass(img, 'loaded');
             return true
         }).catch(e => {
-            console.error('error', e)
+            if (progress) progress.hide();
+            this.trigger('error', e)
+            this.showMessage(e.message, true);
         })
     }
 

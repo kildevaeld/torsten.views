@@ -2,39 +2,43 @@
 <html>
 
 <head>
-	<meta charset="UTF-8" />
-	<link rel="stylesheet" href="/dist/css/torsten.views.css" />
-	<link rel="stylesheet" href="/node_modules/cropperjs/cropper.css" />
-	<!--script src="dist/torsten-.bundle.js"></script-->
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/dist/css/torsten.views.css" />
+    <link rel="stylesheet" href="/node_modules/cropperjs/cropper.css" />
+    <!--script src="dist/torsten-.bundle.js"></script-->
 
-	<script src="/node_modules/eventsjs/dist/eventsjs.js"></script>
-	<script src="/node_modules/orange/dist/orange.js"></script>
-	<script src="/node_modules/orange.dom/dist/orange.dom.js"></script>
-	<script src="/node_modules/orange.request/dist/orange.request.js"></script>
-	<script src="/node_modules/collection/dist/collection.js"></script>
-	<script src="/node_modules/views/dist/views.js"></script>
-	<script src="/node_modules/views.form/dist/views.form.js"></script>
-	<script src="/node_modules/torsten/dist/torsten.js"></script>
-	<script src="dist/torsten.views.js"></script>
-	<style>
-		div[form-editor="torsten.crop"] .crop-preview {
-			width: 300px;
-			height: 200px;
-		}
-	</style>
+    <script src="/node_modules/eventsjs/dist/eventsjs.js"></script>
+    <script src="/node_modules/orange/dist/orange.js"></script>
+    <script src="/node_modules/orange.dom/dist/orange.dom.js"></script>
+    <script src="/node_modules/orange.request/dist/orange.request.js"></script>
+    <script src="/node_modules/collection/dist/collection.js"></script>
+    <script src="/node_modules/views/dist/views.js"></script>
+    <script src="/node_modules/views.form/dist/views.form.js"></script>
+    <script src="/node_modules/torsten/dist/torsten.js"></script>
+    <script src="dist/torsten.views.js"></script>
+    <style>
+        html {
+            font-size: 16px;
+        }
+        
+        div[form-editor="torsten.crop"] .crop-preview {
+            width: 300px;
+            height: 200px;
+        }
+    </style>
 </head>
 
 <body>
-	<div id="main">
-	</div>
-	<form>
-		<div class="field">
-			<div form-editor="torsten.crop" name="image" cropping ratio="1.5"></div>
-		</div>
-	</form>
-	<textarea id="result"></textarea>
-	<button id="open">Open</button>
-	<script>
+    <div id="main">
+    </div>
+    <form>
+        <div class="field">
+            <div form-editor="torsten.crop" name="image" cropping ratio="1.5"></div>
+        </div>
+    </form>
+    <textarea id="result"></textarea>
+    <button id="open">Open</button>
+    <script>
         var client = torsten.views.createClient({
             endpoint: 'http://localhost:4000'
         });
@@ -59,7 +63,8 @@
                 image:{
                     client: client,
                     showDirectories: true,
-                    root: '/images'
+                    root: '/images',
+                    maxSize: 1024*1024*2
                 }
             },
             //model: new collection.Model()
@@ -73,7 +78,7 @@
         form.render()
         form.model = new collection.Model();
 
-        form.model.set('image', {
+        /*form.model.set('image', {
             "file": new torsten.views.FileInfoModel({
                 "id": "011fa876-bcae-4e60-89a2-b78438521b66",
                 "name": "e1e1b099fe357b2ced7a4ec80b4a4939455fbacb.jpg",
@@ -102,7 +107,7 @@
             "cropping_path": "/profile/3953/.croppings/e1e1b099fe357b2ced7a4ec80b4a4939455fbacb-0-0-570-380.jpg",
             "cropping_url": "https://s3-eu-west-1.amazonaws.com/livejazz-dev/profile/3953/.croppings/e1e1b099fe357b2ced7a4ec80b4a4939455fbacb-0-0-570-380.jpg",
             "file_url": "https://s3-eu-west-1.amazonaws.com/livejazz-dev/images/e1e1b099fe357b2ced7a4ec80b4a4939455fbacb.jpg"
-        })
+        })*/
         console.log(form)
     </script>
 </body>

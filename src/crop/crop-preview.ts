@@ -149,6 +149,8 @@ export class CropPreView extends View<HTMLDivElement> {
                     ry = ch / cropping.height;
                 let width = size.width, height = size.height;
 
+
+
                 let e = {
                     width: Math.round(rx * width) + 'px',
                     height: Math.round(ry * height) + 'px',

@@ -124,7 +124,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var FileInfoModel = function (_collection_1$Model) {
 	    _inherits(FileInfoModel, _collection_1$Model);
 
-	    function FileInfoModel(attr, options) {
+	    function FileInfoModel(attr) {
+	        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
 	        _classCallCheck(this, FileInfoModel);
 
 	        var _this = _possibleConstructorReturn(this, (FileInfoModel.__proto__ || Object.getPrototypeOf(FileInfoModel)).call(this, attr, options));
@@ -137,8 +139,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    _createClass(FileInfoModel, [{
 	        key: 'open',
-	        value: function open(o) {
-	            return download_1.Downloader.instance.download(this._client, this.fullPath, o);
+	        value: function open(o, client) {
+	            return download_1.Downloader.instance.download(client || this._client, this.fullPath, o);
 	            /*Øreturn this._client.open(this.fullPath, o)
 	                .then(blob => {
 	                    return blob;
@@ -10909,6 +10911,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	        nw = height * ratio;
 	    }
+	    if (nw == width && nh > height) {
+	        nw = height * ratio;
+	        nh = nw / ratio;
+	    }
 	    return {
 	        x: 0,
 	        y: 0,
@@ -10963,14 +10969,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	var CropView = function (_views_1$View) {
 	    _inherits(CropView, _views_1$View);
 
-	    function CropView() {
-	        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { resize: false };
-
+	    function CropView(options) {
 	        _classCallCheck(this, CropView);
+
+	        if (options == null || options.client == null) throw new Error('No options and no client');
 
 	        var _this = _possibleConstructorReturn(this, (CropView.__proto__ || Object.getPrototypeOf(CropView)).call(this, options));
 
 	        _this.options = options;
+	        _this.client = options.client;
 	        return _this;
 	    }
 
@@ -11040,7 +11047,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (isFunction(o.cropend)) o.cropend(e);
 	                }
 	            };
-	            console.log(cropperjs_1.default);
 	            opts = orange_1.extend({}, this.options, opts);
 	            this._cropper = new cropperjs_1.default(this.ui['image'], opts);
 	            return this;
@@ -11076,8 +11082,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	                image = document.createElement('img');
 	                this.el.appendChild(image);
 	            }
+	            var $i = orange_dom_1.Html.query(document.createElement('div'));
+	            $i.addClass('message');
+	            this._message = $i;
+	            this.el.appendChild($i.get(0));
+	            console.log('HERE', $i);
 	            this.delegateEvents();
 	            this.triggerMethod('render');
+	            return this;
+	        }
+	    }, {
+	        key: "showMessage",
+	        value: function showMessage(str) {
+	            this._message.text(str).css('visibility', 'visible');
+	            return this;
+	        }
+	    }, {
+	        key: "hideMessage",
+	        value: function hideMessage() {
+	            this._message.text('').css('visible');
 	            return this;
 	        }
 	    }, {
@@ -11097,10 +11120,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return this.model.open({
 	                progress: function progress(e) {
-	                    var pc = 100 / e.total * e.loaded;
-	                    if (_progress) _progress.setPercent(pc);
+	                    if (e.total == 0) return;
+	                    if (_progress) _progress.setPercent(100 / e.total * e.loaded);
 	                }
-	            }).then(function (blob) {
+	            }, this.client).then(function (blob) {
 	                var fn = function fn(e) {
 	                    if (_progress) _progress.hide();
 	                    img.removeEventListener('load', fn);
@@ -14968,11 +14991,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.model = null;
 	                return;
 	            }
-	            if (result.file !== this.model) {
-	                this.model = result.file;
-	            }
 	            if (!orange_1.equal(result.cropping, this.crop.cropping)) {
 	                this.crop.cropping = result.cropping;
+	            }
+	            if (result.file !== this.model) {
+	                this.model = result.file;
 	            }
 	        }
 	    }, {
@@ -15018,31 +15041,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                orange_dom_1.addClass(this.crop.el, 'crop-preview cropping-preview');
 	                orange_dom_1.addClass(this.crop.ui['image'], 'content');
 	            }
-	            /*let preview = new CropPreView({
-	                el: this.crop ? this.crop.el : null
-	            });
-	             if (!this.crop) {
-	                preview.el.innerHTML = '<img class="content" />';
-	                addClass(preview.el, 'crop-preview cropping-preview')
-	                let el = this.el.querySelector('.crop-btn')
-	                el.parentElement.removeChild(el);
-	            } else {
-	                
-	            }*/
 	            this.preview.render();
-	            /*if (this.crop) {
-	                let el = Html.query(document.createElement('div'))
-	                    .addClass('upload-progress-container')
-	                    .css({ display: 'none' });
-	                el.html('<div class="upload-progress" style="width:0;"></div>');
-	                this.crop.el.appendChild(el.get(0));
-	            } else {
-	                this.ui['crop'].appendChild(preview.el);
-	            }*/
 	            this.drop.render();
 	            this.crop.el.appendChild(this.progress.render().el);
-	            //this._showDropIndicator();
-	            //this._showError(new Error('Image already exists'));
 	        }
 	    }, {
 	        key: "clear",
