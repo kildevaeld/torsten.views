@@ -124,7 +124,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var FileInfoModel = function (_collection_1$Model) {
 	    _inherits(FileInfoModel, _collection_1$Model);
 
-	    function FileInfoModel(attr, options) {
+	    function FileInfoModel(attr) {
+	        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
 	        _classCallCheck(this, FileInfoModel);
 
 	        var _this = _possibleConstructorReturn(this, (FileInfoModel.__proto__ || Object.getPrototypeOf(FileInfoModel)).call(this, attr, options));
@@ -137,8 +139,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    _createClass(FileInfoModel, [{
 	        key: 'open',
-	        value: function open(o) {
-	            return download_1.Downloader.instance.download(this._client, this.fullPath, o);
+	        value: function open(o, client) {
+	            return download_1.Downloader.instance.download(client || this._client, this.fullPath, o);
 	            /*Øreturn this._client.open(this.fullPath, o)
 	                .then(blob => {
 	                    return blob;
@@ -2982,6 +2984,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else {
 	        nw = height * ratio;
 	    }
+	    if (nw == width && nh > height) {
+	        nw = height * ratio;
+	        nh = nw / ratio;
+	    }
+	    console.log(width, height, nw, nh);
 	    return {
 	        x: 0,
 	        y: 0,
@@ -3036,14 +3043,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	var CropView = function (_views_1$View) {
 	    _inherits(CropView, _views_1$View);
 
-	    function CropView() {
-	        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { resize: false };
-
+	    function CropView(options) {
 	        _classCallCheck(this, CropView);
+
+	        if (options == null || options.client == null) throw new Error('No options and no client');
 
 	        var _this = _possibleConstructorReturn(this, (CropView.__proto__ || Object.getPrototypeOf(CropView)).call(this, options));
 
 	        _this.options = options;
+	        _this.client = options.client;
 	        return _this;
 	    }
 
@@ -3173,7 +3181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    var pc = 100 / e.total * e.loaded;
 	                    if (_progress) _progress.setPercent(pc);
 	                }
-	            }).then(function (blob) {
+	            }, this.client).then(function (blob) {
 	                var fn = function fn(e) {
 	                    if (_progress) _progress.hide();
 	                    img.removeEventListener('load', fn);

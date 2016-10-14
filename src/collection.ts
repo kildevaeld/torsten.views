@@ -61,14 +61,14 @@ export function isFileInfo(a:any): a is FileInfoModel {
 }
 
 export interface FileInfoModelOptions {
-    client: IClient;
+    client?: IClient;
 }
 
 export class FileInfoModel extends Model {
     __torsten = 'FileInfoModel'
     _client: IClient;
     idAttribute = "id";
-    constructor(attr: any, options: FileInfoModelOptions) {
+    constructor(attr: any, options: FileInfoModelOptions={}) {
         super(attr, options);
         this._client = options.client;
     }
@@ -81,8 +81,8 @@ export class FileInfoModel extends Model {
         return this._client.endpoint + this.fullPath;
     }
 
-    open(o?: OpenOptions): IPromise<Blob> {
-        return Downloader.instance.download(this._client, this.fullPath, o)
+    open(o?: OpenOptions, client?: IClient): IPromise<Blob> {
+        return Downloader.instance.download(client||this._client, this.fullPath, o)
 
         /*Øreturn this._client.open(this.fullPath, o)
             .then(blob => {

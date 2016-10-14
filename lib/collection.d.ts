@@ -12,16 +12,16 @@ export interface State {
 }
 export declare function isFileInfo(a: any): a is FileInfoModel;
 export interface FileInfoModelOptions {
-    client: IClient;
+    client?: IClient;
 }
 export declare class FileInfoModel extends Model {
     __torsten: string;
     _client: IClient;
     idAttribute: string;
-    constructor(attr: any, options: FileInfoModelOptions);
+    constructor(attr: any, options?: FileInfoModelOptions);
     fullPath: any;
     url: string;
-    open(o?: OpenOptions): IPromise<Blob>;
+    open(o?: OpenOptions, client?: IClient): IPromise<Blob>;
 }
 export interface FileCollectionFetchOptions extends CollectionFetchOptions {
     page?: number;

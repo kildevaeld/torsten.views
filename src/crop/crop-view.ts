@@ -1,13 +1,13 @@
-import {View, ViewOptions, attributes} from 'views';
+import { View, ViewOptions, attributes } from 'views';
 import Cropper from 'cropperjs';
-import {ICropper, Cropping, getCropping} from './types';
-import {FileInfoModel, isFileInfo} from '../collection';
-import {CropPreView} from './crop-preview';
-import {getImageSize, emptyImage} from '../utils';
-import {extend} from 'orange';
-import {addClass, removeClass} from 'orange.dom'
-
-import {Progress} from '../list/circular-progress'
+import { ICropper, Cropping, getCropping } from './types';
+import { FileInfoModel, isFileInfo } from '../collection';
+import { CropPreView } from './crop-preview';
+import { getImageSize, emptyImage } from '../utils';
+import { extend } from 'orange';
+import { addClass, removeClass } from 'orange.dom'
+import { IClient } from 'torsten'
+import { Progress } from '../list/circular-progress'
 
 
 function isFunction(a: any): a is Function {
@@ -18,6 +18,7 @@ export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
     resize: boolean;
     previewView?: CropPreView;
     progress?: Progress;
+    client: IClient;
 }
 
 @attributes({
@@ -28,6 +29,7 @@ export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
 })
 export class CropView extends View<HTMLDivElement> {
     model: FileInfoModel;
+    client: IClient;
     private _cropper: ICropper;
     protected _cropping: Cropping;
     options: CropViewOptions;
@@ -65,7 +67,7 @@ export class CropView extends View<HTMLDivElement> {
         }
         image.src = emptyImage;
 
-       // image.style.display = 'none';
+        // image.style.display = 'none';
         if (model == null) {
             if (this.model) this.stopListening(this.model);
             this._model = model;
@@ -74,7 +76,7 @@ export class CropView extends View<HTMLDivElement> {
 
         super.setModel(model);
 
-        
+
 
         this._updateImage()
             .then((loaded) => {
@@ -86,16 +88,18 @@ export class CropView extends View<HTMLDivElement> {
                         this.trigger('error', e);
                     });
                 }
-                
+
             });
 
 
         return this;
     }
 
-    constructor(options: CropViewOptions = { resize: false }) {
+    constructor(options: CropViewOptions) {
+        if (options == null || options.client == null) throw new Error('No options and no client')
         super(options);
         this.options = options;
+        this.client = options.client;
     }
 
     activate() {
@@ -132,13 +136,13 @@ export class CropView extends View<HTMLDivElement> {
         };
         console.log(Cropper)
         opts = extend({}, this.options, opts);
-        
+
         this._cropper = new Cropper(<HTMLImageElement>this.ui['image'], opts);
 
         return this;
     }
 
-    deactivate()  {
+    deactivate() {
         if (this._cropper) {
             this._cropper.destroy();
             this._cropper = void 0;
@@ -189,33 +193,33 @@ export class CropView extends View<HTMLDivElement> {
         if (progress) {
             progress.show();
         }
-        
+
         return this.model.open({
             progress: (e) => {
                 let pc = 100 / e.total * e.loaded
                 if (progress) progress.setPercent(pc);
             }
-        }).then( blob => {
+        }, this.client).then(blob => {
             var fn = (e) => {
                 if (progress) progress.hide()
                 img.removeEventListener('load', fn);
             }
-            
+
             if (!/image\/.*/.test(blob.type)) {
                 this.triggerMethod('image', false);
                 if (progress) progress.hide();
 
                 throw new Error('not a image');
             }
-            
+
             img.addEventListener('load', fn);
             img.src = URL.createObjectURL(blob)
             this.triggerMethod('image', true)
             return true
-        }).then( () => {
+        }).then(() => {
             addClass(img, 'loaded');
             return true
-        }).catch( e => {
+        }).catch(e => {
             console.error('error', e)
         })
     }
