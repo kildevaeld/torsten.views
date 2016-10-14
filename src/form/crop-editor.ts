@@ -1,11 +1,9 @@
 
-/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
-    ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
 import { DropZone } from '../gallery/dropzone'
-import { IClient, FileMode } from 'torsten';
+import { FileMode } from 'torsten';
 import { CropViewOptions, CropView, CropPreView, Cropping } from '../crop/index';
 import { FileInfoModel } from '../collection';
-import { BaseEditor, Form, validate, editor, IEditorOptions } from 'views.form';
+import { BaseEditor, editor, IEditorOptions } from 'views.form';
 import { attributes } from 'views';
 import { GalleryModal, GalleryViewOptions } from '../gallery/index';
 
@@ -13,19 +11,71 @@ import { addClass, removeClass, Html } from 'orange.dom';
 import { omit, extend, equal } from 'orange';
 import templates from '../templates/index';
 import { Progress } from '../list/circular-progress';
-import { UploadErrorEvent, UploadProgressEvent, UploadEvent } from '../uploader';
+import { UploadErrorEvent, UploadProgressEvent } from '../uploader';
 
+/**
+ * 
+ * 
+ * @export
+ * @interface CropResult
+ */
 export interface CropResult {
+    /**
+     * 
+     * 
+     * @type {FileInfoModel}
+     * @memberOf CropResult
+     */
     file: FileInfoModel;
+    /**
+     * 
+     * 
+     * @type {Cropping}
+     * @memberOf CropResult
+     */
     cropping: Cropping;
 }
 
+/**
+ * 
+ * 
+ * @export
+ * @interface CropEditorOptions
+ * @extends {GalleryViewOptions}
+ * @extends {CropViewOptions}
+ * @extends {IEditorOptions}
+ */
 export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, IEditorOptions {
+    /**
+     * 
+     * 
+     * @type {boolean}
+     * @memberOf CropEditorOptions
+     */
     cropping?: boolean;
+    /**
+     * 
+     * 
+     * @type {string}
+     * @memberOf CropEditorOptions
+     */
     root?: string;
+    /**
+     * 
+     * 
+     * @type {FileMode}
+     * @memberOf CropEditorOptions
+     */
     mode?: FileMode
 };
 
+/**
+ * 
+ * 
+ * @export
+ * @class CropEditor
+ * @extends {BaseEditor<HTMLDivElement, CropResult>}
+ */
 @attributes({
     template: () => templates['crop-editor'],
     ui: {
@@ -33,10 +83,6 @@ export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, 
         crop: '.crop-container'
     },
     events: {
-        /*drop: '_onDrop',
-        dragenter: '_cancel',
-        dragover: '_cancel',
-        dragleave: '_cancel',*/
         'click .gallery-btn': function (e) {
             e.preventDefault();
             this.modal.toggle();
@@ -46,15 +92,69 @@ export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, 
 })
 @editor('torsten.crop')
 export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
+    /**
+     * 
+     * 
+     * @type {FileInfoModel}
+     * @memberOf CropEditor
+     */
     model: FileInfoModel;
+    /**
+     * 
+     * 
+     * @type {GalleryModal}
+     * @memberOf CropEditor
+     */
     modal: GalleryModal;
+    /**
+     * 
+     * 
+     * @type {CropView}
+     * @memberOf CropEditor
+     */
     crop: CropView
+    /**
+     * 
+     * 
+     * @type {DropZone}
+     * @memberOf CropEditor
+     */
     drop: DropZone;
+    /**
+     * 
+     * 
+     * @type {Progress}
+     * @memberOf CropEditor
+     */
     progress: Progress;
+    /**
+     * 
+     * 
+     * @type {CropPreView}
+     * @memberOf CropEditor
+     */
     preview: CropPreView
-    //uploader: FileUploader;
+    /**
+     * 
+     * 
+     * @type {CropEditorOptions}
+     * @memberOf CropEditor
+     */
     options: CropEditorOptions
+    /**
+     * 
+     * 
+     * @type {boolean}
+     * @memberOf CropEditor
+     */
     _toggled: boolean;
+    /**
+     * 
+     * 
+     * @returns {CropResult}
+     * 
+     * @memberOf CropEditor
+     */
     getValue(): CropResult {
         if (!this.model) return null;
         return {
@@ -63,6 +163,14 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         };
     }
 
+    /**
+     * 
+     * 
+     * @param {CropResult} result
+     * @returns
+     * 
+     * @memberOf CropEditor
+     */
     setValue(result: CropResult) {
         if (result == null) {
             this.model = null;
@@ -78,6 +186,13 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
     }
 
+    /**
+     * Creates an instance of CropEditor.
+     * 
+     * @param {CropEditorOptions} options
+     * 
+     * @memberOf CropEditor
+     */
     constructor(options: CropEditorOptions) {
         super(options);
 
@@ -176,6 +291,13 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
     }
 
+    /**
+     * 
+     * 
+     * @param {FileInfoModel} model
+     * 
+     * @memberOf CropEditor
+     */
     onModel(model: FileInfoModel) {
         if (model) this._removeDropIndicator();
         this._toggled = false;
@@ -184,10 +306,25 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
     }
 
-    onSetElement() {
+    /**
+     * 
+     * 
+     * 
+     * @memberOf CropEditor
+     */
+    protected onSetElement() {
         this.options = this._getOptions(this.options);
     }
 
+    /**
+     * Parse options options and the element
+     * 
+     * @private
+     * @param {CropEditorOptions} options
+     * @returns {CropEditorOptions}
+     * 
+     * @memberOf CropEditor
+     */
     private _getOptions(options: CropEditorOptions): CropEditorOptions {
         ['host', 'maxSize', 'mimeType', 'ratio', 'cropping']
             .forEach(m => {
@@ -207,7 +344,8 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         return options;
     }
 
-    onRender() {
+
+    protected onRender() {
 
         this.ui['modal'].appendChild(this.modal.render().el);
         if (this.crop) {
@@ -226,40 +364,27 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
 
     }
 
+    /**
+     * 
+     * 
+     * 
+     * @memberOf CropEditor
+     */
     clear() {
         this.model = null;
         this.crop.showMessage("Drag'n'Drop image here")
     }
 
     private _showDropIndicator() {
-        /*this._removeError();
-        let preview = this.el.querySelector('.crop-preview');
-        if (!preview) return;
-        let i = preview.querySelector('.drop-indicator');
-        if (i) return;
-        i = document.createElement('div');
-        let $i = Html.query(<any>i);
-        $i.addClass('drop-indicator')
-            .css({
-                position: 'absolute',
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                left: '50%'
-            })
-        $i.text('Drop Here');
-
-
-        preview.appendChild(i);*/
         this.crop.showMessage("Drag'n'Drop image here");
 
     }
 
     private _removeDropIndicator() {
-        //let i = this.el.querySelector('.drop-indicator')
-        //if (i && i.parentElement) i.parentElement.removeChild(i);
         this.crop.hideMessage();
     }
-    private _showError(e) {
+
+    /*private _showError(e) {
         this._removeDropIndicator();
         let i = <HTMLDivElement>this.crop.el.querySelector('.error');
         if (!i) {
@@ -279,9 +404,9 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         if (i && i.parentElement) {
             this.crop.el.removeChild(i);
         }
-    }
+    }*/
 
-    private _onToggleCropper(e: MouseEvent) {
+    protected _onToggleCropper(e: MouseEvent) {
         e.preventDefault();
         if (this.model == null) return;
         this.crop.toggle();
@@ -290,24 +415,20 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             addClass(<any>e.target, 'active');
         } else {
             removeClass(<any>e.target, 'active');
-            //this.model.set('meta.cropping', this.crop.cropping);
             this.triggerMethod('change');
         }
     }
 
-
-
     private _onFileSelected(model) {
-        //let value = this.modal.selected;
         this.model = model;
-        //(<HTMLImageElement>this.crop.ui['image']).src = value.getURL();
         this.trigger('change');
     }
 
-    /*validate(form: Form) {
-        return validate(form, this, this.value);
-    }*/
-
+    /**
+     * 
+     * 
+     * @memberOf CropEditor
+     */
     destroy() {
         if (this.crop.options.previewView) {
             this.crop.options.previewView.destroy();

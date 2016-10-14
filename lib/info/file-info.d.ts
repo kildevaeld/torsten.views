@@ -6,7 +6,7 @@ export interface FileInfoViewOptions extends ViewOptions {
 }
 export declare class FileInfoView extends View<HTMLDivElement> {
     options: FileInfoViewOptions;
-    __rendered: boolean;
+    private __rendered;
     model: FileInfoModel;
     client: IClient;
     constructor(options: FileInfoViewOptions);
@@ -14,5 +14,5 @@ export declare class FileInfoView extends View<HTMLDivElement> {
     onRender(): void;
     clear(): this;
     _update_ui(model: FileInfoModel): this;
-    private _onDownload(e);
+    protected _onDownload(e: any): void;
 }

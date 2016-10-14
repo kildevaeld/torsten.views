@@ -1,11 +1,11 @@
 
-import {View, attributes, ViewOptions} from 'views';
-import {truncate} from 'orange';
-import {addClass, removeClass} from 'orange.dom';
+import { View, attributes } from 'views';
+import { truncate } from 'orange';
+import { addClass, removeClass } from 'orange.dom';
 import templates from '../templates/index';
-import {FileInfoModel} from '../collection'
-import {getMimeIcon} from '../gallery/mimetypes';
-import {emptyImage} from '../utils';
+import { FileInfoModel } from '../collection'
+import { getMimeIcon } from '../gallery/mimetypes';
+import { emptyImage } from '../utils';
 
 @attributes({
     template: () => templates['list-item'],
@@ -48,22 +48,22 @@ export class FileListItemView extends View<HTMLDivElement> {
             let img = new Image();
             img.src = emptyImage;
             img.setAttribute('data-src', this.model.fullPath);
-            
+
             this.ui['mime'].parentNode.insertBefore(img, this.ui['mime']);
-            
+
         }
     }
 
-    private _onClick(e: Event) {
+    protected _onClick(e: Event) {
         e.preventDefault();
         let target = e.target;
-        
+
         if (target === this.ui['remove']) return;
 
         this.triggerMethod('click', this.model);
     }
 
-    private _onDblClick(e) {
+    protected _onDblClick(e) {
         e.preventDefault();
         let target = e.target;
         if (target === this.ui['remove']) return;
@@ -72,11 +72,11 @@ export class FileListItemView extends View<HTMLDivElement> {
 
     downloadImage() {
         var model = this.model
-        
+
         if (/^image\/.*/.test(model.get('mime'))) {
 
             let img = <HTMLImageElement>this.el.querySelector('img');
-           
+
             this.model.open({ thumbnail: false })
                 .then(blob => {
                     img.setAttribute('src', URL.createObjectURL(blob));

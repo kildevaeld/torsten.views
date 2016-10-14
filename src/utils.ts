@@ -1,6 +1,7 @@
-import {Promise, IPromise} from 'orange';
-import {Size} from './types';
-export function getImageSize(image:HTMLImageElement): IPromise<Size> {
+import { Promise, IPromise } from 'orange';
+import { Size } from './types';
+
+export function getImageSize(image: HTMLImageElement): IPromise<Size> {
 
     const load = () => {
         return new Promise((resolve, reject) => {

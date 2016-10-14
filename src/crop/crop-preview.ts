@@ -79,7 +79,7 @@ export interface CropPreViewOptions extends ViewOptions {
 })
 export class CropPreView extends View<HTMLDivElement> {
     protected _cropping: Cropping;
-    private size: { width: number; height: number; };
+    //private size: { width: number; height: number; };
     options: CropPreViewOptions
     set cropping(cropping: Cropping) {
         this._cropping = cropping;

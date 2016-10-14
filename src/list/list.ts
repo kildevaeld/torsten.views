@@ -1,16 +1,12 @@
-declare var require: any;
-
-import {CollectionView, CollectionViewOptions, View, attributes} from 'views';
-import {removeClass, addClass, hasClass} from 'orange.dom';
-import {bind} from 'orange';
-import {FileListItemView} from './list-item';
-import {FileCollection} from '../collection';
-import {Progress} from './circular-progress';
-import {IProgress} from '../types';
-import templates from '../templates/index';
-import {IClient, OpenOptions} from 'torsten';
-import {Downloader} from '../download';
-
+import { CollectionView, CollectionViewOptions, View, attributes } from 'views';
+import { removeClass, addClass, hasClass } from 'orange.dom';
+import { bind } from 'orange';
+import { FileListItemView } from './list-item';
+import { FileCollection } from '../collection';
+import { Progress } from './circular-progress';
+import { IProgress } from '../types';
+import { IClient } from 'torsten';
+import { Downloader } from '../download';
 
 
 export interface FileListOptions extends CollectionViewOptions {
@@ -25,17 +21,15 @@ export const FileListEmptyView = View.extend({
 })
 
 @attributes({
-    //template: () => templates.list,
     className: 'file-list collection-mode',
     childView: FileListItemView,
     emptyView: FileListEmptyView,
-    //childViewContainer: '.file-list-item-container',
     events: {
         scroll: '_onSroll',
     }
 })
 export class FileListView extends CollectionView<HTMLDivElement> {
-    private _current: View<HTMLDivElement>;
+    //private _current: View<HTMLDivElement>;
     private _timer: NodeJS.Timer;
     private _progress: IProgress;
     private index: number;
@@ -163,8 +157,8 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         const loadImage = (img: HTMLImageElement) => {
             var parent = img.parentElement
             addClass(parent, 'loading')
-        
-            Downloader.download(this.options.client, img.getAttribute('data-src'), { thumbnail: true})
+
+            Downloader.download(this.options.client, img.getAttribute('data-src'), { thumbnail: true })
                 .then(i => {
                     img.src = URL.createObjectURL(i)
                     addClass(parent, 'loaded')
@@ -185,12 +179,12 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 }*/
                 continue;
             }
-            if (elementInView(img, this.el))  {
+            if (elementInView(img, this.el)) {
                 loadImage(img);
             }
         }
     }
-    
+
 
     private _initHeight() {
         let parent = this.el.parentElement;

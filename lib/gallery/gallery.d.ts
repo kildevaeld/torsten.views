@@ -19,10 +19,10 @@ export declare class GalleryView extends LayoutView<HTMLDivElement> {
     list: FileListView;
     drop: DropZone;
     uploader: Uploader;
-    _const_upload: boolean;
+    private _const_upload;
     client: IClient;
     collections: FileCollection[];
-    collection: FileCollection;
+    readonly collection: FileCollection;
     private _root;
     root: string;
     private _selected;

@@ -11,7 +11,7 @@ export declare class DropZone extends View<HTMLDivElement> {
     path: string;
     mode: FileMode;
     constructor(options?: DropZoneOptions);
-    private _onDragEnter(e);
-    private _onDragEnd(e);
-    private _onDrop(e);
+    protected _onDragEnter(e: DragEvent): void;
+    protected _onDragEnd(e: DragEvent): void;
+    protected _onDrop(e: DragEvent): void;
 }

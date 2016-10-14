@@ -1,10 +1,10 @@
-import {Modal, ModalOptions} from '../modal/index';
-import {GalleryView, GalleryViewOptions} from './gallery'
-import {attributes} from 'views';
+import { Modal, ModalOptions } from '../modal/index';
+import { GalleryView, GalleryViewOptions } from './gallery'
+import { attributes } from 'views';
 import templates from '../templates/index'
-import {addClass, addEventListener, removeEventListener} from 'orange.dom'
-import {FileInfoModel} from '../collection';
-import {bind} from 'orange';
+import { addClass, addEventListener, removeEventListener } from 'orange.dom'
+import { FileInfoModel } from '../collection';
+import { bind } from 'orange';
 
 export interface GalleryModalOptions extends GalleryViewOptions, ModalOptions {
 
@@ -18,7 +18,7 @@ export interface GalleryModalOptions extends GalleryViewOptions, ModalOptions {
     events: {
         'click .btn-close': function () { this.close() },
         'click .btn-select': '_onSelect',
-       
+
     }
 })
 export class GalleryModal extends Modal {
@@ -32,11 +32,11 @@ export class GalleryModal extends Modal {
         return this.gallery.selected
     }
 
-    set root (root: string) {
-        this._gallery.root = root; 
+    set root(root: string) {
+        this._gallery.root = root;
     }
 
-    constructor(options:GalleryModalOptions) {
+    constructor(options: GalleryModalOptions) {
         super(options);
 
         delete options.el;
@@ -53,7 +53,7 @@ export class GalleryModal extends Modal {
 
         this._setHeight = bind(this._setHeight, this);
 
-        
+
     }
 
     onBeforeOpen() {
@@ -82,11 +82,11 @@ export class GalleryModal extends Modal {
 
     onRender() {
         this._gallery.render()
-        this.ui['content'].appendChild(this._gallery.el); 
-        addClass(this.el, 'gallery-modal slidein-bottom')           
+        this.ui['content'].appendChild(this._gallery.el);
+        addClass(this.el, 'gallery-modal slidein-bottom')
     }
-    
-    private _onSelect (e) {
+
+    protected _onSelect(e) {
         e.preventDefault();
         if (this.selected)
             this.trigger('selected', this.selected);

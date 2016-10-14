@@ -1,16 +1,14 @@
 declare var G_vmlCanvasManager;
-import {View, ViewOptions, attributes} from 'views'
-import {extend} from 'orange';
-import {IProgress} from '../types';
-
-
+import { View, ViewOptions, attributes } from 'views'
+import { extend } from 'orange';
+import { IProgress } from '../types';
 
 export interface ProgressOptions extends ViewOptions {
     size?: number;
     lineWidth?: number;
     rotate?: number;
     background?: string;
-    foreground?: string;   
+    foreground?: string;
 }
 
 @attributes({
@@ -20,8 +18,8 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
     options: ProgressOptions;
     _percent: number;
     _timer: NodeJS.Timer;
-    
-    
+
+
     ctx: CanvasRenderingContext2D;
     constructor(options: ProgressOptions = {}) {
         super(options)
@@ -33,30 +31,26 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
             foreground: '#555555'
         }, options);
         this._percent = 0;
-        
+
     }
 
 
     setPercent(percent: number) {
-
-        let newPercent = percent;
-        let diff = Math.abs(percent - this._percent)
-
         requestAnimationFrame(() => {
             this.ctx.clearRect(0, 0, this.options.size, this.options.size)
 
             this._drawCircle(this.ctx, this.options.background, this.options.lineWidth, 100 / 100);
             this._drawCircle(this.ctx, this.options.foreground, this.options.lineWidth, percent / 100);
             let text = this.el.querySelector('span')
-             text.textContent = Math.floor(percent) + '%'
-            
+            text.textContent = Math.floor(percent) + '%'
+
         });
 
     }
 
 
 
-    private _drawCircle(ctx:CanvasRenderingContext2D, color, lineWidth, percent) {
+    private _drawCircle(ctx: CanvasRenderingContext2D, color, lineWidth, percent) {
         var radius = (this.options.size - this.options.lineWidth) / 2;
         percent = Math.min(Math.max(0, percent || 1), 1);
         ctx.beginPath();
@@ -72,7 +66,7 @@ export class Progress extends View<HTMLDivElement> implements IProgress {
     show() {
         this.el.style.display = 'block';
     }
-   
+
     hide() {
         this.el.style.display = 'none';
     }

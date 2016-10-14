@@ -1,7 +1,14 @@
 
 import { EventEmitter } from 'eventsjs';
-import { IClient, CreateOptions, path, ErrorCode, TorstenClientError, FileMode } from 'torsten';
-import { Deferred, deferred, IPromise, nextTick, extend, uniqueId, humanFileSize } from 'orange';
+import {
+    IClient, CreateOptions, path, ErrorCode,
+    TorstenClientError, FileMode
+} from 'torsten';
+import {
+    Deferred, deferred, IPromise, nextTick,
+    extend, uniqueId, humanFileSize
+} from 'orange';
+
 import { FileInfoModel } from './collection';
 import { TorstenValidateError } from './error'
 import * as Debug from 'debug';
@@ -134,7 +141,7 @@ export class Uploader extends EventEmitter {
 
     private _upload(item: QueueItem): IPromise<FileInfoModel> {
 
-        let {path, file, options, defer} = item,
+        let {path, file, options} = item,
             event = itemToEvent(item);
 
         const emit = (e?: TorstenClientError, file?: FileInfoModel) => {

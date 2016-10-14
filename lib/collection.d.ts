@@ -19,8 +19,8 @@ export declare class FileInfoModel extends Model {
     _client: IClient;
     idAttribute: string;
     constructor(attr: any, options?: FileInfoModelOptions);
-    fullPath: any;
-    url: string;
+    readonly fullPath: any;
+    readonly url: string;
     open(o?: OpenOptions, client?: IClient): IPromise<Blob>;
 }
 export interface FileCollectionFetchOptions extends CollectionFetchOptions {
@@ -53,12 +53,12 @@ export declare abstract class RestCollection<T extends IModel> extends Collectio
     abstract fetch(options?: CollectionFetchOptions): IPromise<FileInfoModel[]>;
 }
 export declare class FileCollection extends RestCollection<FileInfoModel> {
-    protected __classType: string;
+    protected readonly __classType: string;
     Model: typeof FileInfoModel;
     private _path;
     private _client;
     private _fetch;
-    path: string;
+    readonly path: string;
     constructor(models: IFileInfo[] | FileInfoModel[], options: FileCollectionOptions<FileInfoModel>);
     fetch(options?: FileCollectionFetchOptions): IPromise<FileInfoModel[]>;
     upload(name: string, data: any, options?: CreateOptions): IPromise<FileInfoModel>;

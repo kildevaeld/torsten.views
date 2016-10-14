@@ -141,10 +141,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: 'open',
 	        value: function open(o, client) {
 	            return download_1.Downloader.instance.download(client || this._client, this.fullPath, o);
-	            /*Øreturn this._client.open(this.fullPath, o)
-	                .then(blob => {
-	                    return blob;
-	                })*/
 	        }
 	    }, {
 	        key: 'fullPath',
@@ -306,18 +302,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this4.trigger('fetch');
 	                return models;
 	            });
-	            /*return this._client.list(this.path, {
-	                progress: (e) => {
-	                    if (e.lengthComputable) {
-	                        this.trigger('fetch:progress', e)
-	                    }
-	                }
-	            })
-	                .then(files => {
-	                    this[options.reset ? 'reset' : 'set'](files, options);
-	                    this.trigger('fetch');
-	                    return this.models;
-	                });*/
 	        }
 	    }, {
 	        key: 'upload',
@@ -345,8 +329,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_prepareModel',
 	        value: function _prepareModel(value) {
-	            if (collection_1.isModel(value)) return value;
-	            if (orange_1.isObject(value)) return new this.Model(value, {
+	            if (isFileInfo(value)) return value;
+	            if (orange_1.isObject(value) && !collection_1.isModel(value)) return new this.Model(value, {
 	                //parse: true,
 	                client: this._client
 	            });
@@ -1349,11 +1333,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return FileListView;
 	}(views_1.CollectionView);
 	FileListView = __decorate([views_1.attributes({
-	    //template: () => templates.list,
 	    className: 'file-list collection-mode',
 	    childView: list_item_1.FileListItemView,
 	    emptyView: exports.FileListEmptyView,
-	    //childViewContainer: '.file-list-item-container',
 	    events: {
 	        scroll: '_onSroll'
 	    }
@@ -1794,8 +1776,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function setPercent(percent) {
 	            var _this2 = this;
 
-	            var newPercent = percent;
-	            var diff = Math.abs(percent - this._percent);
 	            requestAnimationFrame(function () {
 	                _this2.ctx.clearRect(0, 0, _this2.options.size, _this2.options.size);
 	                _this2._drawCircle(_this2.ctx, _this2.options.background, _this2.options.lineWidth, 100 / 100);
@@ -1983,7 +1963,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (res.message === 'ok') {
 	                    model.remove();
 	                }
-	                console.log(res);
 	            });
 	        }
 	    }, {
@@ -2011,8 +1990,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "destroy",
 	        value: function destroy() {
-	            this.list.destroy();
-	            this.info.destroy();
 	            this.drop.destroy();
 	            if (this._const_upload) {
 	                this.uploader.destroy();
@@ -2421,8 +2398,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	            var path = item.path;
 	            var file = item.file;
-	            var options = item.options;
-	            var defer = item.defer;var event = itemToEvent(item);
+	            var options = item.options;var event = itemToEvent(item);
 	            var emit = function emit(e, file) {
 	                _this3._uploading--;
 	                debug('upload ready %s', path);
@@ -2744,7 +2720,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "toggle",
 	        value: function toggle() {
-	            var body = document.body;
 	            if (!orange_dom_1.hasClass(this.el, "views-modal-show")) {
 	                this.open();
 	            } else {
@@ -3040,9 +3015,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	function isFunction(a) {
 	    return typeof a === 'function';
 	}
+	/**
+	 *
+	 *
+	 * @export
+	 * @class CropView
+	 * @extends {View<HTMLDivElement>}
+	 */
 	var CropView = function (_views_1$View) {
 	    _inherits(CropView, _views_1$View);
 
+	    /**
+	     * Creates an instance of CropView.
+	     *
+	     * @param {CropViewOptions} options
+	     *
+	     * @memberOf CropView
+	     */
 	    function CropView(options) {
 	        _classCallCheck(this, CropView);
 
@@ -3054,9 +3043,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.client = options.client;
 	        return _this;
 	    }
+	    /**
+	     *
+	     *
+	     * @readonly
+	     *
+	     * @memberOf CropView
+	     */
+
 
 	    _createClass(CropView, [{
 	        key: "setModel",
+
+	        /**
+	         *
+	         *
+	         * @param {any} model
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
 	        value: function setModel(model) {
 	            var _this2 = this;
 
@@ -3091,6 +3097,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	            return this;
 	        }
+	        /**
+	         * Activate cropper
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "activate",
 	        value: function activate() {
@@ -3129,6 +3143,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._cropper = new cropperjs_1.default(this.ui['image'], opts);
 	            return this;
 	        }
+	        /**
+	         * Deactivate cropper
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "deactivate",
 	        value: function deactivate() {
@@ -3138,6 +3160,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return this;
 	        }
+	        /**
+	         * Toggle cropper
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "toggle",
 	        value: function toggle() {
@@ -3150,6 +3180,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.options.previewView.cropping = cropping;
 	            }
 	        }
+	        /**
+	         *
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "render",
 	        value: function render() {
@@ -3168,6 +3206,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.triggerMethod('render');
 	            return this;
 	        }
+	        /**
+	         *
+	         *
+	         * @param {string} str
+	         * @param {boolean} [error=false]
+	         * @param {number} [timeout]
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "showMessage",
 	        value: function showMessage(str) {
@@ -3185,6 +3234,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return this;
 	        }
+	        /**
+	         *
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "hideMessage",
 	        value: function hideMessage() {
@@ -3218,7 +3275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    img.removeEventListener('load', fn);
 	                };
 	                if (!/image\/.*/.test(blob.type)) {
-	                    _this5.triggerMethod('image', false);
+	                    //this.triggerMethod('image', false);
 	                    throw new Error('The file is not an image');
 	                }
 	                img.addEventListener('load', fn);
@@ -3234,6 +3291,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this5.showMessage(e.message, true);
 	            });
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "destroy",
 	        value: function destroy() {
@@ -3247,11 +3311,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (this.ui['image'] == null) return null;
 	            return this.activate()._cropper;
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "cropping",
 	        get: function get() {
 	            return this._cropping;
-	        },
+	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropView
+	         */
+	        ,
 	        set: function set(cropping) {
 	            this._cropping = cropping;
 	            if (this.options.previewView) this.options.previewView.cropping = cropping;
@@ -6978,8 +7056,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
-	    ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
 	var dropzone_1 = __webpack_require__(25);
 	var index_1 = __webpack_require__(30);
 	var views_form_1 = __webpack_require__(37);
@@ -6990,9 +7066,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	var index_3 = __webpack_require__(17);
 	var circular_progress_1 = __webpack_require__(20);
 	;
+	/**
+	 *
+	 *
+	 * @export
+	 * @class CropEditor
+	 * @extends {BaseEditor<HTMLDivElement, CropResult>}
+	 */
 	var CropEditor = function (_views_form_1$BaseEdi) {
 	    _inherits(CropEditor, _views_form_1$BaseEdi);
 
+	    /**
+	     * Creates an instance of CropEditor.
+	     *
+	     * @param {CropEditorOptions} options
+	     *
+	     * @memberOf CropEditor
+	     */
 	    function CropEditor(options) {
 	        _classCallCheck(this, CropEditor);
 
@@ -7073,6 +7163,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.progress.hide();
 	        return _this;
 	    }
+	    /**
+	     *
+	     *
+	     * @returns {CropResult}
+	     *
+	     * @memberOf CropEditor
+	     */
+
 
 	    _createClass(CropEditor, [{
 	        key: "getValue",
@@ -7083,6 +7181,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	                cropping: this.crop.cropping
 	            };
 	        }
+	        /**
+	         *
+	         *
+	         * @param {CropResult} result
+	         * @returns
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "setValue",
 	        value: function setValue(result) {
@@ -7097,6 +7204,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.model = result.file;
 	            }
 	        }
+	        /**
+	         *
+	         *
+	         * @param {FileInfoModel} model
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "onModel",
 	        value: function onModel(model) {
@@ -7105,11 +7220,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            orange_dom_1.Html.query('.crop-btn').removeClass('active');
 	            this.crop.model = model;
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "onSetElement",
 	        value: function onSetElement() {
 	            this.options = this._getOptions(this.options);
 	        }
+	        /**
+	         * Parse options options and the element
+	         *
+	         * @private
+	         * @param {CropEditorOptions} options
+	         * @returns {CropEditorOptions}
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "_getOptions",
 	        value: function _getOptions(options) {
@@ -7144,6 +7276,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.drop.render();
 	            this.crop.el.appendChild(this.progress.render().el);
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "clear",
 	        value: function clear() {
@@ -7153,51 +7292,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_showDropIndicator",
 	        value: function _showDropIndicator() {
-	            /*this._removeError();
-	            let preview = this.el.querySelector('.crop-preview');
-	            if (!preview) return;
-	            let i = preview.querySelector('.drop-indicator');
-	            if (i) return;
-	            i = document.createElement('div');
-	            let $i = Html.query(<any>i);
-	            $i.addClass('drop-indicator')
-	                .css({
-	                    position: 'absolute',
-	                    top: '50%',
-	                    transform: 'translate(-50%, -50%)',
-	                    left: '50%'
-	                })
-	            $i.text('Drop Here');
-	              preview.appendChild(i);*/
 	            this.crop.showMessage("Drag'n'Drop image here");
 	        }
 	    }, {
 	        key: "_removeDropIndicator",
 	        value: function _removeDropIndicator() {
-	            //let i = this.el.querySelector('.drop-indicator')
-	            //if (i && i.parentElement) i.parentElement.removeChild(i);
 	            this.crop.hideMessage();
 	        }
-	    }, {
-	        key: "_showError",
-	        value: function _showError(e) {
+	        /*private _showError(e) {
 	            this._removeDropIndicator();
-	            var i = this.crop.el.querySelector('.error');
+	            let i = <HTMLDivElement>this.crop.el.querySelector('.error');
 	            if (!i) {
-	                i = document.createElement('div');
-	                orange_dom_1.addClass(i, "error");
+	                i = document.createElement('div')
+	                addClass(i, "error");
 	                this.crop.el.appendChild(i);
 	            }
-	            i.innerHTML = "\n            <h3>Could not upload image!</h3>\n            <p>" + e.message + "</p>\n        ";
+	             i.innerHTML = `
+	                <h3>Could not upload image!</h3>
+	                <p>${e.message}</p>
+	            `;
 	        }
-	    }, {
-	        key: "_removeError",
-	        value: function _removeError() {
-	            var i = this.crop.el.querySelector('.error');
+	         private _removeError() {
+	            let i = <HTMLDivElement>this.crop.el.querySelector('.error')
 	            if (i && i.parentElement) {
 	                this.crop.el.removeChild(i);
 	            }
-	        }
+	        }*/
+
 	    }, {
 	        key: "_onToggleCropper",
 	        value: function _onToggleCropper(e) {
@@ -7209,21 +7330,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	                orange_dom_1.addClass(e.target, 'active');
 	            } else {
 	                orange_dom_1.removeClass(e.target, 'active');
-	                //this.model.set('meta.cropping', this.crop.cropping);
 	                this.triggerMethod('change');
 	            }
 	        }
 	    }, {
 	        key: "_onFileSelected",
 	        value: function _onFileSelected(model) {
-	            //let value = this.modal.selected;
 	            this.model = model;
-	            //(<HTMLImageElement>this.crop.ui['image']).src = value.getURL();
 	            this.trigger('change');
 	        }
-	        /*validate(form: Form) {
-	            return validate(form, this, this.value);
-	        }*/
+	        /**
+	         *
+	         *
+	         * @memberOf CropEditor
+	         */
 
 	    }, {
 	        key: "destroy",
@@ -7249,10 +7369,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        crop: '.crop-container'
 	    },
 	    events: {
-	        /*drop: '_onDrop',
-	        dragenter: '_cancel',
-	        dragover: '_cancel',
-	        dragleave: '_cancel',*/
 	        'click .gallery-btn': function clickGalleryBtn(e) {
 	            e.preventDefault();
 	            this.modal.toggle();

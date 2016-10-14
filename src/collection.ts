@@ -1,11 +1,14 @@
 
-import {Collection, Model, CollectionOptions, CollectionFetchOptions, isModel, IModel} from 'collection'
-import {IClient, IFileInfo, OpenOptions, CreateOptions} from 'torsten';
-import {TorstenGuiError} from './error';
-import {extend, IPromise, isObject, has} from 'orange';
-import {path} from 'torsten'
-import {Response, queryStringToParams, HttpRequest, HttpMethod} from 'orange.request'
-import {Downloader} from './download';
+import {
+    Collection, Model, CollectionOptions,
+    CollectionFetchOptions, isModel, IModel
+} from 'collection'
+import { IClient, IFileInfo, OpenOptions, CreateOptions } from 'torsten';
+import { TorstenGuiError } from './error';
+import { extend, IPromise, isObject, has } from 'orange';
+import { path } from 'torsten'
+import { Response, queryStringToParams, HttpRequest, HttpMethod } from 'orange.request'
+import { Downloader } from './download';
 
 const PARAM_TRIM_RE = /[\s'"]/g;
 const URL_TRIM_RE = /[<>\s'"]/g;
@@ -31,7 +34,7 @@ export interface State {
 
 function parseLinkHeaders(resp: Response): Link {
     var link: Link = {};
-    
+
     let linkHeader = <any>resp.headers.get('Link');
 
     if (linkHeader == null) return {};
@@ -56,7 +59,7 @@ function parseLinkHeaders(resp: Response): Link {
 
 }
 
-export function isFileInfo(a:any): a is FileInfoModel {
+export function isFileInfo(a: any): a is FileInfoModel {
     return (a instanceof FileInfoModel) && a.__torsten == 'FileInfoModel';
 }
 
@@ -68,7 +71,7 @@ export class FileInfoModel extends Model {
     __torsten = 'FileInfoModel'
     _client: IClient;
     idAttribute = "id";
-    constructor(attr: any, options: FileInfoModelOptions={}) {
+    constructor(attr: any, options: FileInfoModelOptions = {}) {
         super(attr, options);
         this._client = options.client;
     }
@@ -82,12 +85,7 @@ export class FileInfoModel extends Model {
     }
 
     open(o?: OpenOptions, client?: IClient): IPromise<Blob> {
-        return Downloader.instance.download(client||this._client, this.fullPath, o)
-
-        /*Øreturn this._client.open(this.fullPath, o)
-            .then(blob => {
-                return blob;
-            })*/
+        return Downloader.instance.download(client || this._client, this.fullPath, o);
     }
 }
 
@@ -122,12 +120,12 @@ export abstract class RestCollection<T extends IModel> extends Collection<T> {
     protected _options: FileCollectionOptions<T>
     constructor(models: any, options: FileCollectionOptions<T>) {
         super(models, options)
-        options = <any>options||{};
+        options = <any>options || {};
         if (!options.limit) options.limit = 50;
-        
+
         this._options = options;
 
-        this.state = { first: 1, last: -1, current: 1}
+        this.state = { first: 1, last: -1, current: 1 }
         this._link = {};
         this.queryParams = {
             page: 'page',
@@ -181,11 +179,7 @@ export abstract class RestCollection<T extends IModel> extends Collection<T> {
 
     abstract fetch(options?: CollectionFetchOptions): IPromise<FileInfoModel[]>;
 
-
-
-
 }
-
 
 
 export class FileCollection extends RestCollection<FileInfoModel> {
@@ -194,7 +188,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
 
     private _path: string;
     private _client: IClient;
-    private _fetch:boolean;
+    private _fetch: boolean;
 
     public get path() {
         return this._path;
@@ -216,7 +210,6 @@ export class FileCollection extends RestCollection<FileInfoModel> {
         this._path = normalizePath(options.path);
 
         //this._url = this._client.endpoint + path;
-
     }
 
 
@@ -228,12 +221,12 @@ export class FileCollection extends RestCollection<FileInfoModel> {
         }
 
         options = options ? extend({}, options) : {};
-       
+
         let url: string;
         if (!has(options, 'page')) {
             options.page = this.state.current;
         }
-        
+
         options.page = parseInt(<any>options.page);
 
         let params = options.params ? extend({}, options.params) : {};
@@ -275,22 +268,9 @@ export class FileCollection extends RestCollection<FileInfoModel> {
                 let models = this._processResponse(res, options);
                 this._fetch = false;
                 this.trigger('fetch');
-                
-                return models;
-            })
 
-        /*return this._client.list(this.path, {
-            progress: (e) => {
-                if (e.lengthComputable) {
-                    this.trigger('fetch:progress', e)
-                }
-            }
-        })
-            .then(files => {
-                this[options.reset ? 'reset' : 'set'](files, options);
-                this.trigger('fetch');
-                return this.models;
-            });*/
+                return models;
+            });
 
 
     }
@@ -318,9 +298,9 @@ export class FileCollection extends RestCollection<FileInfoModel> {
     }
 
     protected _prepareModel(value: any): FileInfoModel {
-        
-        if (isModel(value)) return value;
-        if (isObject(value)) return new this.Model(value, {
+
+        if (isFileInfo(value)) return value;
+        if (isObject(value) && !isModel(value)) return new this.Model(value, {
             //parse: true,
             client: this._client
         });
@@ -361,7 +341,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
                 this.add(data);
                 return data;
             })
-      
+
     }
 
 

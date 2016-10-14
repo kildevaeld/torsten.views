@@ -17,8 +17,8 @@ var LoaderTargetPlugin = require('../../node_modules/webpack/lib/LoaderTargetPlu
 
 gulp.task('bump', () => {
     return gulp.src('./package.json')
-    .pipe(bump())
-    .pipe(gulp.dest('./'));
+        .pipe(bump())
+        .pipe(gulp.dest('./'));
 });
 
 
@@ -69,23 +69,23 @@ gulp.task('webpack', ['typescript'], () => {
             externals: {
                 "orange": "orange",
                 "orange.request": {
-                    root: ['orange','request'],
+                    root: ['orange', 'request'],
                     commonjs2: 'orange.request',
                     commonjs: 'orange.request',
                     amd: 'orange.request'
                 },
                 "orange.dom": {
-                    root: ['orange','dom'],
+                    root: ['orange', 'dom'],
                     commonjs2: 'orange.dom',
                     commonjs: 'orange.dom',
                     amd: 'orange.dom'
                 },
                 "views": "views",
                 "collection": "collection",
-               
+
                 "torsten": "torsten",
                 "views.form": {
-                    root: ['views','form'],
+                    root: ['views', 'form'],
                     commonjs2: 'views.form',
                     commonjs: 'views.form',
                     amd: 'views.form'
@@ -131,15 +131,17 @@ gulp.task('webpack:bundle', ['typescript'], () => {
 });
 
 gulp.task('typescript', ['templates'], () => {
-    var project = tsc.createProject('tsconfig.json')
+    var project = tsc.createProject('tsconfig.json', {
+        typescript: require('typescript')
+    });
 
     let p = project.src()
         .pipe(tsc(project))
 
     let js = p.js
-    .pipe(babel({
-        presets: ['es2015']
-    }));
+        .pipe(babel({
+            presets: ['es2015']
+        }));
 
 
     return merge([
@@ -153,5 +155,5 @@ gulp.task('default', ['webpack', 'webpack:bundle', 'styles', 'templates'])
 
 
 gulp.task('watch', ['templates:watch', 'styles:watch'], () => {
-    gulp.watch('./src/**/*.ts', [ 'webpack'])
+    gulp.watch('./src/**/*.ts', ['webpack'])
 })

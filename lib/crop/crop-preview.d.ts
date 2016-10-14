@@ -14,7 +14,6 @@ export interface CropPreViewOptions extends ViewOptions {
 }
 export declare class CropPreView extends View<HTMLDivElement> {
     protected _cropping: Cropping;
-    private size;
     options: CropPreViewOptions;
     cropping: Cropping;
     constructor(options?: CropPreViewOptions);

@@ -5,7 +5,7 @@ export declare class CancelError extends Error {
 }
 export declare class Downloader extends EventEmitter {
     private static _instance;
-    static instance: Downloader;
+    static readonly instance: Downloader;
     private _queue;
     private _downloading;
     size: number;

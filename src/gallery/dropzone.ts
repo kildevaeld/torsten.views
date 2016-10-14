@@ -3,7 +3,7 @@ import { View, ViewOptions, events } from 'views';
 import { addClass, removeClass } from 'orange.dom';
 import { mapAsync, slice } from 'orange'
 import { Uploader } from '../uploader';
-import { FileMode } from 'torsten';
+import { FileMode, CreateOptions } from 'torsten';
 
 export interface DropZoneOptions extends ViewOptions {
   uploader?: Uploader;
@@ -31,26 +31,26 @@ export class DropZone extends View<HTMLDivElement> {
     if (options.mode) this.mode = options.mode
   }
 
-  private _onDragEnter(e: DragEvent) {
+  protected _onDragEnter(e: DragEvent) {
     addClass(this.el, 'drag-enter')
     e.preventDefault()
     e.stopPropagation();
   }
 
-  private _onDragEnd(e: DragEvent) {
+  protected _onDragEnd(e: DragEvent) {
     removeClass(this.el, 'drag-enter')
     e.preventDefault();
     e.stopPropagation();
   }
 
-  private _onDrop(e: DragEvent) {
+  protected _onDrop(e: DragEvent) {
     removeClass(this.el, 'drag-enter')
     this.triggerMethod('before:drop', e);
 
     e.preventDefault();
     e.stopPropagation();
 
-    let options: any = {};
+    let options: CreateOptions = {};
     if (this.mode) options.mode = this.mode;
 
     if (this.uploader) {
@@ -63,7 +63,6 @@ export class DropZone extends View<HTMLDivElement> {
     }
 
     this.triggerMethod('drop', e);
-
 
   }
 

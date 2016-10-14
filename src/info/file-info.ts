@@ -1,10 +1,9 @@
 
-import {View, attributes, ViewOptions} from 'views';
+import { View, attributes, ViewOptions } from 'views';
 import templates from '../templates/index';
-import {FileInfoModel} from '../collection';
-import {IClient} from 'torsten'
-import {Html, addClass, hasClass} from 'orange.dom';
-import {humanFileSize} from 'orange';
+import { FileInfoModel } from '../collection';
+import { IClient } from 'torsten'
+import { humanFileSize } from 'orange';
 
 export interface FileInfoViewOptions extends ViewOptions {
     client: IClient;
@@ -24,10 +23,10 @@ export interface FileInfoViewOptions extends ViewOptions {
     }
 })
 export class FileInfoView extends View<HTMLDivElement> {
-    __rendered: boolean;
+    private __rendered: boolean;
     model: FileInfoModel;
     client: IClient;
-    constructor(public options:FileInfoViewOptions) {
+    constructor(public options: FileInfoViewOptions) {
         super(options);
         this.client = options.client;
     }
@@ -55,40 +54,40 @@ export class FileInfoView extends View<HTMLDivElement> {
         return this
     }
 
-    _update_ui(model:FileInfoModel) {
+    _update_ui(model: FileInfoModel) {
         if (!this.__rendered) return this;
         let ui = <any>this.ui;
-        
+
         ui.name.textContent = model.get('name');
         ui.mime.textContent = model.get('mime');
         ui.size.textContent = humanFileSize(model.get('size'));
         ui.download.textContent = model.get('name');
-        
-    
+
+
         this.el.style.opacity = "1";
-        
+
     }
 
-    private _onDownload(e) {
+    protected _onDownload(e) {
         e.preventDefault();
-        
+
         this.model.open()
-        .then( blob => {
-            let a = document.createElement('a');
-            let url = URL.createObjectURL(blob);
-            a.href = url
-            a.download = this.model.get('name');
-            document.body.appendChild(a);
-            a.click()
-            
-            setTimeout(() => {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);    
-            }, 100)
-            
-        }).catch( e => {
-            console.log(e)
-        })
+            .then(blob => {
+                let a = document.createElement('a');
+                let url = URL.createObjectURL(blob);
+                a.href = url
+                a.download = this.model.get('name');
+                document.body.appendChild(a);
+                a.click()
+
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100)
+
+            }).catch(e => {
+                console.log(e)
+            })
     }
 
 }

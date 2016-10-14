@@ -9,19 +9,57 @@ import { addClass, removeClass, Html } from 'orange.dom'
 import { IClient } from 'torsten'
 import { Progress } from '../list/circular-progress'
 
-
 function isFunction(a: any): a is Function {
     return (typeof a === 'function');
 }
 
+/**
+ * 
+ * 
+ * @export
+ * @interface CropViewOptions
+ * @extends {ViewOptions}
+ * @extends {cropperjs.CropperOptions}
+ */
 export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
-    resize: boolean;
+    /**
+     * 
+     * 
+     * @type {boolean}
+     * @memberOf CropViewOptions
+     */
+    resize?: boolean;
+    /**
+     * 
+     * 
+     * @type {CropPreView}
+     * @memberOf CropViewOptions
+     */
     previewView?: CropPreView;
+    /**
+     * 
+     * 
+     * @type {Progress}
+     * @memberOf CropViewOptions
+     */
     progress?: Progress;
+    /**
+     * 
+     * 
+     * @type {IClient}
+     * @memberOf CropViewOptions
+     */
     client: IClient;
 
 }
 
+/**
+ * 
+ * 
+ * @export
+ * @class CropView
+ * @extends {View<HTMLDivElement>}
+ */
 @attributes({
     className: 'torsten cropping-view',
     ui: {
@@ -29,13 +67,45 @@ export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
     }
 })
 export class CropView extends View<HTMLDivElement> {
+    /**
+     * 
+     * 
+     * @type {FileInfoModel}
+     * @memberOf CropView
+     */
     model: FileInfoModel;
+    /**
+     * 
+     * 
+     * @type {IClient}
+     * @memberOf CropView
+     */
     client: IClient;
     private _cropper: ICropper;
+    /**
+     * 
+     * 
+     * @protected
+     * @type {Cropping}
+     * @memberOf CropView
+     */
     protected _cropping: Cropping;
     private _message: Html;
+    /**
+     * 
+     * 
+     * @type {CropViewOptions}
+     * @memberOf CropView
+     */
     options: CropViewOptions;
 
+    /**
+     * 
+     * 
+     * @readonly
+     * 
+     * @memberOf CropView
+     */
     get cropper() {
         if (this._cropper != null) return this._cropper;
         if (this.ui['image'] == null) return null;
@@ -43,15 +113,35 @@ export class CropView extends View<HTMLDivElement> {
         return this.activate()._cropper;
     }
 
+    /**
+     * 
+     * 
+     * 
+     * @memberOf CropView
+     */
     get cropping() {
         return this._cropping;
     }
 
+    /**
+     * 
+     * 
+     * 
+     * @memberOf CropView
+     */
     set cropping(cropping: Cropping) {
         this._cropping = cropping
         if (this.options.previewView) this.options.previewView.cropping = cropping;
     }
 
+    /**
+     * 
+     * 
+     * @param {any} model
+     * @returns
+     * 
+     * @memberOf CropView
+     */
     setModel(model) {
 
 
@@ -103,6 +193,13 @@ export class CropView extends View<HTMLDivElement> {
         return this;
     }
 
+    /**
+     * Creates an instance of CropView.
+     * 
+     * @param {CropViewOptions} options
+     * 
+     * @memberOf CropView
+     */
     constructor(options: CropViewOptions) {
         if (options == null || options.client == null) throw new Error('No options and no client')
         super(options);
@@ -110,6 +207,13 @@ export class CropView extends View<HTMLDivElement> {
         this.client = options.client;
     }
 
+    /**
+     * Activate cropper
+     * 
+     * @returns
+     * 
+     * @memberOf CropView
+     */
     activate() {
 
         if (this.model == null) return;
@@ -152,6 +256,13 @@ export class CropView extends View<HTMLDivElement> {
         return this;
     }
 
+    /**
+     * Deactivate cropper
+     * 
+     * @returns
+     * 
+     * @memberOf CropView
+     */
     deactivate() {
         if (this._cropper) {
             this._cropper.destroy();
@@ -160,17 +271,32 @@ export class CropView extends View<HTMLDivElement> {
         return this;
     }
 
+    /**
+     * Toggle cropper
+     * 
+     * @returns
+     * 
+     * @memberOf CropView
+     */
     toggle() {
         return this._cropper != null ? this.deactivate() : this.activate();
     }
 
-    onCrop(cropping: cropperjs.Data) {
+
+    protected onCrop(cropping: cropperjs.Data) {
 
         if (this.options.previewView) {
             this.options.previewView.cropping = cropping;
         }
     }
 
+    /**
+     * 
+     * 
+     * @returns
+     * 
+     * @memberOf CropView
+     */
     render() {
 
         this.triggerMethod('before:render');
@@ -198,6 +324,16 @@ export class CropView extends View<HTMLDivElement> {
     }
 
 
+    /**
+     * 
+     * 
+     * @param {string} str
+     * @param {boolean} [error=false]
+     * @param {number} [timeout]
+     * @returns
+     * 
+     * @memberOf CropView
+     */
     showMessage(str: string, error: boolean = false, timeout?: number) {
         this._message.html(str)
             .addClass('shown')
@@ -209,18 +345,27 @@ export class CropView extends View<HTMLDivElement> {
         return this;
     }
 
+    /**
+     * 
+     * 
+     * @returns
+     * 
+     * @memberOf CropView
+     */
     hideMessage() {
         this._message.removeClass('shown');
         return this;
     }
 
-    private _updateImage() {
+    private _updateImage(): Promise<any> {
         let img = <HTMLImageElement>this.el.querySelector('img');
+
         removeClass(img, 'loaded');
         if (this.model === null) {
             img.src = emptyImage;
             return Promise.resolve(false);
         }
+
         this.hideMessage();
 
         let progress = this.options.progress;
@@ -228,19 +373,20 @@ export class CropView extends View<HTMLDivElement> {
             progress.show();
         }
 
-        return this.model.open({
+        return <any>this.model.open({
             progress: (e) => {
                 if (e.total == 0) return;
                 if (progress) progress.setPercent((100 / e.total) * e.loaded);
             }
         }, this.client).then(blob => {
+
             var fn = (e) => {
                 if (progress) progress.hide()
                 img.removeEventListener('load', fn);
             }
 
             if (!/image\/.*/.test(blob.type)) {
-                this.triggerMethod('image', false);
+                //this.triggerMethod('image', false);
                 throw new Error('The file is not an image');
             }
 
@@ -258,6 +404,12 @@ export class CropView extends View<HTMLDivElement> {
         })
     }
 
+    /**
+     * 
+     * 
+     * 
+     * @memberOf CropView
+     */
     destroy() {
         this.deactivate();
         super.destroy();

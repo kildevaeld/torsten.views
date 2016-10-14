@@ -1,9 +1,12 @@
 
-import {View, attributes, ViewOptions} from 'views';
-import {createElement, hasClass, addClass, removeClass, animationEnd,addEventListener,removeEventListener, transitionEnd} from 'orange.dom'
-import {bind} from 'orange';
+import { View, attributes, ViewOptions } from 'views';
+import {
+    createElement, hasClass, addClass, removeClass, animationEnd,
+    removeEventListener
+} from 'orange.dom'
+import { bind } from 'orange';
 export interface ModalOptions extends ViewOptions {
-    
+
 }
 
 @attributes({
@@ -15,10 +18,10 @@ export interface ModalOptions extends ViewOptions {
 })
 export class Modal extends View<HTMLDivElement> {
     private __rendered: boolean = false;
-    constructor(options?:ModalOptions) {
+    constructor(options?: ModalOptions) {
         super(options);
         if (options.el) {
-            addClass(this.el,this.className);
+            addClass(this.el, this.className);
         }
         this._onClose = bind(this._onClose, this);
     }
@@ -33,7 +36,7 @@ export class Modal extends View<HTMLDivElement> {
             addClass(overlay, 'views-modal-overlay')
             document.body.appendChild(overlay);
         }
-        
+
         return this;
     }
 
@@ -44,13 +47,13 @@ export class Modal extends View<HTMLDivElement> {
             return;
         }
         this.triggerMethod('before:open')
-        
-        
+
+
         requestAnimationFrame(() => {
             addClass(this.el, 'views-modal-show');
             addClass(body, 'views-modal-open')
         })
-        
+
         animationEnd(this.el, () => {
             this.triggerMethod('open');
         })
@@ -58,7 +61,7 @@ export class Modal extends View<HTMLDivElement> {
         return this;
     }
 
-    _onClose (e) {
+    _onClose(e) {
         if (hasClass(e.target, 'views-modal')) {
             this.close();
         }
@@ -72,11 +75,11 @@ export class Modal extends View<HTMLDivElement> {
         this.triggerMethod('before:close')
         let overlay = body.querySelector('.views-modal-overlay');
         removeEventListener(overlay, 'click', this.close)
-        
+
         removeClass(this.el, 'views-modal-show')
         removeClass(body, 'views-modal-open')
-        
-        animationEnd(this.el, () => {   
+
+        animationEnd(this.el, () => {
             this.triggerMethod('close');
         })
 
@@ -84,8 +87,7 @@ export class Modal extends View<HTMLDivElement> {
 
     }
 
-    toggle () {
-        let body = document.body
+    toggle() {
         if (!hasClass(this.el, "views-modal-show")) {
             this.open();
         } else {

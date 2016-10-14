@@ -141,10 +141,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: 'open',
 	        value: function open(o, client) {
 	            return download_1.Downloader.instance.download(client || this._client, this.fullPath, o);
-	            /*Øreturn this._client.open(this.fullPath, o)
-	                .then(blob => {
-	                    return blob;
-	                })*/
 	        }
 	    }, {
 	        key: 'fullPath',
@@ -306,18 +302,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                _this4.trigger('fetch');
 	                return models;
 	            });
-	            /*return this._client.list(this.path, {
-	                progress: (e) => {
-	                    if (e.lengthComputable) {
-	                        this.trigger('fetch:progress', e)
-	                    }
-	                }
-	            })
-	                .then(files => {
-	                    this[options.reset ? 'reset' : 'set'](files, options);
-	                    this.trigger('fetch');
-	                    return this.models;
-	                });*/
 	        }
 	    }, {
 	        key: 'upload',
@@ -345,8 +329,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_prepareModel',
 	        value: function _prepareModel(value) {
-	            if (collection_1.isModel(value)) return value;
-	            if (orange_1.isObject(value)) return new this.Model(value, {
+	            if (isFileInfo(value)) return value;
+	            if (orange_1.isObject(value) && !collection_1.isModel(value)) return new this.Model(value, {
 	                //parse: true,
 	                client: this._client
 	            });
@@ -7401,11 +7385,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return FileListView;
 	}(views_1.CollectionView);
 	FileListView = __decorate([views_1.attributes({
-	    //template: () => templates.list,
 	    className: 'file-list collection-mode',
 	    childView: list_item_1.FileListItemView,
 	    emptyView: exports.FileListEmptyView,
-	    //childViewContainer: '.file-list-item-container',
 	    events: {
 	        scroll: '_onSroll'
 	    }
@@ -9910,7 +9892,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (res.message === 'ok') {
 	                    model.remove();
 	                }
-	                console.log(res);
 	            });
 	        }
 	    }, {
@@ -9938,8 +9919,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "destroy",
 	        value: function destroy() {
-	            this.list.destroy();
-	            this.info.destroy();
 	            this.drop.destroy();
 	            if (this._const_upload) {
 	                this.uploader.destroy();
@@ -10202,6 +10181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var _this2 = this;
 
 	            orange_dom_1.removeClass(this.el, 'drag-enter');
+	            this.triggerMethod('before:drop', e);
 	            e.preventDefault();
 	            e.stopPropagation();
 	            var options = {};
@@ -10293,7 +10273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: '_validateFile',
 	        value: function _validateFile(file) {
 	            if (file.size > this.maxSize) {
-	                throw new error_1.TorstenValidateError("file to large. The maximum size is: " + orange_1.humanFileSize(this.maxSize));
+	                throw new error_1.TorstenValidateError("The file is to large. The maximum size is: " + orange_1.humanFileSize(this.maxSize));
 	            }
 	            var mimeValid = false;
 	            for (var i = 0, ii = this.accept.length; i < ii; i++) {
@@ -10303,7 +10283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    break;
 	                }
 	            }
-	            if (!mimeValid) throw new error_1.TorstenValidateError("file wrong type");
+	            if (!mimeValid) throw new error_1.TorstenValidateError("Cannot upload a file of type: " + file.type);
 	        }
 	    }, {
 	        key: 'upload',
@@ -10670,7 +10650,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "toggle",
 	        value: function toggle() {
-	            var body = document.body;
 	            if (!orange_dom_1.hasClass(this.el, "views-modal-show")) {
 	                this.open();
 	            } else {
@@ -10966,9 +10945,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	function isFunction(a) {
 	    return typeof a === 'function';
 	}
+	/**
+	 *
+	 *
+	 * @export
+	 * @class CropView
+	 * @extends {View<HTMLDivElement>}
+	 */
 	var CropView = function (_views_1$View) {
 	    _inherits(CropView, _views_1$View);
 
+	    /**
+	     * Creates an instance of CropView.
+	     *
+	     * @param {CropViewOptions} options
+	     *
+	     * @memberOf CropView
+	     */
 	    function CropView(options) {
 	        _classCallCheck(this, CropView);
 
@@ -10980,14 +10973,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.client = options.client;
 	        return _this;
 	    }
+	    /**
+	     *
+	     *
+	     * @readonly
+	     *
+	     * @memberOf CropView
+	     */
+
 
 	    _createClass(CropView, [{
 	        key: "setModel",
+
+	        /**
+	         *
+	         *
+	         * @param {any} model
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
 	        value: function setModel(model) {
 	            var _this2 = this;
 
 	            if (model && !collection_1.isFileInfo(model)) {
 	                throw new Error("not a file info model");
+	            }
+	            if (model && !/^image\/.*/.test(model.get('mime'))) {
+	                this.showMessage("The file is not an image", true);
 	            }
 	            if (this.ui['image'] == null) return this;
 	            this.deactivate();
@@ -11014,11 +11027,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	            return this;
 	        }
+	        /**
+	         * Activate cropper
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "activate",
 	        value: function activate() {
 	            var _this3 = this;
 
+	            if (this.model == null) return;
 	            if (this._cropper != null) {
 	                return this;
 	            }
@@ -11051,6 +11073,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._cropper = new cropperjs_1.default(this.ui['image'], opts);
 	            return this;
 	        }
+	        /**
+	         * Deactivate cropper
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "deactivate",
 	        value: function deactivate() {
@@ -11060,6 +11090,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return this;
 	        }
+	        /**
+	         * Toggle cropper
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "toggle",
 	        value: function toggle() {
@@ -11072,6 +11110,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.options.previewView.cropping = cropping;
 	            }
 	        }
+	        /**
+	         *
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "render",
 	        value: function render() {
@@ -11086,27 +11132,56 @@ return /******/ (function(modules) { // webpackBootstrap
 	            $i.addClass('message');
 	            this._message = $i;
 	            this.el.appendChild($i.get(0));
-	            console.log('HERE', $i);
 	            this.delegateEvents();
 	            this.triggerMethod('render');
 	            return this;
 	        }
+	        /**
+	         *
+	         *
+	         * @param {string} str
+	         * @param {boolean} [error=false]
+	         * @param {number} [timeout]
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "showMessage",
 	        value: function showMessage(str) {
-	            this._message.text(str).css('visibility', 'visible');
+	            var _this4 = this;
+
+	            var error = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+	            var timeout = arguments[2];
+
+	            this._message.html(str).addClass('shown');
+	            if (error) this._message.addClass('error');else this._message.removeClass('error');
+	            if (timeout) {
+	                setTimeout(function () {
+	                    return _this4.hideMessage();
+	                }, timeout);
+	            }
 	            return this;
 	        }
+	        /**
+	         *
+	         *
+	         * @returns
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "hideMessage",
 	        value: function hideMessage() {
-	            this._message.text('').css('visible');
+	            this._message.removeClass('shown');
 	            return this;
 	        }
 	    }, {
 	        key: "_updateImage",
 	        value: function _updateImage() {
-	            var _this4 = this;
+	            var _this5 = this;
 
 	            var img = this.el.querySelector('img');
 	            orange_dom_1.removeClass(img, 'loaded');
@@ -11114,6 +11189,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.src = utils_1.emptyImage;
 	                return Promise.resolve(false);
 	            }
+	            this.hideMessage();
 	            var _progress = this.options.progress;
 	            if (_progress) {
 	                _progress.show();
@@ -11129,21 +11205,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    img.removeEventListener('load', fn);
 	                };
 	                if (!/image\/.*/.test(blob.type)) {
-	                    _this4.triggerMethod('image', false);
-	                    if (_progress) _progress.hide();
-	                    throw new Error('not a image');
+	                    //this.triggerMethod('image', false);
+	                    throw new Error('The file is not an image');
 	                }
 	                img.addEventListener('load', fn);
 	                img.src = URL.createObjectURL(blob);
-	                _this4.triggerMethod('image', true);
+	                _this5.triggerMethod('image', true);
 	                return true;
 	            }).then(function () {
 	                orange_dom_1.addClass(img, 'loaded');
 	                return true;
 	            }).catch(function (e) {
-	                console.error('error', e);
+	                if (_progress) _progress.hide();
+	                _this5.trigger('error', e);
+	                _this5.showMessage(e.message, true);
 	            });
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "destroy",
 	        value: function destroy() {
@@ -11157,11 +11241,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (this.ui['image'] == null) return null;
 	            return this.activate()._cropper;
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropView
+	         */
+
 	    }, {
 	        key: "cropping",
 	        get: function get() {
 	            return this._cropping;
-	        },
+	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropView
+	         */
+	        ,
 	        set: function set(cropping) {
 	            this._cropping = cropping;
 	            if (this.options.previewView) this.options.previewView.cropping = cropping;
@@ -14888,8 +14986,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	/*import {CropView, AssetsModel, CropViewOptions, CropPreView,
-	    ICropping, AssetsClient, FileUploader, createClient} from 'assets.gallery';*/
 	var dropzone_1 = __webpack_require__(70);
 	var index_1 = __webpack_require__(75);
 	var views_form_1 = __webpack_require__(82);
@@ -14900,9 +14996,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	var index_3 = __webpack_require__(62);
 	var circular_progress_1 = __webpack_require__(65);
 	;
+	/**
+	 *
+	 *
+	 * @export
+	 * @class CropEditor
+	 * @extends {BaseEditor<HTMLDivElement, CropResult>}
+	 */
 	var CropEditor = function (_views_form_1$BaseEdi) {
 	    _inherits(CropEditor, _views_form_1$BaseEdi);
 
+	    /**
+	     * Creates an instance of CropEditor.
+	     *
+	     * @param {CropEditorOptions} options
+	     *
+	     * @memberOf CropEditor
+	     */
 	    function CropEditor(options) {
 	        _classCallCheck(this, CropEditor);
 
@@ -14966,14 +15076,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	        _this.listenTo(up, 'error', function (e) {
 	            _this.progress.hide();
-	            _this._showError(e);
+	            _this.crop.showMessage(e.message);
 	            setTimeout(function () {
 	                _this._showDropIndicator();
-	            }, 2000);
+	            }, 4000);
+	        });
+	        _this.listenTo(_this.crop, 'error', function () {
+	            setTimeout(function () {
+	                return _this._showDropIndicator();
+	            }, 4000);
+	        });
+	        _this.listenTo(_this.drop, 'before:drop', function () {
+	            _this.model = null;
+	            _this.crop.hideMessage();
 	        });
 	        _this.progress.hide();
 	        return _this;
 	    }
+	    /**
+	     *
+	     *
+	     * @returns {CropResult}
+	     *
+	     * @memberOf CropEditor
+	     */
+
 
 	    _createClass(CropEditor, [{
 	        key: "getValue",
@@ -14984,6 +15111,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	                cropping: this.crop.cropping
 	            };
 	        }
+	        /**
+	         *
+	         *
+	         * @param {CropResult} result
+	         * @returns
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "setValue",
 	        value: function setValue(result) {
@@ -14998,6 +15134,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.model = result.file;
 	            }
 	        }
+	        /**
+	         *
+	         *
+	         * @param {FileInfoModel} model
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "onModel",
 	        value: function onModel(model) {
@@ -15006,11 +15150,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            orange_dom_1.Html.query('.crop-btn').removeClass('active');
 	            this.crop.model = model;
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "onSetElement",
 	        value: function onSetElement() {
 	            this.options = this._getOptions(this.options);
 	        }
+	        /**
+	         * Parse options options and the element
+	         *
+	         * @private
+	         * @param {CropEditorOptions} options
+	         * @returns {CropEditorOptions}
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "_getOptions",
 	        value: function _getOptions(options) {
@@ -15045,36 +15206,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.drop.render();
 	            this.crop.el.appendChild(this.progress.render().el);
 	        }
+	        /**
+	         *
+	         *
+	         *
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "clear",
 	        value: function clear() {
 	            this.model = null;
-	            this._showDropIndicator();
+	            this.crop.showMessage("Drag'n'Drop image here");
 	        }
 	    }, {
 	        key: "_showDropIndicator",
 	        value: function _showDropIndicator() {
-	            this._removeError();
-	            var preview = this.el.querySelector('.crop-preview');
-	            if (!preview) return;
-	            var i = preview.querySelector('.drop-indicator');
-	            if (i) return;
-	            i = document.createElement('div');
-	            var $i = orange_dom_1.Html.query(i);
-	            $i.addClass('drop-indicator').css({
-	                position: 'absolute',
-	                top: '50%',
-	                transform: 'translate(-50%, -50%)',
-	                left: '50%'
-	            });
-	            $i.text('Drop Here');
-	            preview.appendChild(i);
+	            this.crop.showMessage("Drag'n'Drop image here");
 	        }
 	    }, {
 	        key: "_removeDropIndicator",
 	        value: function _removeDropIndicator() {
-	            var i = this.el.querySelector('.drop-indicator');
-	            if (i && i.parentElement) i.parentElement.removeChild(i);
+	            this.crop.hideMessage();
 	        }
 	    }, {
 	        key: "_showError",
@@ -15107,21 +15260,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	                orange_dom_1.addClass(e.target, 'active');
 	            } else {
 	                orange_dom_1.removeClass(e.target, 'active');
-	                //this.model.set('meta.cropping', this.crop.cropping);
 	                this.triggerMethod('change');
 	            }
 	        }
 	    }, {
 	        key: "_onFileSelected",
 	        value: function _onFileSelected(model) {
-	            //let value = this.modal.selected;
 	            this.model = model;
-	            //(<HTMLImageElement>this.crop.ui['image']).src = value.getURL();
 	            this.trigger('change');
 	        }
-	        /*validate(form: Form) {
-	            return validate(form, this, this.value);
-	        }*/
+	        /**
+	         *
+	         *
+	         * @memberOf CropEditor
+	         */
 
 	    }, {
 	        key: "destroy",
@@ -15147,10 +15299,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        crop: '.crop-container'
 	    },
 	    events: {
-	        /*drop: '_onDrop',
-	        dragenter: '_cancel',
-	        dragover: '_cancel',
-	        dragleave: '_cancel',*/
 	        'click .gallery-btn': function clickGalleryBtn(e) {
 	            e.preventDefault();
 	            this.modal.toggle();

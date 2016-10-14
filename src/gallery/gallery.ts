@@ -1,14 +1,14 @@
 
-import {LayoutView, attributes, ViewOptions} from 'views';
-import {extend} from 'orange';
-import {IClient, FileMode} from 'torsten'
+import { LayoutView, attributes, ViewOptions } from 'views';
+import { extend } from 'orange';
+import { IClient, FileMode } from 'torsten'
 
-import {FileListView} from '../list/index';
-import {FileInfoView} from '../info/index'
+import { FileListView } from '../list/index';
+import { FileInfoView } from '../info/index'
 import templates from '../templates/index';
-import {FileInfoModel, FileCollection} from '../collection';
-import {DropZone} from './dropzone';
-import {Uploader, UploaderOptions} from '../uploader';
+import { FileInfoModel, FileCollection } from '../collection';
+import { DropZone } from './dropzone';
+import { Uploader, UploaderOptions } from '../uploader';
 
 export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     client: IClient;
@@ -28,12 +28,12 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     list: FileListView;
     drop: DropZone;
     uploader: Uploader;
-    _const_upload: boolean;
+    private _const_upload: boolean;
 
     client: IClient;
     collections: FileCollection[] = [];
 
-    get collection()  {
+    get collection() {
         if (this.collections.length == 0) return null;
         return this.collections[this.collections.length - 1];
     }
@@ -104,7 +104,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         });
 
         this.uploader = options.uploader
-        
+
         if (!this.uploader) {
             this.uploader = new Uploader({
                 client: this.client,
@@ -134,7 +134,6 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
             }
         })
 
-
         if (this.options.root) {
             this.root = this.options.root;
         }
@@ -151,8 +150,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
                 if (res.message === 'ok') {
                     model.remove();
                 }
-                console.log(res)
-            })
+            });
     }
 
     private _setCollection(collection: FileCollection) {
@@ -178,8 +176,6 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     }
 
     destroy() {
-        this.list.destroy();
-        this.info.destroy();
         this.drop.destroy();
         if (this._const_upload) {
             this.uploader.destroy();
