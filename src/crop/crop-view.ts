@@ -4,14 +4,12 @@ import { ICropper, Cropping, getCropping } from './types';
 import { FileInfoModel, isFileInfo } from '../collection';
 import { CropPreView } from './crop-preview';
 import { getImageSize, emptyImage } from '../utils';
-import { extend } from 'orange';
+import { extend, isFunction } from 'orange';
 import { addClass, removeClass, Html } from 'orange.dom'
 import { IClient } from 'torsten'
 import { Progress } from '../list/circular-progress'
 
-function isFunction(a: any): a is Function {
-    return (typeof a === 'function');
-}
+
 
 /**
  * 
@@ -29,6 +27,7 @@ export interface CropViewOptions extends ViewOptions, cropperjs.CropperOptions {
      * @memberOf CropViewOptions
      */
     resize?: boolean;
+
     /**
      * 
      * 
@@ -114,9 +113,7 @@ export class CropView extends View<HTMLDivElement> {
     }
 
     /**
-     * 
-     * 
-     * 
+     * The current cropping
      * @memberOf CropView
      */
     get cropping() {
@@ -174,13 +171,20 @@ export class CropView extends View<HTMLDivElement> {
 
         super.setModel(model);
 
-
+        this.cropping = null;
 
         this._updateImage()
             .then((loaded) => {
                 if (loaded && this.options.aspectRatio != null) {
 
                     getImageSize(image).then(size => {
+
+                        if (this.cropping) {
+                            if (this.options.previewView) {
+                                this.options.previewView.update();
+                            }
+                            return;
+                        }
                         this.cropping = getCropping(size, this.options.aspectRatio);
                     }).catch(e => {
                         this.trigger('error', e);

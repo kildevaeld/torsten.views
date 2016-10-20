@@ -90,9 +90,7 @@ export declare class CropView extends View<HTMLDivElement> {
      */
     readonly cropper: ICropper;
     /**
-     *
-     *
-     *
+     * The current cropping
      * @memberOf CropView
      */
     /**

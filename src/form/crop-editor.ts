@@ -176,13 +176,18 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             this.model = null;
             return;
         }
-        if (!equal(result.cropping, this.crop.cropping)) {
-            this.crop.cropping = result.cropping;
-        }
+
+        //console.log('set value', this.crop.cropping, result.cropping);
 
         if (result.file !== this.model) {
             this.model = result.file;
         }
+
+        if (!equal(result.cropping, this.crop.cropping)) {
+            this.crop.cropping = result.cropping;
+        }
+
+
 
     }
 

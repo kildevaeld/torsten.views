@@ -3012,9 +3012,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var utils_1 = __webpack_require__(19);
 	var orange_1 = __webpack_require__(5);
 	var orange_dom_1 = __webpack_require__(15);
-	function isFunction(a) {
-	    return typeof a === 'function';
-	}
 	/**
 	 *
 	 *
@@ -3086,9 +3083,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return;
 	            }
 	            _get(CropView.prototype.__proto__ || Object.getPrototypeOf(CropView.prototype), "setModel", this).call(this, model);
+	            this.cropping = null;
 	            this._updateImage().then(function (loaded) {
 	                if (loaded && _this2.options.aspectRatio != null) {
 	                    utils_1.getImageSize(image).then(function (size) {
+	                        if (_this2.cropping) {
+	                            if (_this2.options.previewView) {
+	                                _this2.options.previewView.update();
+	                            }
+	                            return;
+	                        }
 	                        _this2.cropping = types_1.getCropping(size, _this2.options.aspectRatio);
 	                    }).catch(function (e) {
 	                        _this2.trigger('error', e);
@@ -3119,24 +3123,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	                crop: function crop(e) {
 	                    _this3._cropping = e.detail;
 	                    _this3.triggerMethod('crop', e.detail);
-	                    if (isFunction(o.crop)) o.crop(e);
+	                    if (orange_1.isFunction(o.crop)) o.crop(e);
 	                },
 	                data: this.cropping,
 	                built: function built() {
 	                    _this3.triggerMethod('built');
-	                    if (isFunction(o.built)) o.built();
+	                    if (orange_1.isFunction(o.built)) o.built();
 	                },
 	                cropstart: function cropstart(e) {
 	                    _this3.triggerMethod('cropstart');
-	                    if (isFunction(o.cropstart)) o.cropstart(e);
+	                    if (orange_1.isFunction(o.cropstart)) o.cropstart(e);
 	                },
 	                cropmove: function cropmove(e) {
 	                    _this3.triggerMethod('cropmove', e);
-	                    if (isFunction(o.cropmove)) o.cropmove(e);
+	                    if (orange_1.isFunction(o.cropmove)) o.cropmove(e);
 	                },
 	                cropend: function cropend(e) {
 	                    _this3.triggerMethod('cropend', e);
-	                    if (isFunction(o.cropend)) o.cropend(e);
+	                    if (orange_1.isFunction(o.cropend)) o.cropend(e);
 	                }
 	            };
 	            opts = orange_1.extend({}, this.options, opts);
@@ -3312,9 +3316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return this.activate()._cropper;
 	        }
 	        /**
-	         *
-	         *
-	         *
+	         * The current cropping
 	         * @memberOf CropView
 	         */
 
@@ -7197,11 +7199,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.model = null;
 	                return;
 	            }
-	            if (!orange_1.equal(result.cropping, this.crop.cropping)) {
-	                this.crop.cropping = result.cropping;
-	            }
+	            //console.log('set value', this.crop.cropping, result.cropping);
 	            if (result.file !== this.model) {
 	                this.model = result.file;
+	            }
+	            if (!orange_1.equal(result.cropping, this.crop.cropping)) {
+	                this.crop.cropping = result.cropping;
 	            }
 	        }
 	        /**
