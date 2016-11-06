@@ -87,6 +87,7 @@ export interface CropEditorOptions extends GalleryViewOptions, CropViewOptions, 
             e.preventDefault();
             this.modal.toggle();
         },
+        'change input.upload-btn': '_onUploadBtnChanged',
         'click .crop-btn': '_onToggleCropper',
     },
 })
@@ -424,9 +425,33 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         }
     }
 
+    /**
+     * Called when a file is selected in the gallery modal
+     * @memberOf CropEditor
+     */
     private _onFileSelected(model) {
         this.model = model;
         this.trigger('change');
+    }
+
+
+    protected _onUploadBtnChanged(e:Event) {
+        let target = e.target as HTMLInputElement;
+
+        let uploader = this._getUploader();
+        
+        let file = target.files.item(0);
+        if (!file) return;
+
+        uploader.upload(this.options.root, file, {
+            mode: this.options.mode
+        });
+
+    }
+
+
+    private _getUploader () {
+        return this.options.uploader||this.modal.gallery.uploader;
     }
 
     /**

@@ -79,7 +79,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	"use strict";
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -358,6 +358,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	            this.state.current = currentPage;
+	            var total = resp.headers.get("X-Total-Count");
+	            if (total) this._total = parseInt(total);
 	            return resp.json().then(function (body) {
 	                return body.data;
 	            }).then(function (data) {
@@ -374,6 +376,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: 'path',
 	        get: function get() {
 	            return this._path;
+	        }
+	    }, {
+	        key: 'totalLength',
+	        get: function get() {
+	            return this._total;
 	        }
 	    }]);
 
@@ -551,14 +558,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return;
 	            }
 
-	            var _queue$shift = this._queue.shift();
-
-	            var _queue$shift2 = _slicedToArray(_queue$shift, 4);
-
-	            var path = _queue$shift2[0];
-	            var defer = _queue$shift2[1];
-	            var options = _queue$shift2[2];
-	            var client = _queue$shift2[3];
+	            var _queue$shift = this._queue.shift(),
+	                _queue$shift2 = _slicedToArray(_queue$shift, 4),
+	                path = _queue$shift2[0],
+	                defer = _queue$shift2[1],
+	                options = _queue$shift2[2],
+	                client = _queue$shift2[3];
 
 	            this._download(client, path, options).then(defer.resolve).catch(defer.reject);
 	        }
@@ -1124,7 +1129,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1246,39 +1251,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_onSroll",
 	        value: function _onSroll(e) {
-	            var index = this.index ? this.index : this.index = 0,
-	                len = this.children.length;
-	            for (var i = index; i < len; i++) {
-	                var view = this.children[i],
-	                    img = view.$('img')[0];
-	                if (img == null) continue;
-	                if (img.src === img.getAttribute('data-src')) {
-	                    index = i;
-	                } else if (elementInView(img, this.el)) {
-	                    index = i;
-	                }
-	            }
-	            this.index = index;
+	            var _this3 = this;
+
 	            var el = this.el;
-	            if (el.scrollTop < el.scrollHeight - el.clientHeight - el.clientHeight) {
+	            if (el.scrollTop < el.scrollHeight - el.clientHeight - el.clientHeight || !this.collection.hasNext()) {
 	                this.loadImages();
 	            } else if (this.collection.hasNext()) {
 	                this.collection.getNextPage({
 	                    params: {
-	                        show_hidden: true
+	                        show_hidden: false
 	                    }
+	                }).then(function () {
+	                    return _this3.loadImages();
 	                });
 	            }
 	        }
 	    }, {
 	        key: "loadImages",
 	        value: function loadImages() {
-	            var _this3 = this;
+	            var _this4 = this;
 
 	            var loadImage = function loadImage(img) {
 	                var parent = img.parentElement;
 	                orange_dom_1.addClass(parent, 'loading');
-	                download_1.Downloader.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
+	                download_1.Downloader.download(_this4.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
 	                    img.src = URL.createObjectURL(i);
 	                    orange_dom_1.addClass(parent, 'loaded');
 	                    orange_dom_1.removeClass(parent, 'loading');
@@ -1287,7 +1283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    orange_dom_1.addClass(parent, "load-error");
 	                });
 	            };
-	            var images = this.el.querySelectorAll('img');
+	            var images = this.el.querySelectorAll('img:not(.loaded)');
 	            for (var i = 0, ii = images.length; i < ii; i++) {
 	                var img = images[i];
 	                if (orange_dom_1.hasClass(img.parentElement, "loaded") || orange_dom_1.hasClass(img.parentElement, "loading")) {
@@ -1297,7 +1293,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }*/
 	                    continue;
 	                }
-	                if (elementInView(img, this.el)) {
+	                if (elementInView(img.parentElement, this.el)) {
 	                    loadImage(img);
 	                }
 	            }
@@ -1305,13 +1301,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_initHeight",
 	        value: function _initHeight() {
-	            var _this4 = this;
+	            var _this5 = this;
 
 	            var parent = this.el.parentElement;
 	            if (!parent || parent.clientHeight === 0) {
 	                if (!this._timer) {
 	                    this._timer = setInterval(function () {
-	                        return _this4._initHeight();
+	                        return _this5._initHeight();
 	                    }, 200);
 	                }
 	                return;
@@ -1388,7 +1384,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1509,12 +1505,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = {
-	    "crop-editor": "<div class=\"modal-container\"></div>\n<div class=\"crop-container\">\n</div>\n<!--<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>-->\n<button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n<button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>",
+	    "crop-editor": "<div class=\"modal-container\"></div>\n<div class=\"crop-container\">\n</div>\n<!--<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>-->\n<button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>\n<button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>",
 	    "file-info": "<div class=\"preview-region\">\n</div>\n<div class=\"info-region\">  <table class=\"info\">  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  </td>  </tr>  </table>\n</div>",
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
 	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n",
-	    "modal-gallery": "<div class=\"views-modal-dialog\">  <div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>\n</div>\n"
+	    "modal-gallery": "<div class=\"views-modal-dialog\">  <div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <div class=\"files-total\">Total: </div>  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>\n</div>\n"
 	};
 
 /***/ },
@@ -1729,7 +1725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1867,7 +1863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2072,7 +2068,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2194,7 +2190,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2396,9 +2392,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _upload(item) {
 	            var _this3 = this;
 
-	            var path = item.path;
-	            var file = item.file;
-	            var options = item.options;var event = itemToEvent(item);
+	            var path = item.path,
+	                file = item.file,
+	                options = item.options,
+	                event = itemToEvent(item);
+
 	            var emit = function emit(e, file) {
 	                _this3._uploading--;
 	                debug('upload ready %s', path);
@@ -2469,7 +2467,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2512,6 +2510,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.trigger('selected', _this.selected);
 	        });
 	        _this._setHeight = orange_1.bind(_this._setHeight, _this);
+	        _this.listenTo(_this._gallery.collection, 'fetch', function () {
+	            var total = _this._gallery.collection.totalLength || 0;
+	            var tel = _this.el.querySelector('.files-total');
+	            tel.innerHTML = "Total: " + total;
+	        });
 	        return _this;
 	    }
 
@@ -2620,7 +2623,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2778,7 +2781,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -2986,7 +2989,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -7039,7 +7042,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -7336,11 +7339,32 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this.triggerMethod('change');
 	            }
 	        }
+	        /**
+	         * Called when a file is selected in the gallery modal
+	         * @memberOf CropEditor
+	         */
+
 	    }, {
 	        key: "_onFileSelected",
 	        value: function _onFileSelected(model) {
 	            this.model = model;
 	            this.trigger('change');
+	        }
+	    }, {
+	        key: "_onUploadBtnChanged",
+	        value: function _onUploadBtnChanged(e) {
+	            var target = e.target;
+	            var uploader = this._getUploader();
+	            var file = target.files.item(0);
+	            if (!file) return;
+	            uploader.upload(this.options.root, file, {
+	                mode: this.options.mode
+	            });
+	        }
+	    }, {
+	        key: "_getUploader",
+	        value: function _getUploader() {
+	            return this.options.uploader || this.modal.gallery.uploader;
 	        }
 	        /**
 	         *
@@ -7376,6 +7400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            e.preventDefault();
 	            this.modal.toggle();
 	        },
+	        'change input.upload-btn': '_onUploadBtnChanged',
 	        'click .crop-btn': '_onToggleCropper'
 	    }
 	}), views_form_1.editor('torsten.crop'), __metadata('design:paramtypes', [Object])], CropEditor);

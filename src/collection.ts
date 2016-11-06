@@ -189,9 +189,13 @@ export class FileCollection extends RestCollection<FileInfoModel> {
     private _path: string;
     private _client: IClient;
     private _fetch: boolean;
-
+    private _total: number;
     public get path() {
         return this._path;
+    }
+
+    public get totalLength () {
+        return this._total;
     }
 
     constructor(models: IFileInfo[] | FileInfoModel[], options: FileCollectionOptions<FileInfoModel>) {
@@ -312,6 +316,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
         let currentPage = options.page;
         let links = parseLinkHeaders(resp);
 
+
         if (links.first) this._link[this.state.first] = links.first;
         if (links.prev) this._link[currentPage - 1] = links.prev;
         if (links.next) this._link[currentPage + 1] = links.next;
@@ -333,6 +338,9 @@ export class FileCollection extends RestCollection<FileInfoModel> {
 
 
         this.state.current = currentPage;
+
+        let total = resp.headers.get("X-Total-Count");
+        if (total) this._total = parseInt(total);
 
         return resp.json<{ data: any }>()
             .then(body => {

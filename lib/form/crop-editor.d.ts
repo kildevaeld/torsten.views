@@ -184,7 +184,13 @@ export declare class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     private _showDropIndicator();
     private _removeDropIndicator();
     protected _onToggleCropper(e: MouseEvent): void;
+    /**
+     * Called when a file is selected in the gallery modal
+     * @memberOf CropEditor
+     */
     private _onFileSelected(model);
+    protected _onUploadBtnChanged(e: Event): void;
+    private _getUploader();
     /**
      *
      *

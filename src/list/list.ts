@@ -124,31 +124,17 @@ export class FileListView extends CollectionView<HTMLDivElement> {
     }
 
     private _onSroll(e) {
-        let index = this.index ? this.index : (this.index = 0),
-            len = this.children.length
-
-        for (let i = index; i < len; i++) {
-            let view: View<HTMLDivElement> = <any>this.children[i],
-                img = view.$('img')[0]
-            if (img == null) continue
-            if (img.src === img.getAttribute('data-src')) {
-                index = i;
-            } else if (elementInView(img, this.el)) {
-                index = i
-            }
-        }
-        this.index = index;
+        
         let el = this.el;
 
-        if (el.scrollTop < (el.scrollHeight - el.clientHeight) - el.clientHeight) {
+        if (el.scrollTop < (el.scrollHeight - el.clientHeight) - el.clientHeight || !this.collection.hasNext()) {
             this.loadImages()
         } else if (this.collection.hasNext()) {
-
             this.collection.getNextPage({
                 params: {
-                    show_hidden: true
+                    show_hidden: false
                 }
-            });
+            }).then( () => this.loadImages() )
         }
     }
 
@@ -169,7 +155,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 })
         }
 
-        let images = this.el.querySelectorAll('img');
+        let images = this.el.querySelectorAll('img:not(.loaded)');
         for (let i = 0, ii = images.length; i < ii; i++) {
             let img = <HTMLImageElement>images[i];
             if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
@@ -179,7 +165,8 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 }*/
                 continue;
             }
-            if (elementInView(img, this.el)) {
+            
+            if (elementInView(img.parentElement, this.el)) {
                 loadImage(img);
             }
         }
@@ -223,7 +210,7 @@ function elementInView(ele, container) {
     viewport.bottom = (container.innerHeight || document.documentElement.clientHeight)// + options.offset;
     viewport.right = (container.innerWidth || document.documentElement.clientWidth)// + options.offset;
     var rect = ele.getBoundingClientRect();
-
+    
     return (
         // Intersection
         rect.right >= viewport.left

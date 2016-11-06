@@ -11,6 +11,7 @@ export class CancelError extends Error {
 
 }
 
+
 export class Downloader extends EventEmitter {
     private static _instance: Downloader;
     static get instance() {

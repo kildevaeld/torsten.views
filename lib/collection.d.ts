@@ -58,7 +58,9 @@ export declare class FileCollection extends RestCollection<FileInfoModel> {
     private _path;
     private _client;
     private _fetch;
+    private _total;
     readonly path: string;
+    readonly totalLength: number;
     constructor(models: IFileInfo[] | FileInfoModel[], options: FileCollectionOptions<FileInfoModel>);
     fetch(options?: FileCollectionFetchOptions): IPromise<FileInfoModel[]>;
     upload(name: string, data: any, options?: CreateOptions): IPromise<FileInfoModel>;

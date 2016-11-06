@@ -261,6 +261,7 @@
 }
 .gallery-modal .torsten-gallery .gallery-info .file-info .info-region {
   border-top: 1px solid #eee;
+  padding: 5px;
 }
 .gallery-modal .torsten-gallery .gallery-info .file-info .info-region .info td:first-child {
   font-weight: bold;
@@ -274,6 +275,13 @@
 .gallery-modal .torsten-gallery .gallery-info .file-info .info-region .info .download {
   color: #483d8b;
   cursor: pointer;
+}
+.gallery-modal .views-modal-footer {
+  border-top: 1px solid #eee;
+}
+.gallery-modal .views-modal-footer .files-total {
+  display: inline-block;
+  float: left;
 }
 .file-info {
   width: 100%;
