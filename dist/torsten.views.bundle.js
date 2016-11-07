@@ -358,6 +358,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                }
 	            }
 	            this.state.current = currentPage;
+	            var total = resp.headers.get("X-Total-Count");
+	            if (total) this._total = parseInt(total);
 	            return resp.json().then(function (body) {
 	                return body.data;
 	            }).then(function (data) {
@@ -374,6 +376,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: 'path',
 	        get: function get() {
 	            return this._path;
+	        }
+	    }, {
+	        key: 'totalLength',
+	        get: function get() {
+	            return this._total;
 	        }
 	    }]);
 
@@ -7526,39 +7533,30 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_onSroll",
 	        value: function _onSroll(e) {
-	            var index = this.index ? this.index : this.index = 0,
-	                len = this.children.length;
-	            for (var i = index; i < len; i++) {
-	                var view = this.children[i],
-	                    img = view.$('img')[0];
-	                if (img == null) continue;
-	                if (img.src === img.getAttribute('data-src')) {
-	                    index = i;
-	                } else if (elementInView(img, this.el)) {
-	                    index = i;
-	                }
-	            }
-	            this.index = index;
+	            var _this3 = this;
+
 	            var el = this.el;
-	            if (el.scrollTop < el.scrollHeight - el.clientHeight - el.clientHeight) {
+	            if (el.scrollTop < el.scrollHeight - el.clientHeight - el.clientHeight || !this.collection.hasNext()) {
 	                this.loadImages();
 	            } else if (this.collection.hasNext()) {
 	                this.collection.getNextPage({
 	                    params: {
 	                        show_hidden: false
 	                    }
+	                }).then(function () {
+	                    return _this3.loadImages();
 	                });
 	            }
 	        }
 	    }, {
 	        key: "loadImages",
 	        value: function loadImages() {
-	            var _this3 = this;
+	            var _this4 = this;
 
 	            var loadImage = function loadImage(img) {
 	                var parent = img.parentElement;
 	                orange_dom_1.addClass(parent, 'loading');
-	                download_1.Downloader.download(_this3.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
+	                download_1.Downloader.download(_this4.options.client, img.getAttribute('data-src'), { thumbnail: true }).then(function (i) {
 	                    img.src = URL.createObjectURL(i);
 	                    orange_dom_1.addClass(parent, 'loaded');
 	                    orange_dom_1.removeClass(parent, 'loading');
@@ -7567,7 +7565,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    orange_dom_1.addClass(parent, "load-error");
 	                });
 	            };
-	            var images = this.el.querySelectorAll('img');
+	            var images = this.el.querySelectorAll('img:not(.loaded)');
 	            for (var i = 0, ii = images.length; i < ii; i++) {
 	                var img = images[i];
 	                if (orange_dom_1.hasClass(img.parentElement, "loaded") || orange_dom_1.hasClass(img.parentElement, "loading")) {
@@ -7577,8 +7575,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }*/
 	                    continue;
 	                }
-	                console.log('in view', elementInView(img, this.el));
-	                if (elementInView(img, this.el)) {
+	                if (elementInView(img.parentElement, this.el)) {
 	                    loadImage(img);
 	                }
 	            }
@@ -7586,13 +7583,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_initHeight",
 	        value: function _initHeight() {
-	            var _this4 = this;
+	            var _this5 = this;
 
 	            var parent = this.el.parentElement;
 	            if (!parent || parent.clientHeight === 0) {
 	                if (!this._timer) {
 	                    this._timer = setInterval(function () {
-	                        return _this4._initHeight();
+	                        return _this5._initHeight();
 	                    }, 200);
 	                }
 	                return;
@@ -9666,11 +9663,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = {
 	    "crop-editor": "<div class=\"modal-container\"></div>\n<div class=\"crop-container\">\n</div>\n<!--<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>-->\n<button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>\n<button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>",
-	    "file-info": "<div class=\"preview-region\">\n</div>\n<div class=\"info-region\">  <table class=\"info\">  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  </td>  </tr>  </table>\n</div>",
+	    "file-info": "<div class=\"preview-region\">  <div class=\"preview\"></div>\n</div>\n<div class=\"info-region\">  <table class=\"info\">  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  </td>  </tr>  </table>\n</div>",
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
 	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n",
-	    "modal-gallery": "<div class=\"views-modal-dialog\">  <div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>\n</div>\n"
+	    "modal-gallery": "<div class=\"views-modal-dialog\">  <div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <div class=\"files-total\">Total: </div>  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>\n</div>\n"
 	};
 
 /***/ },
@@ -10228,6 +10225,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -10250,6 +10249,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(47);
 	var index_1 = __webpack_require__(62);
 	var orange_1 = __webpack_require__(6);
+	var download_1 = __webpack_require__(41);
 	var FileInfoView = function (_views_1$View) {
 	    _inherits(FileInfoView, _views_1$View);
 
@@ -10266,8 +10266,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _createClass(FileInfoView, [{
 	        key: "onModel",
 	        value: function onModel(model) {
+	            this.clear();
 	            if (model == null) {
-	                return this.clear();
+	                return;
 	            }
 	            this._update_ui(model);
 	        }
@@ -10286,6 +10287,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ui.mime.textContent = '';
 	            ui.size.textContent = '';
 	            ui.download.textContent = '';
+	            var img = ui.preview.querySelector('img');
+	            if (img) {
+	                URL.revokeObjectURL(img.src);
+	            }
+	            ui.preview.innerHTML = '';
 	            this.el.style.opacity = "0";
 	            return this;
 	        }
@@ -10298,6 +10304,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ui.mime.textContent = model.get('mime');
 	            ui.size.textContent = orange_1.humanFileSize(model.get('size'));
 	            ui.download.textContent = model.get('name');
+	            if (/image\/.*/.test(model.get('mime'))) {
+	                download_1.Downloader.download(this.client, model.fullPath, {}).then(function (blob) {
+	                    var img = document.createElement('img');
+	                    img.src = URL.createObjectURL(blob);
+	                    ui.preview.appendChild(img);
+	                });
+	            }
 	            this.el.style.opacity = "1";
 	        }
 	    }, {
@@ -10321,6 +10334,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                console.log(e);
 	            });
 	        }
+	    }, {
+	        key: "destroy",
+	        value: function destroy() {
+	            this.clear();
+	            _get(FileInfoView.prototype.__proto__ || Object.getPrototypeOf(FileInfoView.prototype), "destroy", this).call(this);
+	        }
 	    }]);
 
 	    return FileInfoView;
@@ -10334,7 +10353,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        name: '.name',
 	        mime: '.mimetype',
 	        size: '.size',
-	        download: '.download'
+	        download: '.download',
+	        preview: '.preview'
 	    },
 	    events: {
 	        'click @ui.download': '_onDownload'
@@ -10670,6 +10690,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.trigger('selected', _this.selected);
 	        });
 	        _this._setHeight = orange_1.bind(_this._setHeight, _this);
+	        _this.listenTo(_this._gallery.collection, 'fetch', function () {
+	            var total = _this._gallery.collection.totalLength || 0;
+	            var tel = _this.el.querySelector('.files-total');
+	            tel.innerHTML = "Total: " + total;
+	        });
 	        return _this;
 	    }
 

@@ -289,7 +289,7 @@
   overflow-y: auto;
 }
 .file-info .preview-region {
-  height: 60%;
+  max-height: 60%;
 }
 .file-info .preview-region .preview {
   height: 100%;

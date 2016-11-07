@@ -10,9 +10,10 @@ export declare class FileInfoView extends View<HTMLDivElement> {
     model: FileInfoModel;
     client: IClient;
     constructor(options: FileInfoViewOptions);
-    onModel(model: FileInfoModel): this;
+    onModel(model: FileInfoModel): void;
     onRender(): void;
     clear(): this;
     _update_ui(model: FileInfoModel): this;
     protected _onDownload(e: any): void;
+    destroy(): void;
 }

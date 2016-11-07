@@ -4,6 +4,8 @@ import templates from '../templates/index';
 import { FileInfoModel } from '../collection';
 import { IClient } from 'torsten'
 import { humanFileSize } from 'orange';
+import {Downloader} from '../download';
+
 
 export interface FileInfoViewOptions extends ViewOptions {
     client: IClient;
@@ -16,7 +18,8 @@ export interface FileInfoViewOptions extends ViewOptions {
         name: '.name',
         mime: '.mimetype',
         size: '.size',
-        download: '.download'
+        download: '.download',
+        preview: '.preview'
     },
     events: {
         'click @ui.download': '_onDownload'
@@ -32,10 +35,11 @@ export class FileInfoView extends View<HTMLDivElement> {
     }
 
     onModel(model: FileInfoModel) {
+        this.clear();
         if (model == null) {
-            return this.clear()
+            return;
         }
-        this._update_ui(model)
+        this._update_ui(model);
     }
 
     onRender() {
@@ -46,12 +50,19 @@ export class FileInfoView extends View<HTMLDivElement> {
     clear() {
         if (!this.__rendered) return this;
         let ui = <any>this.ui;
-        ui.name.textContent = ''
-        ui.mime.textContent = ''
-        ui.size.textContent = ''
-        ui.download.textContent = ''
+        ui.name.textContent = '';
+        ui.mime.textContent = '';
+        ui.size.textContent = '';
+        ui.download.textContent = '';
+
+        let img = ui.preview.querySelector('img');
+        if (img) {
+            URL.revokeObjectURL(img.src);
+        }
+        ui.preview.innerHTML = '';
         this.el.style.opacity = "0";
-        return this
+
+        return this;
     }
 
     _update_ui(model: FileInfoModel) {
@@ -62,6 +73,16 @@ export class FileInfoView extends View<HTMLDivElement> {
         ui.mime.textContent = model.get('mime');
         ui.size.textContent = humanFileSize(model.get('size'));
         ui.download.textContent = model.get('name');
+
+        if (/image\/.*/.test(model.get('mime'))) {
+            Downloader.download(this.client, model.fullPath, {
+
+            }).then( blob => {
+                let img = document.createElement('img');
+                img.src = URL.createObjectURL(blob);
+                ui.preview.appendChild(img);
+            });
+        }
 
 
         this.el.style.opacity = "1";
@@ -88,6 +109,11 @@ export class FileInfoView extends View<HTMLDivElement> {
             }).catch(e => {
                 console.log(e)
             })
+    }
+
+    destroy() {
+        this.clear();
+        super.destroy();
     }
 
 }

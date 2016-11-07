@@ -1506,7 +1506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = {
 	    "crop-editor": "<div class=\"modal-container\"></div>\n<div class=\"crop-container\">\n</div>\n<!--<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>-->\n<button class=\"gallery-btn btn btn-sm btn-default\" title=\"Vælg fra galleri\">Vælg</button>\n<label class=\"btn btn-sm btn-default\">  <span>Upload</span>  <input style=\"display:none;\" type=\"file\" class=\"upload-btn\" name=\"upload-button\" />  </label>\n<button class=\"crop-btn btn btn-sm btn-default pull-right\">Beskær</button>",
-	    "file-info": "<div class=\"preview-region\">\n</div>\n<div class=\"info-region\">  <table class=\"info\">  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  </td>  </tr>  </table>\n</div>",
+	    "file-info": "<div class=\"preview-region\">  <div class=\"preview\"></div>\n</div>\n<div class=\"info-region\">  <table class=\"info\">  <tr>  <td>Name</td>  <td class=\"name\"></td>  </tr>  <tr>  <td>Mime</td>  <td class=\"mimetype\"></td>  </tr>  <tr>  <td>Size</td>  <td class=\"size\"></td>  </tr>  <tr>  <td>Download</td>  <td class=\"download\">  </td>  </tr>  </table>\n</div>",
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
 	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n",
@@ -2068,6 +2068,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2090,6 +2092,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(14);
 	var index_1 = __webpack_require__(17);
 	var orange_1 = __webpack_require__(5);
+	var download_1 = __webpack_require__(7);
 	var FileInfoView = function (_views_1$View) {
 	    _inherits(FileInfoView, _views_1$View);
 
@@ -2106,8 +2109,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _createClass(FileInfoView, [{
 	        key: "onModel",
 	        value: function onModel(model) {
+	            this.clear();
 	            if (model == null) {
-	                return this.clear();
+	                return;
 	            }
 	            this._update_ui(model);
 	        }
@@ -2126,6 +2130,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ui.mime.textContent = '';
 	            ui.size.textContent = '';
 	            ui.download.textContent = '';
+	            var img = ui.preview.querySelector('img');
+	            if (img) {
+	                URL.revokeObjectURL(img.src);
+	            }
+	            ui.preview.innerHTML = '';
 	            this.el.style.opacity = "0";
 	            return this;
 	        }
@@ -2138,6 +2147,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ui.mime.textContent = model.get('mime');
 	            ui.size.textContent = orange_1.humanFileSize(model.get('size'));
 	            ui.download.textContent = model.get('name');
+	            if (/image\/.*/.test(model.get('mime'))) {
+	                download_1.Downloader.download(this.client, model.fullPath, {}).then(function (blob) {
+	                    var img = document.createElement('img');
+	                    img.src = URL.createObjectURL(blob);
+	                    ui.preview.appendChild(img);
+	                });
+	            }
 	            this.el.style.opacity = "1";
 	        }
 	    }, {
@@ -2161,6 +2177,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                console.log(e);
 	            });
 	        }
+	    }, {
+	        key: "destroy",
+	        value: function destroy() {
+	            this.clear();
+	            _get(FileInfoView.prototype.__proto__ || Object.getPrototypeOf(FileInfoView.prototype), "destroy", this).call(this);
+	        }
 	    }]);
 
 	    return FileInfoView;
@@ -2174,7 +2196,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        name: '.name',
 	        mime: '.mimetype',
 	        size: '.size',
-	        download: '.download'
+	        download: '.download',
+	        preview: '.preview'
 	    },
 	    events: {
 	        'click @ui.download': '_onDownload'

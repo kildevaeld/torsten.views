@@ -29,11 +29,8 @@ export const FileListEmptyView = View.extend({
     }
 })
 export class FileListView extends CollectionView<HTMLDivElement> {
-    //private _current: View<HTMLDivElement>;
     private _timer: NodeJS.Timer;
     private _progress: IProgress;
-    private index: number;
-
     public options: FileListOptions;
     collection: FileCollection;
 
