@@ -62,11 +62,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 	__export(__webpack_require__(1));
-	__export(__webpack_require__(45));
-	__export(__webpack_require__(66));
-	__export(__webpack_require__(75));
-	__export(__webpack_require__(73));
-	__export(__webpack_require__(80));
+	__export(__webpack_require__(46));
+	__export(__webpack_require__(67));
+	__export(__webpack_require__(76));
+	__export(__webpack_require__(74));
+	__export(__webpack_require__(81));
 	var torsten_1 = __webpack_require__(30);
 	function createClient(options) {
 	    return new torsten_1.TorstenClient(options);
@@ -138,17 +138,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    _createClass(FileInfoModel, [{
-	        key: 'open',
+	        key: "open",
 	        value: function open(o, client) {
 	            return download_1.Downloader.instance.download(client || this._client, this.fullPath, o);
 	        }
 	    }, {
-	        key: 'fullPath',
+	        key: "fullPath",
 	        get: function get() {
 	            return this.get('path') + this.get('name');
 	        }
 	    }, {
-	        key: 'url',
+	        key: "url",
 	        get: function get() {
 	            return this._client.endpoint + this.fullPath;
 	        }
@@ -187,17 +187,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    _createClass(RestCollection, [{
-	        key: 'hasNext',
+	        key: "hasNext",
 	        value: function hasNext() {
 	            return this.hasPage(this.state.current + 1);
 	        }
 	    }, {
-	        key: 'hasPrevious',
+	        key: "hasPrevious",
 	        value: function hasPrevious() {
 	            return this.hasPage(this.state.current - 1);
 	        }
 	    }, {
-	        key: 'hasPage',
+	        key: "hasPage",
 	        value: function hasPage(page) {
 	            if (this.state.last > -1) {
 	                return page <= this.state.last;
@@ -205,21 +205,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return false;
 	        }
 	    }, {
-	        key: 'getPreviousPage',
+	        key: "getPreviousPage",
 	        value: function getPreviousPage(options) {
 	            options = options ? orange_1.extend({}, options) : {};
 	            options.page = this.state.current - 1;
 	            return this.getPage(options);
 	        }
 	    }, {
-	        key: 'getNextPage',
+	        key: "getNextPage",
 	        value: function getNextPage(options) {
 	            options = options ? orange_1.extend({}, options) : {};
 	            options.page = this.state.current + 1;
 	            return this.getPage(options);
 	        }
 	    }, {
-	        key: 'getPage',
+	        key: "getPage",
 	        value: function getPage(options) {
 	            options = options ? orange_1.extend({}, options) : {};
 	            if (options.page === void 0) return Promise.reject(new Error("No page"));
@@ -260,7 +260,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    _createClass(FileCollection, [{
-	        key: 'fetch',
+	        key: "fetch",
 	        value: function fetch(options) {
 	            var _this4 = this;
 
@@ -277,7 +277,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (orange_1.has(params, this.queryParams.page)) delete params[this.queryParams.page];
 	            url = this._link[options.page];
 	            if (!url) {
-	                url = this._client.endpoint + this.path;
+	                url = this._client.endpoint + '/v1' + this.path;
 	            }
 	            if (!url) return Promise.reject(new Error("no url specified"));
 	            var idx = url.indexOf('?');
@@ -304,7 +304,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	        }
 	    }, {
-	        key: 'upload',
+	        key: "upload",
 	        value: function upload(name, data) {
 	            var _this5 = this;
 
@@ -327,17 +327,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	        }
 	    }, {
-	        key: '_prepareModel',
+	        key: "_prepareModel",
 	        value: function _prepareModel(value) {
 	            if (isFileInfo(value)) return value;
 	            if (orange_1.isObject(value) && !collection_1.isModel(value)) return new this.Model(value, {
 	                //parse: true,
 	                client: this._client
 	            });
-	            throw new Error('Value not an Object or an instance of a model, but was: ' + (typeof value === 'undefined' ? 'undefined' : _typeof(value)));
+	            throw new Error('Value not an Object or an instance of a model, but was: ' + (typeof value === "undefined" ? "undefined" : _typeof(value)));
 	        }
 	    }, {
-	        key: '_processResponse',
+	        key: "_processResponse",
 	        value: function _processResponse(resp, options) {
 	            var _this6 = this;
 
@@ -368,17 +368,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	        }
 	    }, {
-	        key: '__classType',
+	        key: "__classType",
 	        get: function get() {
 	            return 'RestCollection';
 	        }
 	    }, {
-	        key: 'path',
+	        key: "path",
 	        get: function get() {
 	            return this._path;
 	        }
 	    }, {
-	        key: 'totalLength',
+	        key: "totalLength",
 	        get: function get() {
 	            return this._total;
 	        }
@@ -2749,6 +2749,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function RestCollection(models, options) {
 	        if (options === void 0) { options = {}; }
 	        _super.call(this, models, options);
+	        this.Model = rest_model_1.RestModel;
 	        if (options.url)
 	            this.url = options.url;
 	        this.options.queryParameter = this.options.queryParameter || 'q';
@@ -2958,7 +2959,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        options.url = url;
 	        return this.sync(persistence_1.RestMethod.Delete, this, options)
 	            .then(function (result) {
-	            if (!options.wait)
+	            if (options.wait)
 	                _super.prototype.remove.call(_this, options);
 	            return _this;
 	        }).catch(function (e) {
@@ -4337,6 +4338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (path.substr(0, 1) != "/") {
 	                path = "/" + path;
 	            }
+	            path = "/v1" + path;
 	            return this._options.endpoint + path;
 	        }
 	    }, {
@@ -6788,13 +6790,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        _this2._queue = [];
 	        _this2._downloading = 0;
-	        _this2.size = 50;
+	        _this2.size = 10;
 	        _this2.listenTo(_this2, 'ready', _this2._onReady);
 	        return _this2;
 	    }
 
 	    _createClass(Downloader, [{
-	        key: 'download',
+	        key: "download",
 	        value: function download(client, path, options) {
 	            if (this._downloading > this.size) {
 	                var defer = orange_1.deferred();
@@ -6805,7 +6807,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return this._download(client, path, options);
 	        }
 	    }, {
-	        key: '_cancel',
+	        key: "_cancel",
 	        value: function _cancel(path) {
 	            var index = -1;
 	            for (var i = 0, ii = this._queue.length; i < ii; i++) {
@@ -6821,7 +6823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._queue.splice(index, 1);
 	        }
 	    }, {
-	        key: '_download',
+	        key: "_download",
 	        value: function _download(client, path, options) {
 	            var _this3 = this;
 
@@ -6840,7 +6842,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	        }
 	    }, {
-	        key: '_onReady',
+	        key: "_onReady",
 	        value: function _onReady() {
 	            if (!this._queue.length || this._downloading > this.size) {
 	                return;
@@ -6856,17 +6858,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._download(client, path, options).then(defer.resolve).catch(defer.reject);
 	        }
 	    }], [{
-	        key: 'download',
+	        key: "download",
 	        value: function download(client, path, options) {
 	            return this.instance.download(client, path, options);
 	        }
 	    }, {
-	        key: 'cancel',
+	        key: "cancel",
 	        value: function cancel(path) {
 	            return this.instance._cancel(path);
 	        }
 	    }, {
-	        key: 'instance',
+	        key: "instance",
 	        get: function get() {
 	            if (!this._instance) {
 	                this._instance = new Downloader();
@@ -6884,14 +6886,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
-	
+	/* WEBPACK VAR INJECTION */(function(process) {
 	/**
 	 * This is the web browser implementation of `debug()`.
 	 *
 	 * Expose `debug()` as the module.
 	 */
 
-	exports = module.exports = __webpack_require__(43);
+	exports = module.exports = __webpack_require__(44);
 	exports.log = log;
 	exports.formatArgs = formatArgs;
 	exports.save = save;
@@ -6925,7 +6927,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function useColors() {
 	  // is webkit? http://stackoverflow.com/a/16459606/376773
-	  return ('WebkitAppearance' in document.documentElement.style) ||
+	  // document is undefined in react-native: https://github.com/facebook/react-native/pull/1632
+	  return (typeof document !== 'undefined' && 'WebkitAppearance' in document.documentElement.style) ||
 	    // is firebug? http://stackoverflow.com/a/398120/376773
 	    (window.console && (console.firebug || (console.exception && console.table))) ||
 	    // is firefox >= v31?
@@ -7027,6 +7030,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  try {
 	    r = exports.storage.debug;
 	  } catch(e) {}
+
+	  // If debug isn't set in LS, and we're in Electron, try to load $DEBUG
+	  if ('env' in (typeof process === 'undefined' ? {} : process)) {
+	    r = process.env.DEBUG;
+	  }
+	  
 	  return r;
 	}
 
@@ -7053,9 +7062,196 @@ return /******/ (function(modules) { // webpackBootstrap
 	  } catch (e) {}
 	}
 
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(43)))
 
 /***/ },
 /* 43 */
+/***/ function(module, exports) {
+
+	// shim for using process in browser
+	var process = module.exports = {};
+
+	// cached from whatever global is present so that test runners that stub it
+	// don't break things.  But we need to wrap it in a try catch in case it is
+	// wrapped in strict mode code which doesn't define any globals.  It's inside a
+	// function because try/catches deoptimize in certain engines.
+
+	var cachedSetTimeout;
+	var cachedClearTimeout;
+
+	function defaultSetTimout() {
+	    throw new Error('setTimeout has not been defined');
+	}
+	function defaultClearTimeout () {
+	    throw new Error('clearTimeout has not been defined');
+	}
+	(function () {
+	    try {
+	        if (typeof setTimeout === 'function') {
+	            cachedSetTimeout = setTimeout;
+	        } else {
+	            cachedSetTimeout = defaultSetTimout;
+	        }
+	    } catch (e) {
+	        cachedSetTimeout = defaultSetTimout;
+	    }
+	    try {
+	        if (typeof clearTimeout === 'function') {
+	            cachedClearTimeout = clearTimeout;
+	        } else {
+	            cachedClearTimeout = defaultClearTimeout;
+	        }
+	    } catch (e) {
+	        cachedClearTimeout = defaultClearTimeout;
+	    }
+	} ())
+	function runTimeout(fun) {
+	    if (cachedSetTimeout === setTimeout) {
+	        //normal enviroments in sane situations
+	        return setTimeout(fun, 0);
+	    }
+	    // if setTimeout wasn't available but was latter defined
+	    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+	        cachedSetTimeout = setTimeout;
+	        return setTimeout(fun, 0);
+	    }
+	    try {
+	        // when when somebody has screwed with setTimeout but no I.E. maddness
+	        return cachedSetTimeout(fun, 0);
+	    } catch(e){
+	        try {
+	            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+	            return cachedSetTimeout.call(null, fun, 0);
+	        } catch(e){
+	            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+	            return cachedSetTimeout.call(this, fun, 0);
+	        }
+	    }
+
+
+	}
+	function runClearTimeout(marker) {
+	    if (cachedClearTimeout === clearTimeout) {
+	        //normal enviroments in sane situations
+	        return clearTimeout(marker);
+	    }
+	    // if clearTimeout wasn't available but was latter defined
+	    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+	        cachedClearTimeout = clearTimeout;
+	        return clearTimeout(marker);
+	    }
+	    try {
+	        // when when somebody has screwed with setTimeout but no I.E. maddness
+	        return cachedClearTimeout(marker);
+	    } catch (e){
+	        try {
+	            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+	            return cachedClearTimeout.call(null, marker);
+	        } catch (e){
+	            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+	            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+	            return cachedClearTimeout.call(this, marker);
+	        }
+	    }
+
+
+
+	}
+	var queue = [];
+	var draining = false;
+	var currentQueue;
+	var queueIndex = -1;
+
+	function cleanUpNextTick() {
+	    if (!draining || !currentQueue) {
+	        return;
+	    }
+	    draining = false;
+	    if (currentQueue.length) {
+	        queue = currentQueue.concat(queue);
+	    } else {
+	        queueIndex = -1;
+	    }
+	    if (queue.length) {
+	        drainQueue();
+	    }
+	}
+
+	function drainQueue() {
+	    if (draining) {
+	        return;
+	    }
+	    var timeout = runTimeout(cleanUpNextTick);
+	    draining = true;
+
+	    var len = queue.length;
+	    while(len) {
+	        currentQueue = queue;
+	        queue = [];
+	        while (++queueIndex < len) {
+	            if (currentQueue) {
+	                currentQueue[queueIndex].run();
+	            }
+	        }
+	        queueIndex = -1;
+	        len = queue.length;
+	    }
+	    currentQueue = null;
+	    draining = false;
+	    runClearTimeout(timeout);
+	}
+
+	process.nextTick = function (fun) {
+	    var args = new Array(arguments.length - 1);
+	    if (arguments.length > 1) {
+	        for (var i = 1; i < arguments.length; i++) {
+	            args[i - 1] = arguments[i];
+	        }
+	    }
+	    queue.push(new Item(fun, args));
+	    if (queue.length === 1 && !draining) {
+	        runTimeout(drainQueue);
+	    }
+	};
+
+	// v8 likes predictible objects
+	function Item(fun, array) {
+	    this.fun = fun;
+	    this.array = array;
+	}
+	Item.prototype.run = function () {
+	    this.fun.apply(null, this.array);
+	};
+	process.title = 'browser';
+	process.browser = true;
+	process.env = {};
+	process.argv = [];
+	process.version = ''; // empty string to avoid regexp issues
+	process.versions = {};
+
+	function noop() {}
+
+	process.on = noop;
+	process.addListener = noop;
+	process.once = noop;
+	process.off = noop;
+	process.removeListener = noop;
+	process.removeAllListeners = noop;
+	process.emit = noop;
+
+	process.binding = function (name) {
+	    throw new Error('process.binding is not supported');
+	};
+
+	process.cwd = function () { return '/' };
+	process.chdir = function (dir) {
+	    throw new Error('process.chdir is not supported');
+	};
+	process.umask = function() { return 0; };
+
+
+/***/ },
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -7066,12 +7262,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Expose `debug()` as the module.
 	 */
 
-	exports = module.exports = debug;
+	exports = module.exports = debug.debug = debug;
 	exports.coerce = coerce;
 	exports.disable = disable;
 	exports.enable = enable;
 	exports.enabled = enabled;
-	exports.humanize = __webpack_require__(44);
+	exports.humanize = __webpack_require__(45);
 
 	/**
 	 * The currently active debug mode names, and names to skip.
@@ -7143,7 +7339,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (null == self.useColors) self.useColors = exports.useColors();
 	    if (null == self.color && self.useColors) self.color = selectColor();
 
-	    var args = Array.prototype.slice.call(arguments);
+	    var args = new Array(arguments.length);
+	    for (var i = 0; i < args.length; i++) {
+	      args[i] = arguments[i];
+	    }
 
 	    args[0] = exports.coerce(args[0]);
 
@@ -7170,9 +7369,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return match;
 	    });
 
-	    if ('function' === typeof exports.formatArgs) {
-	      args = exports.formatArgs.apply(self, args);
-	    }
+	    // apply env-specific formatting
+	    args = exports.formatArgs.apply(self, args);
+
 	    var logFn = enabled.log || exports.log || console.log.bind(console);
 	    logFn.apply(self, args);
 	  }
@@ -7201,7 +7400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  for (var i = 0; i < len; i++) {
 	    if (!split[i]) continue; // ignore empty strings
-	    namespaces = split[i].replace(/\*/g, '.*?');
+	    namespaces = split[i].replace(/[\\^$+?.()|[\]{}]/g, '\\$&').replace(/\*/g, '.*?');
 	    if (namespaces[0] === '-') {
 	      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
 	    } else {
@@ -7258,18 +7457,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports) {
 
 	/**
 	 * Helpers.
 	 */
 
-	var s = 1000;
-	var m = s * 60;
-	var h = m * 60;
-	var d = h * 24;
-	var y = d * 365.25;
+	var s = 1000
+	var m = s * 60
+	var h = m * 60
+	var d = h * 24
+	var y = d * 365.25
 
 	/**
 	 * Parse or format the given `val`.
@@ -7280,17 +7479,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	 *
 	 * @param {String|Number} val
 	 * @param {Object} options
+	 * @throws {Error} throw an error if val is not a non-empty string or a number
 	 * @return {String|Number}
 	 * @api public
 	 */
 
-	module.exports = function(val, options){
-	  options = options || {};
-	  if ('string' == typeof val) return parse(val);
-	  return options.long
-	    ? long(val)
-	    : short(val);
-	};
+	module.exports = function (val, options) {
+	  options = options || {}
+	  var type = typeof val
+	  if (type === 'string' && val.length > 0) {
+	    return parse(val)
+	  } else if (type === 'number' && isNaN(val) === false) {
+	    return options.long ?
+				fmtLong(val) :
+				fmtShort(val)
+	  }
+	  throw new Error('val is not a non-empty string or a valid number. val=' + JSON.stringify(val))
+	}
 
 	/**
 	 * Parse the given `str` and return milliseconds.
@@ -7301,47 +7506,53 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	function parse(str) {
-	  str = '' + str;
-	  if (str.length > 10000) return;
-	  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
-	  if (!match) return;
-	  var n = parseFloat(match[1]);
-	  var type = (match[2] || 'ms').toLowerCase();
+	  str = String(str)
+	  if (str.length > 10000) {
+	    return
+	  }
+	  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str)
+	  if (!match) {
+	    return
+	  }
+	  var n = parseFloat(match[1])
+	  var type = (match[2] || 'ms').toLowerCase()
 	  switch (type) {
 	    case 'years':
 	    case 'year':
 	    case 'yrs':
 	    case 'yr':
 	    case 'y':
-	      return n * y;
+	      return n * y
 	    case 'days':
 	    case 'day':
 	    case 'd':
-	      return n * d;
+	      return n * d
 	    case 'hours':
 	    case 'hour':
 	    case 'hrs':
 	    case 'hr':
 	    case 'h':
-	      return n * h;
+	      return n * h
 	    case 'minutes':
 	    case 'minute':
 	    case 'mins':
 	    case 'min':
 	    case 'm':
-	      return n * m;
+	      return n * m
 	    case 'seconds':
 	    case 'second':
 	    case 'secs':
 	    case 'sec':
 	    case 's':
-	      return n * s;
+	      return n * s
 	    case 'milliseconds':
 	    case 'millisecond':
 	    case 'msecs':
 	    case 'msec':
 	    case 'ms':
-	      return n;
+	      return n
+	    default:
+	      return undefined
 	  }
 	}
 
@@ -7353,12 +7564,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @api private
 	 */
 
-	function short(ms) {
-	  if (ms >= d) return Math.round(ms / d) + 'd';
-	  if (ms >= h) return Math.round(ms / h) + 'h';
-	  if (ms >= m) return Math.round(ms / m) + 'm';
-	  if (ms >= s) return Math.round(ms / s) + 's';
-	  return ms + 'ms';
+	function fmtShort(ms) {
+	  if (ms >= d) {
+	    return Math.round(ms / d) + 'd'
+	  }
+	  if (ms >= h) {
+	    return Math.round(ms / h) + 'h'
+	  }
+	  if (ms >= m) {
+	    return Math.round(ms / m) + 'm'
+	  }
+	  if (ms >= s) {
+	    return Math.round(ms / s) + 's'
+	  }
+	  return ms + 'ms'
 	}
 
 	/**
@@ -7369,12 +7588,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @api private
 	 */
 
-	function long(ms) {
-	  return plural(ms, d, 'day')
-	    || plural(ms, h, 'hour')
-	    || plural(ms, m, 'minute')
-	    || plural(ms, s, 'second')
-	    || ms + ' ms';
+	function fmtLong(ms) {
+	  return plural(ms, d, 'day') ||
+	    plural(ms, h, 'hour') ||
+	    plural(ms, m, 'minute') ||
+	    plural(ms, s, 'second') ||
+	    ms + ' ms'
 	}
 
 	/**
@@ -7382,14 +7601,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	 */
 
 	function plural(ms, n, name) {
-	  if (ms < n) return;
-	  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-	  return Math.ceil(ms / n) + ' ' + name + 's';
+	  if (ms < n) {
+	    return
+	  }
+	  if (ms < n * 1.5) {
+	    return Math.floor(ms / n) + ' ' + name
+	  }
+	  return Math.ceil(ms / n) + ' ' + name + 's'
 	}
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -7399,12 +7622,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(46));
-	__export(__webpack_require__(61));
-	__export(__webpack_require__(65));
+	__export(__webpack_require__(47));
+	__export(__webpack_require__(62));
+	__export(__webpack_require__(66));
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -7430,11 +7653,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var orange_dom_1 = __webpack_require__(50);
+	var views_1 = __webpack_require__(48);
+	var orange_dom_1 = __webpack_require__(51);
 	var orange_1 = __webpack_require__(6);
-	var list_item_1 = __webpack_require__(61);
-	var circular_progress_1 = __webpack_require__(65);
+	var list_item_1 = __webpack_require__(62);
+	var circular_progress_1 = __webpack_require__(66);
 	var download_1 = __webpack_require__(41);
 	exports.FileListEmptyView = views_1.View.extend({
 	    className: 'file-list-empty-view',
@@ -7569,10 +7792,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            for (var i = 0, ii = images.length; i < ii; i++) {
 	                var img = images[i];
 	                if (orange_dom_1.hasClass(img.parentElement, "loaded") || orange_dom_1.hasClass(img.parentElement, "loading")) {
-	                    /*if (!elementInView(img, this.el) && hasClass(img, 'loading')) {
-	                        Downloader.cancel(img.getAttribute('data-src'));
-	                        removeClass(img, 'loading');
-	                    }*/
+	                    if (!elementInView(img.parentElement, this.el) && orange_dom_1.hasClass(img.parentElement, 'loading')) {
+	                        download_1.Downloader.cancel(img.getAttribute('data-src'));
+	                        orange_dom_1.removeClass(img, 'loading');
+	                    }
 	                    continue;
 	                }
 	                if (elementInView(img.parentElement, this.el)) {
@@ -7617,7 +7840,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    events: {
 	        scroll: '_onSroll'
 	    }
-	}), __metadata('design:paramtypes', [Object])], FileListView);
+	}), __metadata("design:paramtypes", [Object])], FileListView);
 	exports.FileListView = FileListView;
 	function elementInView(ele, container) {
 	    var viewport = {
@@ -7647,22 +7870,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	function __export(m) {
 	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	}
-	var baseview_1 = __webpack_require__(48);
+	var baseview_1 = __webpack_require__(49);
+	__export(__webpack_require__(50));
 	__export(__webpack_require__(49));
-	__export(__webpack_require__(48));
-	__export(__webpack_require__(55));
 	__export(__webpack_require__(56));
 	__export(__webpack_require__(57));
 	__export(__webpack_require__(58));
 	__export(__webpack_require__(59));
 	__export(__webpack_require__(60));
+	__export(__webpack_require__(61));
 	exports.Version = '0.3.3';
 	function debug(debug) {
 	    if (window.localStorage) {
@@ -7678,7 +7901,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -7689,10 +7912,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var Debug = __webpack_require__(42);
 	var debug = Debug('views:baseview');
-	var object_1 = __webpack_require__(49);
+	var object_1 = __webpack_require__(50);
 	var orange_1 = __webpack_require__(6);
-	var orange_dom_1 = __webpack_require__(50);
-	var util_1 = __webpack_require__(54);
+	var orange_dom_1 = __webpack_require__(51);
+	var util_1 = __webpack_require__(55);
 	var paddedLt = /^\s*</;
 	var unbubblebles = 'focus blur change'.split(' ');
 	var viewOptions = ['el', 'id', 'attributes', 'className', 'tagName', 'events', 'triggers', 'ui'];
@@ -8034,7 +8257,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -8113,7 +8336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -8123,12 +8346,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(51));
 	__export(__webpack_require__(52));
 	__export(__webpack_require__(53));
+	__export(__webpack_require__(54));
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -8332,7 +8555,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.createElement = createElement;
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -8344,7 +8567,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var orange_1 = __webpack_require__(6);
-	var dom = __webpack_require__(51);
+	var dom = __webpack_require__(52);
 	var domEvents;
 	var singleTag = /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i;
 	function parseHTML(html) {
@@ -8536,7 +8759,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Html = Html;
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -8546,7 +8769,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var orange_1 = __webpack_require__(6);
-	var dom_1 = __webpack_require__(51);
+	var dom_1 = __webpack_require__(52);
 
 	var LoadedImage = function () {
 	    function LoadedImage(img) {
@@ -8646,7 +8869,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.imageLoaded = imageLoaded;
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -8670,7 +8893,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -8681,7 +8904,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var Debug = __webpack_require__(42);
 	var debug = Debug('views:region');
-	var object_1 = __webpack_require__(49);
+	var object_1 = __webpack_require__(50);
 	var orange_1 = __webpack_require__(6);
 	/** Region  */
 	var Region = (function (_super) {
@@ -8821,7 +9044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* global BaseClass, __has */
@@ -8831,8 +9054,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    function __() { this.constructor = d; }
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
-	var object_1 = __webpack_require__(49);
-	var region_1 = __webpack_require__(55);
+	var object_1 = __webpack_require__(50);
+	var region_1 = __webpack_require__(56);
 	var utils = __webpack_require__(6);
 	var RegionManager = (function (_super) {
 	    __extends(RegionManager, _super);
@@ -8926,7 +9149,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -8936,10 +9159,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	/*global View, RegionManager, Region*/
-	var view_1 = __webpack_require__(58);
-	var region_manager_1 = __webpack_require__(56);
+	var view_1 = __webpack_require__(59);
+	var region_manager_1 = __webpack_require__(57);
 	var orange_1 = __webpack_require__(6);
-	var region_1 = __webpack_require__(55);
+	var region_1 = __webpack_require__(56);
 	var LayoutView = (function (_super) {
 	    __extends(LayoutView, _super);
 	    /**
@@ -9006,7 +9229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -9017,7 +9240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var Debug = __webpack_require__(42);
 	var debug = Debug('views:view');
-	var baseview_1 = __webpack_require__(48);
+	var baseview_1 = __webpack_require__(49);
 	var orange_1 = __webpack_require__(6);
 	var View = (function (_super) {
 	    __extends(View, _super);
@@ -9172,7 +9395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -9183,7 +9406,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var Debug = __webpack_require__(42);
 	var debug = Debug('views:collectionview');
-	var view_1 = __webpack_require__(58);
+	var view_1 = __webpack_require__(59);
 	var orange_1 = __webpack_require__(6);
 	var eventsjs_1 = __webpack_require__(5);
 	var Buffer = (function () {
@@ -9508,7 +9731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -9534,7 +9757,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -9560,12 +9783,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
+	var views_1 = __webpack_require__(48);
 	var orange_1 = __webpack_require__(6);
-	var orange_dom_1 = __webpack_require__(50);
-	var index_1 = __webpack_require__(62);
-	var mimetypes_1 = __webpack_require__(63);
-	var utils_1 = __webpack_require__(64);
+	var orange_dom_1 = __webpack_require__(51);
+	var index_1 = __webpack_require__(63);
+	var mimetypes_1 = __webpack_require__(64);
+	var utils_1 = __webpack_require__(65);
 	var FileListItemView = function (_views_1$View) {
 	    _inherits(FileListItemView, _views_1$View);
 
@@ -9651,11 +9874,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'click': '_onClick',
 	        'dblclick': '_onDblClick'
 	    }
-	}), __metadata('design:paramtypes', [])], FileListItemView);
+	}), __metadata("design:paramtypes", [])], FileListItemView);
 	exports.FileListItemView = FileListItemView;
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9671,7 +9894,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -9824,7 +10047,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	;
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -9873,7 +10096,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.emptyImage = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -9901,7 +10124,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
+	var views_1 = __webpack_require__(48);
 	var orange_1 = __webpack_require__(6);
 	var Progress = function (_views_1$View) {
 	    _inherits(Progress, _views_1$View);
@@ -9993,11 +10216,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}(views_1.View);
 	Progress = __decorate([views_1.attributes({
 	    className: "progress"
-	}), __metadata('design:paramtypes', [Object])], Progress);
+	}), __metadata("design:paramtypes", [Object])], Progress);
 	exports.Progress = Progress;
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10007,11 +10230,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(67));
-	__export(__webpack_require__(72));
+	__export(__webpack_require__(68));
+	__export(__webpack_require__(73));
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10039,14 +10262,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
+	var views_1 = __webpack_require__(48);
 	var orange_1 = __webpack_require__(6);
-	var index_1 = __webpack_require__(45);
-	var index_2 = __webpack_require__(68);
-	var index_3 = __webpack_require__(62);
+	var index_1 = __webpack_require__(46);
+	var index_2 = __webpack_require__(69);
+	var index_3 = __webpack_require__(63);
 	var collection_1 = __webpack_require__(1);
-	var dropzone_1 = __webpack_require__(70);
-	var uploader_1 = __webpack_require__(71);
+	var dropzone_1 = __webpack_require__(71);
+	var uploader_1 = __webpack_require__(72);
 	var GalleryView = function (_views_1$LayoutView) {
 	    _inherits(GalleryView, _views_1$LayoutView);
 
@@ -10201,11 +10424,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return index_3.default['gallery'];
 	    },
 	    className: 'torsten-gallery gallery'
-	}), __metadata('design:paramtypes', [Object])], GalleryView);
+	}), __metadata("design:paramtypes", [Object])], GalleryView);
 	exports.GalleryView = GalleryView;
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10215,10 +10438,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(69));
+	__export(__webpack_require__(70));
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10246,8 +10469,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var index_1 = __webpack_require__(62);
+	var views_1 = __webpack_require__(48);
+	var index_1 = __webpack_require__(63);
 	var orange_1 = __webpack_require__(6);
 	var download_1 = __webpack_require__(41);
 	var FileInfoView = function (_views_1$View) {
@@ -10359,11 +10582,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    events: {
 	        'click @ui.download': '_onDownload'
 	    }
-	}), __metadata('design:paramtypes', [Object])], FileInfoView);
+	}), __metadata("design:paramtypes", [Object])], FileInfoView);
 	exports.FileInfoView = FileInfoView;
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10389,8 +10612,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var orange_dom_1 = __webpack_require__(50);
+	var views_1 = __webpack_require__(48);
+	var orange_dom_1 = __webpack_require__(51);
 	var orange_1 = __webpack_require__(6);
 	var DropZone = function (_views_1$View) {
 	    _inherits(DropZone, _views_1$View);
@@ -10454,11 +10677,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    drop: '_onDrop',
 	    drag: '_onDragEnter',
 	    dragover: '_onDragEnter'
-	}), __metadata('design:paramtypes', [Object])], DropZone);
+	}), __metadata("design:paramtypes", [Object])], DropZone);
 	exports.DropZone = DropZone;
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10517,7 +10740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    _createClass(Uploader, [{
-	        key: '_validateFile',
+	        key: "_validateFile",
 	        value: function _validateFile(file) {
 	            if (file.size > this.maxSize) {
 	                throw new error_1.TorstenValidateError("The file is to large. The maximum size is: " + orange_1.humanFileSize(this.maxSize));
@@ -10533,7 +10756,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (!mimeValid) throw new error_1.TorstenValidateError("Cannot upload a file of type: " + file.type);
 	        }
 	    }, {
-	        key: 'upload',
+	        key: "upload",
 	        value: function upload(path, file) {
 	            var _this2 = this;
 
@@ -10568,7 +10791,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            return item.defer.promise;
 	        }
 	    }, {
-	        key: '_upload',
+	        key: "_upload",
 	        value: function _upload(item) {
 	            var _this3 = this;
 
@@ -10609,7 +10832,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            });
 	        }
 	    }, {
-	        key: '_onReady',
+	        key: "_onReady",
 	        value: function _onReady() {
 	            if (!this._queue.length || this._uploading > this.queueSize) {
 	                return;
@@ -10621,7 +10844,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	    }, {
-	        key: 'client',
+	        key: "client",
 	        set: function set(client) {
 	            var _this4 = this;
 
@@ -10640,7 +10863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Uploader = Uploader;
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10666,11 +10889,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var index_1 = __webpack_require__(73);
-	var gallery_1 = __webpack_require__(67);
-	var views_1 = __webpack_require__(47);
-	var index_2 = __webpack_require__(62);
-	var orange_dom_1 = __webpack_require__(50);
+	var index_1 = __webpack_require__(74);
+	var gallery_1 = __webpack_require__(68);
+	var views_1 = __webpack_require__(48);
+	var index_2 = __webpack_require__(63);
+	var orange_dom_1 = __webpack_require__(51);
 	var orange_1 = __webpack_require__(6);
 	var GalleryModal = function (_index_1$Modal) {
 	    _inherits(GalleryModal, _index_1$Modal);
@@ -10777,11 +11000,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        },
 	        'click .btn-select': '_onSelect'
 	    }
-	}), __metadata('design:paramtypes', [Object])], GalleryModal);
+	}), __metadata("design:paramtypes", [Object])], GalleryModal);
 	exports.GalleryModal = GalleryModal;
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10791,10 +11014,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(74));
+	__export(__webpack_require__(75));
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10822,8 +11045,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var orange_dom_1 = __webpack_require__(50);
+	var views_1 = __webpack_require__(48);
+	var orange_dom_1 = __webpack_require__(51);
 	var orange_1 = __webpack_require__(6);
 	var Modal = function (_views_1$View) {
 	    _inherits(Modal, _views_1$View);
@@ -10935,11 +11158,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    events: {
 	        'click': '_onClose'
 	    }
-	}), __metadata('design:paramtypes', [Object])], Modal);
+	}), __metadata("design:paramtypes", [Object])], Modal);
 	exports.Modal = Modal;
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10949,12 +11172,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(76));
-	__export(__webpack_require__(78));
 	__export(__webpack_require__(77));
+	__export(__webpack_require__(79));
+	__export(__webpack_require__(78));
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -10980,10 +11203,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var types_1 = __webpack_require__(77);
-	var utils_1 = __webpack_require__(64);
-	var orange_dom_1 = __webpack_require__(50);
+	var views_1 = __webpack_require__(48);
+	var types_1 = __webpack_require__(78);
+	var utils_1 = __webpack_require__(65);
+	var orange_dom_1 = __webpack_require__(51);
 
 	var CropPreview = function () {
 	    function CropPreview(el, options) {
@@ -11124,11 +11347,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    ui: {
 	        image: 'img'
 	    }
-	}), __metadata('design:paramtypes', [Object])], CropPreView);
+	}), __metadata("design:paramtypes", [Object])], CropPreView);
 	exports.CropPreView = CropPreView;
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -11160,7 +11383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getCropping = getCropping;
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -11188,13 +11411,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var cropperjs_1 = __webpack_require__(79);
-	var types_1 = __webpack_require__(77);
+	var views_1 = __webpack_require__(48);
+	var cropperjs_1 = __webpack_require__(80);
+	var types_1 = __webpack_require__(78);
 	var collection_1 = __webpack_require__(1);
-	var utils_1 = __webpack_require__(64);
+	var utils_1 = __webpack_require__(65);
 	var orange_1 = __webpack_require__(6);
-	var orange_dom_1 = __webpack_require__(50);
+	var orange_dom_1 = __webpack_require__(51);
 	/**
 	 *
 	 *
@@ -11465,8 +11688,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    //this.triggerMethod('image', false);
 	                    throw new Error('The file is not an image');
 	                }
-	                img.addEventListener('load', fn);
+	                //img.addEventListener('load', fn);
 	                img.src = URL.createObjectURL(blob);
+	                fn(null);
 	                _this5.triggerMethod('image', true);
 	                return true;
 	            }).then(function () {
@@ -11528,11 +11752,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    ui: {
 	        image: 'img'
 	    }
-	}), __metadata('design:paramtypes', [Object])], CropView);
+	}), __metadata("design:paramtypes", [Object])], CropView);
 	exports.CropView = CropView;
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*!
@@ -15202,7 +15426,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	//# sourceMappingURL=cropper.js.map
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -15212,10 +15436,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(81));
+	__export(__webpack_require__(82));
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -15241,15 +15465,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var dropzone_1 = __webpack_require__(70);
-	var index_1 = __webpack_require__(75);
-	var views_form_1 = __webpack_require__(82);
-	var views_1 = __webpack_require__(47);
-	var index_2 = __webpack_require__(66);
-	var orange_dom_1 = __webpack_require__(50);
+	var dropzone_1 = __webpack_require__(71);
+	var index_1 = __webpack_require__(76);
+	var views_form_1 = __webpack_require__(83);
+	var views_1 = __webpack_require__(48);
+	var index_2 = __webpack_require__(67);
+	var orange_dom_1 = __webpack_require__(51);
 	var orange_1 = __webpack_require__(6);
-	var index_3 = __webpack_require__(62);
-	var circular_progress_1 = __webpack_require__(65);
+	var index_3 = __webpack_require__(63);
+	var circular_progress_1 = __webpack_require__(66);
 	;
 	/**
 	 *
@@ -15583,11 +15807,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'change input.upload-btn': '_onUploadBtnChanged',
 	        'click .crop-btn': '_onToggleCropper'
 	    }
-	}), views_form_1.editor('torsten.crop'), __metadata('design:paramtypes', [Object])], CropEditor);
+	}), views_form_1.editor('torsten.crop'), __metadata("design:paramtypes", [Object])], CropEditor);
 	exports.CropEditor = CropEditor;
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -15597,19 +15821,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 	    }
 	}
-	__export(__webpack_require__(83));
-	var define_1 = __webpack_require__(90);
+	__export(__webpack_require__(84));
+	var define_1 = __webpack_require__(91);
 	exports.editor = define_1.editor;
-	var editor_1 = __webpack_require__(85);
+	var editor_1 = __webpack_require__(86);
 	exports.BaseEditor = editor_1.BaseEditor;
 	exports.BaseLayoutEditor = editor_1.BaseLayoutEditor;
-	var field_1 = __webpack_require__(84);
+	var field_1 = __webpack_require__(85);
 	exports.Field = field_1.Field;
-	__export(__webpack_require__(87));
-	__webpack_require__(91);
+	__export(__webpack_require__(88));
+	__webpack_require__(92);
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -15637,8 +15861,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var field_1 = __webpack_require__(84);
+	var views_1 = __webpack_require__(48);
+	var field_1 = __webpack_require__(85);
 	var orange_1 = __webpack_require__(6);
 	var Debug = __webpack_require__(42);
 	var debug = Debug('views:form');
@@ -15875,7 +16099,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Form = Form;
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -15901,11 +16125,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
+	var views_1 = __webpack_require__(48);
 	var orange_1 = __webpack_require__(6);
-	var orange_dom_1 = __webpack_require__(50);
-	var editor_1 = __webpack_require__(85);
-	var define_1 = __webpack_require__(90);
+	var orange_dom_1 = __webpack_require__(51);
+	var editor_1 = __webpack_require__(86);
+	var define_1 = __webpack_require__(91);
 	var Debug = __webpack_require__(42);
 	var debug = Debug('views:form:field');
 	var Field_1 = void 0;
@@ -16090,7 +16314,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Field = Field;
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16116,9 +16340,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var __metadata = undefined && undefined.__metadata || function (k, v) {
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
-	var views_1 = __webpack_require__(47);
-	var utils_1 = __webpack_require__(86);
-	var validator_1 = __webpack_require__(87);
+	var views_1 = __webpack_require__(48);
+	var utils_1 = __webpack_require__(87);
+	var validator_1 = __webpack_require__(88);
 	var orange_1 = __webpack_require__(6);
 
 	var BaseEditor = function (_views_1$View) {
@@ -16263,7 +16487,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.Editor = Editor;
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -16351,7 +16575,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.setValue = setValue;
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16364,11 +16588,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var utils_1 = __webpack_require__(86);
+	var utils_1 = __webpack_require__(87);
 	var orange_1 = __webpack_require__(6);
 	var Debug = __webpack_require__(42);
 	var debug = Debug('views:form:validator');
-	var validURL = __webpack_require__(88);
+	var validURL = __webpack_require__(89);
 	function get_validations(el) {
 	    var required;
 	    var v = Object.keys(validators).map(function (e) {
@@ -16559,7 +16783,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.ValidateErrors = ValidateErrors;
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(module) {(function(module) {
@@ -16716,10 +16940,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	})(module);
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(89)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(90)(module)))
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -16735,7 +16959,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16759,7 +16983,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.getEditor = getEditor;
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -16788,10 +17012,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 	};
 	var orange_1 = __webpack_require__(6);
-	var orange_dom_1 = __webpack_require__(50);
-	var editor_1 = __webpack_require__(85);
-	var define_1 = __webpack_require__(90);
-	var views_1 = __webpack_require__(47);
+	var orange_dom_1 = __webpack_require__(51);
+	var editor_1 = __webpack_require__(86);
+	var define_1 = __webpack_require__(91);
+	var views_1 = __webpack_require__(48);
 
 	var AutoSizer = function () {
 	    function AutoSizer(el) {

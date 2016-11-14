@@ -2,7 +2,7 @@
 
 import { EventEmitter } from 'eventsjs';
 import { IClient, OpenOptions } from 'torsten';
-import { Deferred, IPromise, deferred, Promise} from 'orange'
+import { Deferred, IPromise, deferred, Promise } from 'orange'
 import * as Debug from 'debug';
 
 const debug = Debug("torsten:downloader");
@@ -23,8 +23,8 @@ export class Downloader extends EventEmitter {
 
     private _queue: [string, Deferred<any>, OpenOptions, IClient][] = []
     private _downloading: number = 0
-    size: number = 50
-    
+    size: number = 10
+
     constructor() {
         super();
 
@@ -32,7 +32,7 @@ export class Downloader extends EventEmitter {
     }
 
     download(client: IClient, path: string, options: OpenOptions): IPromise<Blob> {
-       
+
         if (this._downloading > this.size) {
             let defer = deferred<any>()
             debug("enqueue %i : %s", this._queue.length, path)
@@ -41,7 +41,7 @@ export class Downloader extends EventEmitter {
         }
 
         return this._download(client, path, options);
-       
+
     }
 
     static download(client: IClient, path: string, options: OpenOptions): IPromise<Blob> {
@@ -54,11 +54,11 @@ export class Downloader extends EventEmitter {
 
     private _cancel(path: string) {
         let index = -1;
-        
+
         for (let i = 0, ii = this._queue.length; i < ii; i++) {
             if (this._queue[i][0] === path) {
                 index = i;
-                
+
                 break;
             }
         }
@@ -70,7 +70,7 @@ export class Downloader extends EventEmitter {
         this._queue.splice(index, 1)
     }
 
-    private _download(client: IClient, path: string, options:OpenOptions): IPromise<any> {
+    private _download(client: IClient, path: string, options: OpenOptions): IPromise<any> {
         const emit = () => {
             this._downloading--;
             debug('download ready %s', path)
@@ -97,7 +97,7 @@ export class Downloader extends EventEmitter {
         }
         let [path, defer, options, client] = this._queue.shift()
         this._download(client, path, options)
-        .then(defer.resolve).catch(defer.reject);
+            .then(defer.resolve).catch(defer.reject);
     }
 
 }

@@ -194,7 +194,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
         return this._path;
     }
 
-    public get totalLength () {
+    public get totalLength() {
         return this._total;
     }
 
@@ -238,7 +238,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
 
         url = this._link[options.page];
         if (!url) {
-            url = this._client.endpoint + this.path;
+            url = this._client.endpoint + '/v1' + this.path;
         }
 
         if (!url) return Promise.reject<FileInfoModel[]>(new Error("no url specified"));

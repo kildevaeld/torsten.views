@@ -1,6 +1,6 @@
 {
   "name": "torsten.views",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
@@ -47,7 +47,7 @@
     "debug": "^2.2.0",
     "orange": "git+https://github.com/kildevaeld/orange.git",
     "orange.request": "git+https://github.com/kildevaeld/orange.request.git",
-    "torsten": "git+https://github.com/kildevaeld/torsten.client.git",
+    "torsten": "git+https://github.com/kildevaeld/torsten.client.git#development",
     "views": "git+https://github.com/kildevaeld/views.git",
     "views.form": "git+https://github.com/kildevaeld/views.form.git"
   },
@@ -62,7 +62,7 @@
       "views.forms": "github:kildevaeld/views.form@master",
       "collection": "github:kildevaeld/collectionjs@master",
       "cropperjs": "npm:cropperjs@^0.7.2",
-      "torsten": "github:kildevaeld/torsten.client@master",
+      "torsten": "github:kildevaeld/torsten.client@development",
       "debug": "npm:debug@^2.2.0",
       "eventsjs": "github:kildevaeld/eventsjs@master"
     }

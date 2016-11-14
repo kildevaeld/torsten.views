@@ -121,7 +121,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
     }
 
     private _onSroll(e) {
-        
+
         let el = this.el;
 
         if (el.scrollTop < (el.scrollHeight - el.clientHeight) - el.clientHeight || !this.collection.hasNext()) {
@@ -131,7 +131,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
                 params: {
                     show_hidden: false
                 }
-            }).then( () => this.loadImages() )
+            }).then(() => this.loadImages())
         }
     }
 
@@ -156,13 +156,13 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         for (let i = 0, ii = images.length; i < ii; i++) {
             let img = <HTMLImageElement>images[i];
             if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
-                /*if (!elementInView(img, this.el) && hasClass(img, 'loading')) {
+                if (!elementInView(img.parentElement, this.el) && hasClass(img.parentElement, 'loading')) {
                     Downloader.cancel(img.getAttribute('data-src'));
                     removeClass(img, 'loading');
-                }*/
+                }
                 continue;
             }
-            
+
             if (elementInView(img.parentElement, this.el)) {
                 loadImage(img);
             }
@@ -207,7 +207,7 @@ function elementInView(ele, container) {
     viewport.bottom = (container.innerHeight || document.documentElement.clientHeight)// + options.offset;
     viewport.right = (container.innerWidth || document.documentElement.clientWidth)// + options.offset;
     var rect = ele.getBoundingClientRect();
-    
+
     return (
         // Intersection
         rect.right >= viewport.left

@@ -394,8 +394,10 @@ export class CropView extends View<HTMLDivElement> {
                 throw new Error('The file is not an image');
             }
 
-            img.addEventListener('load', fn);
+
+            //img.addEventListener('load', fn);
             img.src = URL.createObjectURL(blob)
+            fn(null);
             this.triggerMethod('image', true)
             return true
         }).then(() => {
