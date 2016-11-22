@@ -213,7 +213,6 @@ export class FileListView extends CollectionView<HTMLDivElement> {
 
     onShow() {
         this._initHeight();
-
     }
 
 }
