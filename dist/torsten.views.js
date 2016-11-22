@@ -2238,7 +2238,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._setCollection(this.collections[0]);
 	            this.collections[0].fetch({
 	                params: {
-	                    show_hidden: this.options.showHidden
+	                    show_hidden: this.options.showHidden || false
 	                }
 	            });
 	        },
@@ -2315,7 +2315,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(15);
 	var index_1 = __webpack_require__(18);
 	var orange_1 = __webpack_require__(5);
-	var download_1 = __webpack_require__(7);
 	var FileInfoView = function (_views_1$View) {
 	    _inherits(FileInfoView, _views_1$View);
 
@@ -2371,11 +2370,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ui.size.textContent = orange_1.humanFileSize(model.get('size'));
 	            ui.download.textContent = model.get('name');
 	            if (/image\/.*/.test(model.get('mime'))) {
-	                download_1.Downloader.download(this.client, model.fullPath, {}).then(function (blob) {
-	                    var img = document.createElement('img');
+	                console.log('image');
+	                /*Downloader.download(this.client, model.fullPath, {
+	                 }).then( blob => {
+	                    let img = document.createElement('img');
 	                    img.src = URL.createObjectURL(blob);
 	                    ui.preview.appendChild(img);
-	                });
+	                });*/
+	                var img = document.createElement('img');
+	                img.src = this.client.endpoint + "/v1/" + model.fullPath + "?token=" + this.client.token;
+	                ui.preview.appendChild(img);
 	            }
 	            this.el.style.opacity = "1";
 	        }

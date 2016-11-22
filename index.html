@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="dist/css/torsten.views.css" rel="stylesheet" type="text/css" />
-
     <!--script src="node_modules/torsten/dist/torsten.bundle.js"></script-->
     <script src="dist/torsten.views.bundle.js"></script>
     <style>
@@ -64,19 +63,19 @@
             showDirectories: true
         });
 
-        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI5MDlkMzdhNC1kMTI4LTRmOGQtYjFlMS0wYWVmMWY2MGEwMzUiLCJnaWQiOlsiMGY1MDJkZWYtMzE5Yy00ODE1LTg1ZjUtMGFhMDBhMGQ1MTFiIiwiMTM2YTAzYzUtZDcyNi00Y2I5LWI3M2YtZTYyODFjMjM0YmJhIl0sImlhdCI6MTQ3NDgyMzExMX0.XDVoZ8j5sY-pyUZJpj7ynfRYTuaGvwSpFAhyf1tIUR4'
+        client.token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImFiYzRmNmJkYWQzM2Q3NGY4ZjRhZjUzOTZhMWRmNjZmYmM5NTI2MjBlYmRhM2FlNDAzNmZkNDU0MTg3OGFmYWEiLCJ1aWQiOiJmODk1NmFjOS00OWM4LTQxYzgtOWY1OS0xYWJkNzMwMjdiNGYifQ.u2EqSaIO43fqOc1G7Hr-cB8L9X1feIbk9M8UlTru0PM' 
         let gallery = new torsten.views.GalleryView({
             client: client,
-            showDirectories: true
+            showDirectories: true,
+            only: ['image/*']
         });
 
         var body = document.body;
 
         body.appendChild(gallery.render().el);
 
-        gallery.root = "/"
+        gallery.root = "/images"
     </script>
-
 </body>
 
 </html>

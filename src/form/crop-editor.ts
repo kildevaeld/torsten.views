@@ -209,7 +209,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         if (client == null) {
             throw new Error("no client");
         }
-
+        console.log(options)
         this.modal = new GalleryModal({
             client: client,
             showDirectories: false,
@@ -435,11 +435,11 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     }
 
 
-    protected _onUploadBtnChanged(e:Event) {
+    protected _onUploadBtnChanged(e: Event) {
         let target = e.target as HTMLInputElement;
 
         let uploader = this._getUploader();
-        
+
         let file = target.files.item(0);
         if (!file) return;
 
@@ -450,8 +450,8 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
     }
 
 
-    private _getUploader () {
-        return this.options.uploader||this.modal.gallery.uploader;
+    private _getUploader() {
+        return this.options.uploader || this.modal.gallery.uploader;
     }
 
     /**

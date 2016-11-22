@@ -17,6 +17,7 @@ export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     root?: string;
     uploader?: Uploader;
     mode?: FileMode
+    only?: string[];
 }
 
 @attributes({
@@ -24,10 +25,11 @@ export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     className: 'torsten-gallery gallery'
 })
 export class GalleryView extends LayoutView<HTMLDivElement> {
-    info: FileInfoView;
+    readonly info: FileInfoView;
     list: FileListView;
     drop: DropZone;
     uploader: Uploader;
+
     private _const_upload: boolean;
 
     client: IClient;
@@ -40,6 +42,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
 
     private _root: string;
     set root(path: string) {
+        console.log('set root')
         if (this._root == path) return;
         this._root = path;
 
@@ -57,7 +60,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this._setCollection(this.collections[0]);
         this.collections[0].fetch({
             params: {
-                show_hidden: this.options.showHidden
+                show_hidden: this.options.showHidden || false
             }
         });
     }
@@ -65,9 +68,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     get root() { return this._root; }
 
     private _selected: FileInfoModel;
-    get selected() {
-        return this._selected;
-    }
+    get selected() { return this._selected; }
 
     set selected(model: FileInfoModel) {
         this._selected = model;
@@ -92,7 +93,8 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
 
         this.list = new FileListView({
             showDirectories: options.showDirectories || false,
-            client: this.client
+            client: this.client,
+            only: this.options.only
         });
 
         this.info = new FileInfoView({
@@ -135,6 +137,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         })
 
         if (this.options.root) {
+
             this.root = this.options.root;
         }
     }

@@ -1,8 +1,8 @@
 import { CollectionView, CollectionViewOptions, View, attributes } from 'views';
 import { removeClass, addClass, hasClass } from 'orange.dom';
-import { bind } from 'orange';
+import { bind, extend, pick } from 'orange';
 import { FileListItemView } from './list-item';
-import { FileCollection } from '../collection';
+import { FileCollection, FileInfoModel } from '../collection';
 import { Progress } from './circular-progress';
 import { IProgress } from '../types';
 import { IClient } from 'torsten';
@@ -13,6 +13,8 @@ export interface FileListOptions extends CollectionViewOptions {
     deleteable?: boolean;
     showDirectories?: boolean;
     client: IClient
+    filter?: (model: FileInfoModel) => boolean
+    only?: string[]
 }
 
 export const FileListEmptyView = View.extend({
@@ -33,13 +35,15 @@ export class FileListView extends CollectionView<HTMLDivElement> {
     private _progress: IProgress;
     public options: FileListOptions;
     collection: FileCollection;
-
+    filter?: (model: FileInfoModel) => boolean = () => true
+    only?: string[]
     constructor(options?: FileListOptions) {
         super(options);
         this.options = options || { client: null };
         this.sort = false;
 
         this._onSroll = throttle(bind(this._onSroll, this), 0);
+        extend(this, pick(options, ['filter', 'only']));
     }
 
     onCollection(model) {
@@ -48,6 +52,8 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             model.state.limit = 10
         }
     }
+
+
 
     private _initEvents() {
         this.listenTo(this, 'childview:click', function (view, model) {
@@ -87,6 +93,24 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             if (this._progress) this._progress.setPercent(100 / e.total * e.loaded)
         })
 
+    }
+
+    renderChildView(view: FileListItemView, index: number) {
+        let model = view.model
+
+        if (this.only) {
+            var valid = false;
+            for (let o of this.only) {
+                if (new RegExp(o).test(model.get('mime'))) {
+                    valid = true;
+                }
+            }
+            if (valid == false) return;
+        }
+
+        if (this.filter(model)) {
+            return super.renderChildView(view, index);
+        }
     }
 
     onRenderCollection() {

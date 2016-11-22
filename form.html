@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/dist/css/torsten.views.css" />
     <!--link rel="stylesheet" href="/node_modules/cropperjs/cropper.css" /-->
     <!--script src="dist/torsten-.bundle.js"></script-->
-
     <script src="/node_modules/eventsjs/dist/events.js"></script>
     <script src="/node_modules/orange/dist/orange.js"></script>
     <script src="/node_modules/orange.dom/dist/orange.dom.js"></script>
@@ -44,7 +43,7 @@
             endpoint: 'http://localhost:4000'
         });
         
-        client.token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjJjODAwMjdhZjNhZmNjMjc5NzIzZjA0MGI3OGEyYmE1MThjODQ4NTUxOGQ1NTNiOTEzZWRhOWUwNDBiNWQ3NGEiLCJ1aWQiOiJlOWIwZjUzZi1lNDI0LTRiMWMtYjViZi1mMTgxNjE2NmNhYmIifQ.r7hMJZg_f3PvnRYMwKbIKwKx12wXonI4T9OrY5sVRls`
+        client.token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6ImFiYzRmNmJkYWQzM2Q3NGY4ZjRhZjUzOTZhMWRmNjZmYmM5NTI2MjBlYmRhM2FlNDAzNmZkNDU0MTg3OGFmYWEiLCJ1aWQiOiJmODk1NmFjOS00OWM4LTQxYzgtOWY1OS0xYWJkNzMwMjdiNGYifQ.u2EqSaIO43fqOc1G7Hr-cB8L9X1feIbk9M8UlTru0PM`
         
            /*let view = new torsten.views.GalleryModal({
             el: document.querySelector('#main'),
@@ -68,12 +67,13 @@
                     root: '/images',
                     maxSize: 1024*1024*2
                 }
-            },
+            }
             //model: new collection.Model()
         });
+
         document.querySelector('#open').addEventListener('click', () => {
            console.log(form.update().model)
-        })
+        });
 
         
 
@@ -109,8 +109,8 @@
             "cropping_path": "/profile/3953/.croppings/e1e1b099fe357b2ced7a4ec80b4a4939455fbacb-0-0-570-380.jpg",
             "cropping_url": "https://s3-eu-west-1.amazonaws.com/livejazz-dev/profile/3953/.croppings/e1e1b099fe357b2ced7a4ec80b4a4939455fbacb-0-0-570-380.jpg",
             "file_url": "https://s3-eu-west-1.amazonaws.com/livejazz-dev/images/e1e1b099fe357b2ced7a4ec80b4a4939455fbacb.jpg"
-        })
-        console.log(form)
+        });
+
     </script>
 </body>
 

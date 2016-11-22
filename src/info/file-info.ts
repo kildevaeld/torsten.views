@@ -4,7 +4,6 @@ import templates from '../templates/index';
 import { FileInfoModel } from '../collection';
 import { IClient } from 'torsten'
 import { humanFileSize } from 'orange';
-import {Downloader} from '../download';
 
 
 export interface FileInfoViewOptions extends ViewOptions {
@@ -75,15 +74,10 @@ export class FileInfoView extends View<HTMLDivElement> {
         ui.download.textContent = model.get('name');
 
         if (/image\/.*/.test(model.get('mime'))) {
-            Downloader.download(this.client, model.fullPath, {
-
-            }).then( blob => {
-                let img = document.createElement('img');
-                img.src = URL.createObjectURL(blob);
-                ui.preview.appendChild(img);
-            });
+            let img = document.createElement('img');
+            img.src = model.url + '?token=' + this.client.token; // `${this.client.endpoint}/v1/${model.fullPath}?token=${this.client.token}`
+            ui.preview.appendChild(img);
         }
-
 
         this.el.style.opacity = "1";
 

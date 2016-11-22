@@ -6,7 +6,7 @@ export interface GalleryModalOptions extends GalleryViewOptions, ModalOptions {
 export declare class GalleryModal extends Modal {
     private _gallery;
     readonly gallery: GalleryView;
-    readonly selected: FileInfoModel;
+    selected: FileInfoModel;
     root: string;
     constructor(options: GalleryModalOptions);
     onBeforeOpen(): void;

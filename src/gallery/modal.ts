@@ -32,6 +32,10 @@ export class GalleryModal extends Modal {
         return this.gallery.selected
     }
 
+    set selected(model: FileInfoModel) {
+        this.gallery.selected = model;
+    }
+
     set root(root: string) {
         this._gallery.root = root;
     }
@@ -54,7 +58,8 @@ export class GalleryModal extends Modal {
         this._setHeight = bind(this._setHeight, this);
 
         this.listenTo(this._gallery.collection, 'fetch', () => {
-            let total = this._gallery.collection.totalLength||0;
+            let total = this._gallery.collection.totalLength || 0;
+            console.log(total, this._gallery)
             let tel = this.el.querySelector('.files-total')
             tel.innerHTML = "Total: " + total
         })

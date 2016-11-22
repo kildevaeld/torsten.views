@@ -81,7 +81,7 @@ export class FileInfoModel extends Model {
     }
 
     get url() {
-        return this._client.endpoint + this.fullPath;
+        return this._client.endpoint + "/v1" + this.fullPath;
     }
 
     open(o?: OpenOptions, client?: IClient): IPromise<Blob> {

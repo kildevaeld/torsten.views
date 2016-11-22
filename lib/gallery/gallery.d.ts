@@ -12,10 +12,11 @@ export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     root?: string;
     uploader?: Uploader;
     mode?: FileMode;
+    only?: string[];
 }
 export declare class GalleryView extends LayoutView<HTMLDivElement> {
     options: GalleryViewOptions;
-    info: FileInfoView;
+    readonly info: FileInfoView;
     list: FileListView;
     drop: DropZone;
     uploader: Uploader;

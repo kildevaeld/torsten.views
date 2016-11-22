@@ -150,7 +150,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "url",
 	        get: function get() {
-	            return this._client.endpoint + this.fullPath;
+	            return this._client.endpoint + "/v1" + this.fullPath;
 	        }
 	    }]);
 
@@ -7636,6 +7636,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -7673,9 +7675,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	        var _this = _possibleConstructorReturn(this, (FileListView.__proto__ || Object.getPrototypeOf(FileListView)).call(this, options));
 
+	        _this.filter = function () {
+	            return true;
+	        };
 	        _this.options = options || { client: null };
 	        _this.sort = false;
 	        _this._onSroll = throttle(orange_1.bind(_this._onSroll, _this), 0);
+	        orange_1.extend(_this, orange_1.pick(options, ['filter', 'only']));
 	        return _this;
 	    }
 
@@ -7723,6 +7729,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	                if (!e.lengthComputable) return;
 	                if (_this2._progress) _this2._progress.setPercent(100 / e.total * e.loaded);
 	            });
+	        }
+	    }, {
+	        key: "renderChildView",
+	        value: function renderChildView(view, index) {
+	            var model = view.model;
+	            if (this.only) {
+	                var valid = false;
+	                var _iteratorNormalCompletion = true;
+	                var _didIteratorError = false;
+	                var _iteratorError = undefined;
+
+	                try {
+	                    for (var _iterator = this.only[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	                        var o = _step.value;
+
+	                        if (new RegExp(o).test(model.get('mime'))) {
+	                            valid = true;
+	                        }
+	                    }
+	                } catch (err) {
+	                    _didIteratorError = true;
+	                    _iteratorError = err;
+	                } finally {
+	                    try {
+	                        if (!_iteratorNormalCompletion && _iterator.return) {
+	                            _iterator.return();
+	                        }
+	                    } finally {
+	                        if (_didIteratorError) {
+	                            throw _iteratorError;
+	                        }
+	                    }
+	                }
+
+	                if (valid == false) return;
+	            }
+	            if (this.filter(model)) {
+	                return _get(FileListView.prototype.__proto__ || Object.getPrototypeOf(FileListView.prototype), "renderChildView", this).call(this, view, index);
+	            }
 	        }
 	    }, {
 	        key: "onRenderCollection",
@@ -10290,7 +10335,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.client = options.client;
 	        _this.list = new index_1.FileListView({
 	            showDirectories: options.showDirectories || false,
-	            client: _this.client
+	            client: _this.client,
+	            only: _this.options.only
 	        });
 	        _this.info = new index_2.FileInfoView({
 	            client: _this.client
@@ -10384,6 +10430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "root",
 	        set: function set(path) {
+	            console.log('set root');
 	            if (this._root == path) return;
 	            this._root = path;
 	            for (var i = 0, ii = this.collections.length; i < ii; i++) {
@@ -10397,7 +10444,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._setCollection(this.collections[0]);
 	            this.collections[0].fetch({
 	                params: {
-	                    show_hidden: this.options.showHidden
+	                    show_hidden: this.options.showHidden || false
 	                }
 	            });
 	        },
@@ -10474,7 +10521,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var views_1 = __webpack_require__(48);
 	var index_1 = __webpack_require__(63);
 	var orange_1 = __webpack_require__(6);
-	var download_1 = __webpack_require__(41);
 	var FileInfoView = function (_views_1$View) {
 	    _inherits(FileInfoView, _views_1$View);
 
@@ -10530,11 +10576,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ui.size.textContent = orange_1.humanFileSize(model.get('size'));
 	            ui.download.textContent = model.get('name');
 	            if (/image\/.*/.test(model.get('mime'))) {
-	                download_1.Downloader.download(this.client, model.fullPath, {}).then(function (blob) {
-	                    var img = document.createElement('img');
-	                    img.src = URL.createObjectURL(blob);
-	                    ui.preview.appendChild(img);
-	                });
+	                var img = document.createElement('img');
+	                img.src = model.url + '?token=' + this.client.token; // `${this.client.endpoint}/v1/${model.fullPath}?token=${this.client.token}`
+	                ui.preview.appendChild(img);
 	            }
 	            this.el.style.opacity = "1";
 	        }
@@ -10917,6 +10961,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this._setHeight = orange_1.bind(_this._setHeight, _this);
 	        _this.listenTo(_this._gallery.collection, 'fetch', function () {
 	            var total = _this._gallery.collection.totalLength || 0;
+	            console.log(total, _this._gallery);
 	            var tel = _this.el.querySelector('.files-total');
 	            tel.innerHTML = "Total: " + total;
 	        });
@@ -10979,6 +11024,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: "selected",
 	        get: function get() {
 	            return this.gallery.selected;
+	        },
+	        set: function set(model) {
+	            this.gallery.selected = model;
 	        }
 	    }, {
 	        key: "root",
@@ -15505,6 +15553,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (client == null) {
 	            throw new Error("no client");
 	        }
+	        console.log(options);
 	        _this.modal = new index_2.GalleryModal({
 	            client: client,
 	            showDirectories: false,

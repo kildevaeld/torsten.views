@@ -1,4 +1,3 @@
-
 const gulp = require('gulp'),
     wpstream = require('webpack-stream'),
     //babel = require('babel-loader'),
@@ -155,5 +154,5 @@ gulp.task('default', ['webpack', 'webpack:bundle', 'styles', 'templates'])
 
 
 gulp.task('watch', ['templates:watch', 'styles:watch'], () => {
-    gulp.watch('./src/**/*.ts', ['webpack'])
+    gulp.watch('./src/**/*.ts', ['webpack:bundle'])
 })
