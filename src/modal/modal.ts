@@ -41,7 +41,7 @@ export class Modal extends View<HTMLDivElement> {
     }
 
     open() {
-        console.log('open')
+        console.log('open tadad')
         let body = document.body
         if (hasClass(body, "views-modal-open")) {
             return;

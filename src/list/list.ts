@@ -37,6 +37,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
     collection: FileCollection;
     filter?: (model: FileInfoModel) => boolean = () => true
     only?: string[]
+
     constructor(options?: FileListOptions) {
         super(options);
         this.options = options || { client: null };
@@ -164,26 +165,25 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         const loadImage = (img: HTMLImageElement) => {
             var parent = img.parentElement
             addClass(parent, 'loading')
+            img.onload = () => {
 
-            Downloader.download(this.options.client, img.getAttribute('data-src'), { thumbnail: true })
-                .then(i => {
-                    img.src = URL.createObjectURL(i)
-                    addClass(parent, 'loaded')
-                    removeClass(parent, 'loading')
-                }).catch(e => {
-                    removeClass(parent, 'loading loaded')
-                    addClass(parent, "load-error")
-                })
+                removeClass(parent, 'loading');
+                addClass(parent, 'loaded');
+            }
+
+            img.onerror = () => {
+                removeClass(parent, 'loading');
+                addClass(parent, 'load-error')
+            }
+
+            img.src = this.options.client.endpoint + "/v1" + img.getAttribute('data-src') + '?token=' + this.options.client.token + "&thumbnail=true"
+
         }
 
         let images = this.el.querySelectorAll('img:not(.loaded)');
         for (let i = 0, ii = images.length; i < ii; i++) {
             let img = <HTMLImageElement>images[i];
-            if (hasClass(img.parentElement, "loaded") || hasClass(img.parentElement, "loading")) {
-                if (!elementInView(img.parentElement, this.el) && hasClass(img.parentElement, 'loading')) {
-                    Downloader.cancel(img.getAttribute('data-src'));
-                    removeClass(img, 'loading');
-                }
+            if (hasClass(img.parentElement, "loading") || hasClass(img.parentElement, "load-error")) {
                 continue;
             }
 
@@ -207,8 +207,6 @@ export class FileListView extends CollectionView<HTMLDivElement> {
             clearInterval(this._timer);
             this._timer = void 0;
         }
-
-        //this.el.style.height = parent.clientHeight + 'px';
         this.trigger('height')
     }
 

@@ -59,7 +59,7 @@ export class GalleryModal extends Modal {
 
         this.listenTo(this._gallery.collection, 'fetch', () => {
             let total = this._gallery.collection.totalLength || 0;
-            console.log(total, this._gallery)
+
             let tel = this.el.querySelector('.files-total')
             tel.innerHTML = "Total: " + total
         })

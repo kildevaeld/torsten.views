@@ -154,5 +154,5 @@ gulp.task('default', ['webpack', 'webpack:bundle', 'styles', 'templates'])
 
 
 gulp.task('watch', ['templates:watch', 'styles:watch'], () => {
-    gulp.watch('./src/**/*.ts', ['webpack:bundle'])
+    gulp.watch('./src/**/*.ts', ['webpack:bundle', 'webpack'])
 })

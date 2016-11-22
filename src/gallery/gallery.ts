@@ -42,7 +42,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
 
     private _root: string;
     set root(path: string) {
-        console.log('set root')
+
         if (this._root == path) return;
         this._root = path;
 
@@ -137,9 +137,10 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         })
 
         if (this.options.root) {
-
             this.root = this.options.root;
         }
+
+
     }
 
     private _onFileInfoSelected(view, model: FileInfoModel) {

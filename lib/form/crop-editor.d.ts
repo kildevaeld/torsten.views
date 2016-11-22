@@ -122,7 +122,7 @@ export declare class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
      * @type {boolean}
      * @memberOf CropEditor
      */
-    _toggled: boolean;
+    private _toggled;
     /**
      *
      *

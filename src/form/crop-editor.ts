@@ -148,7 +148,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
      * @type {boolean}
      * @memberOf CropEditor
      */
-    _toggled: boolean;
+    private _toggled: boolean;
     /**
      * 
      * 
@@ -178,8 +178,6 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
             return;
         }
 
-        //console.log('set value', this.crop.cropping, result.cropping);
-
         if (result.file !== this.model) {
             this.model = result.file;
         }
@@ -187,8 +185,6 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         if (!equal(result.cropping, this.crop.cropping)) {
             this.crop.cropping = result.cropping;
         }
-
-
 
     }
 
@@ -209,7 +205,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         if (client == null) {
             throw new Error("no client");
         }
-        console.log(options)
+
         this.modal = new GalleryModal({
             client: client,
             showDirectories: false,
@@ -390,27 +386,7 @@ export class CropEditor extends BaseEditor<HTMLDivElement, CropResult> {
         this.crop.hideMessage();
     }
 
-    /*private _showError(e) {
-        this._removeDropIndicator();
-        let i = <HTMLDivElement>this.crop.el.querySelector('.error');
-        if (!i) {
-            i = document.createElement('div')
-            addClass(i, "error");
-            this.crop.el.appendChild(i);
-        }
 
-        i.innerHTML = `
-            <h3>Could not upload image!</h3>
-            <p>${e.message}</p>
-        `;
-    }
-
-    private _removeError() {
-        let i = <HTMLDivElement>this.crop.el.querySelector('.error')
-        if (i && i.parentElement) {
-            this.crop.el.removeChild(i);
-        }
-    }*/
 
     protected _onToggleCropper(e: MouseEvent) {
         e.preventDefault();
