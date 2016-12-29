@@ -158,7 +158,7 @@ export class Uploader extends EventEmitter {
                 this.trigger('done', file);
             }
         };
-
+        console.log(item)
         path = Path.join(path, file.name);
 
         let o: CreateOptions = extend({}, options, {

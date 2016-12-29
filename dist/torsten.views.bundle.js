@@ -329,7 +329,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_prepareModel",
 	        value: function _prepareModel(value) {
-	            console.log(value);
 	            if (isFileInfo(value)) return value;
 	            if (orange_1.isObject(value) && !collection_1.isModel(value)) return new this.Model(value, {
 	                //parse: true,
@@ -7812,12 +7811,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this.loadImages();
 	        }
 	    }, {
+	        key: "filterChildren",
+	        value: function filterChildren() {
+	            if (typeof this.filter !== 'function') return;
+	            for (var i = 0, ii = this.children.length; i < ii; i++) {
+	                this.children[i].el.style.display = this.filter(this.children[i].model) ? 'block' : 'none';
+	            }
+	        }
+	    }, {
 	        key: "onRenderChild",
 	        value: function onRenderChild(view, index) {
 	            if (view.model.get('is_dir') && !this.options.showDirectories) {
 	                view.el.style.display = 'none';
 	            } else {
-	                view.el.style.opacity = 'block';
+	                view.el.style.display = 'block';
 	            }
 	        }
 	    }, {
@@ -9970,7 +9977,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    "gallery": "<div class=\"gallery-area\">  <div class=\"gallery-list\">  </div>  <div class=\"gallery-info\"></div>  </div>\n<div class=\"upload-progress-container\">  <div class=\"upload-progress\"></div>\n</div>\n",
 	    "list-item": "<a class=\"close-button\"></a>\n<div class=\"thumbnail-container\">  <i class=\"mime mimetype mime-unknown\"></i>\n</div>\n<div class=\"name\"></div>\n",
 	    "list": "<div class=\"file-list-item-container\">\n</div>\n<div class=\"file-list-download-progress progress\"></div>\n",
-	    "modal-gallery": "<div class=\"views-modal-dialog\">  <div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <div class=\"files-total\">Total: </div>  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>\n</div>\n"
+	    "modal-gallery": "<div class=\"views-modal-dialog\">  <div class=\"views-modal-content\">  <div class=\"views-modal-header\">  </div>  <div class=\"views-modal-body\">  </div>  <div class=\"views-modal-footer\">  <div class=\"left\">  <div class=\"files-total\">  <p>Total: </p>  </div>  <div class=\"search-container\">  <label>Search</label>  <input class=\"input-search\" type=\"search\" />  </div>  </div>  <button type=\"button\" class=\"btn btn-close\">Close</button>  <button type=\"button\" class=\"btn btn-primary btn-select\">Select</button>  </div>  </div>\n</div>"
 	};
 
 /***/ },
@@ -10369,7 +10376,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.list = new index_1.FileListView({
 	            showDirectories: options.showDirectories || false,
 	            client: _this.client,
-	            only: _this.options.only
+	            only: _this.options.only,
+	            filter: _this.options.filter
 	        });
 	        _this.info = new index_2.FileInfoView({
 	            client: _this.client
@@ -10416,10 +10424,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: "_onFileInfoRemoved",
 	        value: function _onFileInfoRemoved(view, model) {
+	            view.el.style.opacity = 0.5;
 	            this.client.remove(model.fullPath).then(function (res) {
 	                if (res.message === 'ok') {
 	                    model.remove();
 	                }
+	            }).catch(function (e) {
+	                view.el.style.opacity = 1.0;
 	            });
 	        }
 	    }, {
@@ -10429,12 +10440,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }, {
 	        key: "_onFileDrop",
-	        value: function _onFileDrop(file) {
+	        value: function _onFileDrop(event) {
+	            var file = event.dataTransfer.files.item(0);
+	            if (!file) return null;
 	            var collection = this.collections[this.collections.length - 1];
 	            this.uploader.upload(collection.path, file, {
 	                progress: function progress(e) {
 	                    if (!e.lengthComputable) return;
 	                }
+	            }).then(function (model) {
+	                return collection.add(model);
 	            });
 	        }
 	    }, {
@@ -10892,6 +10907,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    _this3.trigger('done', file);
 	                }
 	            };
+	            console.log(item);
 	            path = Path.join(path, file.name);
 	            var o = orange_1.extend({}, options, {
 	                progress: function progress(e) {
@@ -10987,6 +11003,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this = _possibleConstructorReturn(this, (GalleryModal.__proto__ || Object.getPrototypeOf(GalleryModal)).call(this, options));
 
 	        delete options.el;
+	        options.filter = function (model) {
+	            if (!_this._search) return true;
+	            return _this._search.test(model.get('name'));
+	        };
 	        _this._gallery = new gallery_1.GalleryView(options);
 	        _this.listenTo(_this._gallery, 'dblclick', function () {
 	            _this.trigger('selected', _this.selected);
@@ -10998,8 +11018,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this._setHeight = orange_1.bind(_this._setHeight, _this);
 	        _this.listenTo(_this._gallery.collection, 'fetch', function () {
 	            var total = _this._gallery.collection.totalLength || 0;
-	            var tel = _this.el.querySelector('.files-total');
-	            tel.innerHTML = "Total: " + total;
+	            var tel = _this.el.querySelector('.files-total p');
+	            tel.innerHTML = "<b>Total: </b> " + total;
 	            _this.gallery.list.loadImages();
 	        });
 	        return _this;
@@ -11038,6 +11058,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            this._gallery.render();
 	            this.ui['content'].appendChild(this._gallery.el);
 	            orange_dom_1.addClass(this.el, 'gallery-modal slidein-bottom');
+	            console.log(this);
 	        }
 	    }, {
 	        key: "_onSelect",
@@ -11045,6 +11066,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	            e.preventDefault();
 	            if (this.selected) this.trigger('selected', this.selected);
 	            this.close();
+	        }
+	    }, {
+	        key: "_onSearch",
+	        value: function _onSearch(e) {
+	            var el = e.delegateTarget;
+	            var val = el.value;
+	            if (val == "") {
+	                this._search = null;
+	            } else {
+	                var reg = new RegExp(val, 'i');
+	                if (this._search && this._search.source == reg.source) {
+	                    return;
+	                }
+	                this._search = reg;
+	            }
+	            this.gallery.list.filterChildren();
 	        }
 	    }, {
 	        key: "onDestroy",
@@ -11085,7 +11122,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'click .btn-close': function clickBtnClose() {
 	            this.close();
 	        },
-	        'click .btn-select': '_onSelect'
+	        'click .btn-select': '_onSelect',
+	        'keyup .input-search': '_onSearch'
 	    }
 	}), __metadata("design:paramtypes", [Object])], GalleryModal);
 	exports.GalleryModal = GalleryModal;

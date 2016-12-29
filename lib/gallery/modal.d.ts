@@ -5,6 +5,7 @@ export interface GalleryModalOptions extends GalleryViewOptions, ModalOptions {
 }
 export declare class GalleryModal extends Modal {
     private _gallery;
+    private _search;
     readonly gallery: GalleryView;
     selected: FileInfoModel;
     root: string;
@@ -15,5 +16,6 @@ export declare class GalleryModal extends Modal {
     onOpen(): void;
     onRender(): void;
     protected _onSelect(e: any): void;
+    protected _onSearch(e: any): void;
     onDestroy(): void;
 }

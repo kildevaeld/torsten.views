@@ -124,6 +124,7 @@
   -o-transition-property: opacity;
   -ms-transition-property: opacity;
   transition-property: opacity;
+  z-index: 10;
 }
 .file-list.collection-mode .file-list-item:hover .close-button {
   display: block;
@@ -279,9 +280,18 @@
 .gallery-modal .views-modal-footer {
   border-top: 1px solid #eee;
 }
-.gallery-modal .views-modal-footer .files-total {
-  display: inline-block;
+.gallery-modal .views-modal-footer .left {
   float: left;
+}
+.gallery-modal .views-modal-footer .left .files-total {
+  display: inline-block;
+}
+.gallery-modal .views-modal-footer .left .search-container {
+  margin-left: 10px;
+  display: inline-block;
+}
+.gallery-modal .views-modal-footer .left .search-container input {
+  margin-left: 10px;
 }
 .file-info {
   width: 100%;

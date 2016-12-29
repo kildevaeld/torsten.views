@@ -96,6 +96,8 @@ export class FileListView extends CollectionView<HTMLDivElement> {
 
     }
 
+
+
     renderChildView(view: FileListItemView, index: number) {
         let model = view.model
 
@@ -118,12 +120,19 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         this.loadImages()
     }
 
+    filterChildren() {
+        if (typeof this.filter !== 'function') return;
+        for (let i = 0, ii = this.children.length; i < ii; i++) {
+            this.children[i].el.style.display = this.filter(this.children[i].model as FileInfoModel) ? 'block' : 'none';
+        }
+    }
+
     onRenderChild(view: FileListItemView, index: number) {
 
         if (view.model.get('is_dir') && !this.options.showDirectories) {
             view.el.style.display = 'none';
         } else {
-            view.el.style.opacity = 'block';
+            view.el.style.display = 'block';
         }
 
     }

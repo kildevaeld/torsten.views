@@ -13,6 +13,7 @@ export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     uploader?: Uploader;
     mode?: FileMode;
     only?: string[];
+    filter?: (model: FileInfoModel) => boolean;
 }
 export declare class GalleryView extends LayoutView<HTMLDivElement> {
     options: GalleryViewOptions;
@@ -32,7 +33,7 @@ export declare class GalleryView extends LayoutView<HTMLDivElement> {
     private _onFileInfoSelected(view, model);
     private _onFileInfoRemoved(view, model);
     private _setCollection(collection);
-    private _onFileDrop(file);
+    private _onFileDrop(event);
     onRender(): void;
     destroy(): this;
 }

@@ -302,7 +302,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
     }
 
     protected _prepareModel(value: any): FileInfoModel {
-        console.log(value)
+
         if (isFileInfo(value)) return value;
         if (isObject(value) && !isModel(value)) return new this.Model(value, {
             //parse: true,

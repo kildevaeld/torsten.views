@@ -22,6 +22,7 @@ export declare class FileListView extends CollectionView<HTMLDivElement> {
     private _initEvents();
     renderChildView(view: FileListItemView, index: number): void;
     onRenderCollection(): void;
+    filterChildren(): void;
     onRenderChild(view: FileListItemView, index: number): void;
     private _showLoaderView();
     private _hideLoaderView();

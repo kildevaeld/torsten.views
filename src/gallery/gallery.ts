@@ -18,6 +18,7 @@ export interface GalleryViewOptions extends ViewOptions, UploaderOptions {
     uploader?: Uploader;
     mode?: FileMode
     only?: string[];
+    filter?: (model: FileInfoModel) => boolean
 }
 
 @attributes({
@@ -94,7 +95,8 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this.list = new FileListView({
             showDirectories: options.showDirectories || false,
             client: this.client,
-            only: this.options.only
+            only: this.options.only,
+            filter: this.options.filter
         });
 
         this.info = new FileInfoView({
@@ -148,12 +150,14 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     }
 
     private _onFileInfoRemoved(view, model: FileInfoModel) {
-
+        view.el.style.opacity = 0.5
         this.client.remove(model.fullPath)
             .then(res => {
                 if (res.message === 'ok') {
                     model.remove();
                 }
+            }).catch(e => {
+                view.el.style.opacity = 1.0
             });
     }
 
@@ -161,7 +165,10 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         this.list.collection = collection;
     }
 
-    private _onFileDrop(file: File) {
+    private _onFileDrop(event: DragEvent) {
+
+        let file = event.dataTransfer.files.item(0)
+        if (!file) return null;
 
         let collection = this.collections[this.collections.length - 1];
 
@@ -170,7 +177,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
                 if (!e.lengthComputable) return;
 
             }
-        })
+        }).then(model => collection.add(model));
     }
 
     onRender() {

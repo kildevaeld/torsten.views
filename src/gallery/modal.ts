@@ -18,12 +18,13 @@ export interface GalleryModalOptions extends GalleryViewOptions, ModalOptions {
     events: {
         'click .btn-close': function () { this.close() },
         'click .btn-select': '_onSelect',
+        'keyup .input-search': '_onSearch'
 
     }
 })
 export class GalleryModal extends Modal {
     private _gallery: GalleryView;
-
+    private _search: RegExp;
     get gallery() {
         return this._gallery;
     }
@@ -44,6 +45,12 @@ export class GalleryModal extends Modal {
         super(options);
 
         delete options.el;
+
+        options.filter = (model) => {
+            if (!this._search) return true;
+            return this._search.test(model.get('name'));
+        }
+
         this._gallery = new GalleryView(options);
 
         this.listenTo(this._gallery, 'dblclick', () => {
@@ -60,16 +67,16 @@ export class GalleryModal extends Modal {
         this.listenTo(this._gallery.collection, 'fetch', () => {
             let total = this._gallery.collection.totalLength || 0;
 
-            let tel = this.el.querySelector('.files-total')
-            tel.innerHTML = "Total: " + total
+            let tel = this.el.querySelector('.files-total p')
+            tel.innerHTML = "<b>Total: </b> " + total
             this.gallery.list.loadImages();
         })
     }
 
-
     onBeforeOpen() {
         this._setHeight();
         addEventListener(<any>window, 'resize', this._setHeight);
+
     }
 
     onBeforeClose() {
@@ -86,8 +93,9 @@ export class GalleryModal extends Modal {
         gallery.style.height = height - margin + 'px'
     }
 
+
     onOpen() {
-      
+
         this.gallery.list.loadImages()
     }
 
@@ -96,6 +104,7 @@ export class GalleryModal extends Modal {
         this._gallery.render()
         this.ui['content'].appendChild(this._gallery.el);
         addClass(this.el, 'gallery-modal slidein-bottom')
+        console.log(this)
     }
 
     protected _onSelect(e) {
@@ -103,6 +112,23 @@ export class GalleryModal extends Modal {
         if (this.selected)
             this.trigger('selected', this.selected);
         this.close();
+    }
+
+    protected _onSearch(e) {
+        let el = e.delegateTarget;
+        let val = el.value;
+
+        if (val == "") {
+            this._search = null;
+        } else {
+            let reg = new RegExp(val, 'i');
+            if (this._search && this._search.source == reg.source) {
+                return
+            }
+
+            this._search = reg;
+        }
+        this.gallery.list.filterChildren();
     }
 
     onDestroy() {
