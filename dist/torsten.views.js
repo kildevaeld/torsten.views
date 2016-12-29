@@ -1553,18 +1553,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var loadImage = function loadImage(img) {
 	                var parent = img.parentElement;
 	                orange_dom_1.addClass(parent, 'loading');
+	                orange_dom_1.addClass(img, 'loading');
 	                img.onload = function () {
 	                    orange_dom_1.removeClass(parent, 'loading');
 	                    orange_dom_1.addClass(parent, 'loaded');
 	                    orange_dom_1.addClass(img, 'loaded');
+	                    orange_dom_1.removeClass(img, 'loading');
 	                };
 	                img.onerror = function () {
 	                    orange_dom_1.removeClass(parent, 'loading');
 	                    orange_dom_1.addClass(parent, 'load-error');
+	                    orange_dom_1.removeClass(img, 'loading');
 	                };
 	                img.src = _this4.options.client.endpoint + "/v1" + img.getAttribute('data-src') + '?token=' + _this4.options.client.token + "&thumbnail=true";
 	            };
-	            var images = this.el.querySelectorAll('img:not(.loaded)');
+	            var images = this.el.querySelectorAll('img:not(.loaded):not(.loading)');
 	            console.log(images.length);
 	            for (var i = 0, ii = Math.min(50, images.length); i < ii; i++) {
 	                var img = images[i];

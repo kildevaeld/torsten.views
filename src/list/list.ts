@@ -174,23 +174,26 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         const loadImage = (img: HTMLImageElement) => {
             var parent = img.parentElement
             addClass(parent, 'loading')
+            addClass(img, 'loading')
             img.onload = () => {
 
                 removeClass(parent, 'loading');
                 addClass(parent, 'loaded');
                 addClass(img, 'loaded')
+                removeClass(img, 'loading');
             }
 
             img.onerror = () => {
                 removeClass(parent, 'loading');
-                addClass(parent, 'load-error')
+                addClass(parent, 'load-error');
+                removeClass(img, 'loading');
             }
 
             img.src = this.options.client.endpoint + "/v1" + img.getAttribute('data-src') + '?token=' + this.options.client.token + "&thumbnail=true"
 
         }
 
-        let images = this.el.querySelectorAll('img:not(.loaded)');
+        let images = this.el.querySelectorAll('img:not(.loaded):not(.loading)');
         console.log(images.length)
 
         for (let i = 0, ii = Math.min(50, images.length); /*ii = images.length;*/ i < ii; i++) {
