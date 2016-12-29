@@ -178,6 +178,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
 
                 removeClass(parent, 'loading');
                 addClass(parent, 'loaded');
+                addClass(img, 'loaded')
             }
 
             img.onerror = () => {
@@ -190,8 +191,11 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         }
 
         let images = this.el.querySelectorAll('img:not(.loaded)');
-        for (let i = 0, ii = images.length; i < ii; i++) {
+        console.log(images.length)
+
+        for (let i = 0, ii = Math.min(50, images.length); /*ii = images.length;*/ i < ii; i++) {
             let img = <HTMLImageElement>images[i];
+
             if (hasClass(img.parentElement, "loading") || hasClass(img.parentElement, "load-error")) {
                 continue;
             }

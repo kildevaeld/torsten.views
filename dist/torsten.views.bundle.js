@@ -7873,6 +7873,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.onload = function () {
 	                    orange_dom_1.removeClass(parent, 'loading');
 	                    orange_dom_1.addClass(parent, 'loaded');
+	                    orange_dom_1.addClass(img, 'loaded');
 	                };
 	                img.onerror = function () {
 	                    orange_dom_1.removeClass(parent, 'loading');
@@ -7881,7 +7882,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                img.src = _this4.options.client.endpoint + "/v1" + img.getAttribute('data-src') + '?token=' + _this4.options.client.token + "&thumbnail=true";
 	            };
 	            var images = this.el.querySelectorAll('img:not(.loaded)');
-	            for (var i = 0, ii = images.length; i < ii; i++) {
+	            console.log(images.length);
+	            for (var i = 0, ii = Math.min(50, images.length); i < ii; i++) {
 	                var img = images[i];
 	                if (orange_dom_1.hasClass(img.parentElement, "loading") || orange_dom_1.hasClass(img.parentElement, "load-error")) {
 	                    continue;
