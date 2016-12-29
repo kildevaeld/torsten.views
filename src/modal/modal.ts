@@ -1,10 +1,11 @@
 
 import { View, attributes, ViewOptions } from 'views';
 import {
-    createElement, hasClass, addClass, removeClass, animationEnd,
+    createElement, hasClass, addClass, removeClass, transitionEnd,
     removeEventListener
 } from 'orange.dom'
 import { bind } from 'orange';
+
 export interface ModalOptions extends ViewOptions {
 
 }
@@ -41,7 +42,7 @@ export class Modal extends View<HTMLDivElement> {
     }
 
     open() {
-        console.log('open tadad')
+
         let body = document.body
         if (hasClass(body, "views-modal-open")) {
             return;
@@ -54,7 +55,7 @@ export class Modal extends View<HTMLDivElement> {
             addClass(body, 'views-modal-open')
         })
 
-        animationEnd(this.el, () => {
+        transitionEnd(this.el, () => {
             this.triggerMethod('open');
         })
 
@@ -79,7 +80,7 @@ export class Modal extends View<HTMLDivElement> {
         removeClass(this.el, 'views-modal-show')
         removeClass(body, 'views-modal-open')
 
-        animationEnd(this.el, () => {
+        transitionEnd(this.el, () => {
             this.triggerMethod('close');
         })
 

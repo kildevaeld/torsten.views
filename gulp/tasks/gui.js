@@ -59,12 +59,12 @@ gulp.task('webpack', ['typescript'], () => {
 
                 ]
             },*/
-            resolve: {
+            /*resolve: {
                 alias: {
                     "debug": process.cwd() + "/node_modules/debug/browser.js",
                     //"cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
                 }
-            },
+            },*/
             externals: {
                 "orange": "orange",
                 "orange.request": {
@@ -122,7 +122,7 @@ gulp.task('webpack:bundle', ['typescript'], () => {
             resolve: {
                 alias: {
                     "orange.request": process.cwd() + "/node_modules/orange.request/lib/browser.js",
-                    "debug": process.cwd() + "/node_modules/debug/browser.js",
+                    //"debug": process.cwd() + "/node_modules/debug/browser.js",
                     //"cropperjs": process.cwd() + "/node_modules/cropperjs/src/js/cropper.js"
                 }
             }

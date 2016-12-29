@@ -62,8 +62,10 @@ export class GalleryModal extends Modal {
 
             let tel = this.el.querySelector('.files-total')
             tel.innerHTML = "Total: " + total
+            this.gallery.list.loadImages();
         })
     }
+
 
     onBeforeOpen() {
         this._setHeight();
@@ -85,6 +87,7 @@ export class GalleryModal extends Modal {
     }
 
     onOpen() {
+      
         this.gallery.list.loadImages()
     }
 

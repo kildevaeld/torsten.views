@@ -16,9 +16,7 @@ export interface ProgressOptions extends ViewOptions {
 })
 export class Progress extends View<HTMLDivElement> implements IProgress {
     options: ProgressOptions;
-    _percent: number;
-    _timer: NodeJS.Timer;
-
+    private _percent: number;
 
     ctx: CanvasRenderingContext2D;
     constructor(options: ProgressOptions = {}) {

@@ -96,11 +96,16 @@ export class Uploader extends EventEmitter {
         }
         var mimeValid = false;
         for (let i = 0, ii = this.accept.length; i < ii; i++) {
+            if (this.accept[i] === "*") {
+                mimeValid = true;
+                break;
+            }
             let r = new RegExp(this.accept[i]);
             if (r.test(file.type)) {
                 mimeValid = true;
                 break;
             }
+
         }
         if (!mimeValid) throw new TorstenValidateError("Cannot upload a file of type: " + file.type);
     }

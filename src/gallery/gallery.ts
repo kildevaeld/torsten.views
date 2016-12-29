@@ -43,10 +43,11 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
     private _root: string;
     set root(path: string) {
 
-        if (this._root == path) return;
+        if (this._root === path) return;
         this._root = path;
 
         for (let i = 0, ii = this.collections.length; i < ii; i++) {
+            this.stopListening(this.collections[i]);
             this.collections[i].destroy();
         }
 
@@ -54,7 +55,6 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
             client: this.client,
             path: this._root,
             limit: 100
-
         })];
 
         this._setCollection(this.collections[0]);

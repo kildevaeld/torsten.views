@@ -60,7 +60,7 @@ function parseLinkHeaders(resp: Response): Link {
 }
 
 export function isFileInfo(a: any): a is FileInfoModel {
-    return (a instanceof FileInfoModel) && a.__torsten == 'FileInfoModel';
+    return (a instanceof FileInfoModel) || a.__torsten == 'FileInfoModel';
 }
 
 export interface FileInfoModelOptions {
@@ -302,7 +302,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
     }
 
     protected _prepareModel(value: any): FileInfoModel {
-
+        console.log(value)
         if (isFileInfo(value)) return value;
         if (isObject(value) && !isModel(value)) return new this.Model(value, {
             //parse: true,
@@ -344,6 +344,7 @@ export class FileCollection extends RestCollection<FileInfoModel> {
 
         return resp.json<{ data: any }>()
             .then(body => {
+
                 return body.data;
             }).then(data => {
                 this.add(data);
