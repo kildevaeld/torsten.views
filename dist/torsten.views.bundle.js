@@ -7881,10 +7881,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    orange_dom_1.removeClass(parent, 'loading');
 	                    orange_dom_1.addClass(parent, 'load-error');
 	                    orange_dom_1.removeClass(img, 'loading');
+	                    orange_dom_1.addClass(img, 'load-error');
 	                };
 	                img.src = _this4.options.client.endpoint + "/v1" + img.getAttribute('data-src') + '?token=' + _this4.options.client.token + "&thumbnail=true";
 	            };
-	            var images = this.el.querySelectorAll('img:not(.loaded):not(.loading)');
+	            var images = this.el.querySelectorAll('img:not(.loaded):not(.loading):not(.load-error)');
 	            console.log(images.length);
 	            for (var i = 0, ii = Math.min(50, images.length); i < ii; i++) {
 	                var img = images[i];
