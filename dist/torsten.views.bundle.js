@@ -117,7 +117,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return link;
 	}
 	function isFileInfo(a) {
-	    return a instanceof FileInfoModel || a.__torsten == 'FileInfoModel';
+	    return a && (a instanceof FileInfoModel || a.__torsten == 'FileInfoModel');
 	}
 	exports.isFileInfo = isFileInfo;
 
@@ -9873,9 +9873,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
 	    }return c > 3 && r && Object.defineProperty(target, key, r), r;
 	};
-	var __metadata = undefined && undefined.__metadata || function (k, v) {
-	    if ((typeof Reflect === "undefined" ? "undefined" : _typeof(Reflect)) === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-	};
 	var views_1 = __webpack_require__(48);
 	var orange_1 = __webpack_require__(6);
 	var orange_dom_1 = __webpack_require__(51);
@@ -9967,7 +9964,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        'click': '_onClick',
 	        'dblclick': '_onDblClick'
 	    }
-	}), __metadata("design:paramtypes", [])], FileListItemView);
+	})], FileListItemView);
 	exports.FileListItemView = FileListItemView;
 
 /***/ },

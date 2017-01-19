@@ -60,7 +60,7 @@ function parseLinkHeaders(resp: Response): Link {
 }
 
 export function isFileInfo(a: any): a is FileInfoModel {
-    return (a instanceof FileInfoModel) || a.__torsten == 'FileInfoModel';
+    return a && ((a instanceof FileInfoModel) || a.__torsten == 'FileInfoModel');
 }
 
 export interface FileInfoModelOptions {
