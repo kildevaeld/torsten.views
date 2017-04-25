@@ -15,6 +15,7 @@
     "files": [
         "typings/index.d.ts",
         "src/index.ts",
+        "src/queue.ts",
         "src/collection.ts",
         "src/error.ts",
         "src/types.ts",

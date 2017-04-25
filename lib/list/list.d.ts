@@ -13,6 +13,7 @@ export declare const FileListEmptyView: {};
 export declare class FileListView extends CollectionView<HTMLDivElement> {
     private _timer;
     private _progress;
+    private _queue;
     options: FileListOptions;
     collection: FileCollection;
     filter?: (model: FileInfoModel) => boolean;
