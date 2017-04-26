@@ -35,14 +35,14 @@ export interface State {
 function parseLinkHeaders(resp: Response): Link {
     var link: Link = {};
 
-    let linkHeader = <any>resp.headers.get('Link');
+    let linkHeader = resp.headers.get('Link');
 
     if (linkHeader == null) return {};
 
-    linkHeader = linkHeader.split(',')
+    let linkHeaders = linkHeader.split(',')
     let relations = ['first', 'prev', 'next', 'last'];
-    for (let i = 0, ii = linkHeader.length; i < ii; i++) {
-        let linkParts = linkHeader[i].split(';'),
+    for (let i = 0, ii = linkHeaders.length; i < ii; i++) {
+        let linkParts = linkHeaders[i].split(';'),
             url = linkParts[0].replace(URL_TRIM_RE, ''),
             params = linkParts.slice(1);
         for (let x = 0, xx = params.length; x < xx; x++) {

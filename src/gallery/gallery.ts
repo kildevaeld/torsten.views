@@ -141,8 +141,7 @@ export class GalleryView extends LayoutView<HTMLDivElement> {
         if (this.options.root) {
             this.root = this.options.root;
         }
-
-
+        
     }
 
     private _onFileInfoSelected(view, model: FileInfoModel) {

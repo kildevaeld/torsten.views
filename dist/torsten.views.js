@@ -103,10 +103,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var link = {};
 	    var linkHeader = resp.headers.get('Link');
 	    if (linkHeader == null) return {};
-	    linkHeader = linkHeader.split(',');
+	    var linkHeaders = linkHeader.split(',');
 	    var relations = ['first', 'prev', 'next', 'last'];
-	    for (var i = 0, ii = linkHeader.length; i < ii; i++) {
-	        var linkParts = linkHeader[i].split(';'),
+	    for (var i = 0, ii = linkHeaders.length; i < ii; i++) {
+	        var linkParts = linkHeaders[i].split(';'),
 	            url = linkParts[0].replace(URL_TRIM_RE, ''),
 	            params = linkParts.slice(1);
 	        for (var x = 0, xx = params.length; x < xx; x++) {
