@@ -1,13 +1,22 @@
 import { CollectionView, CollectionViewOptions, View, attributes } from 'views';
 import { removeClass, addClass, hasClass } from 'orange.dom';
-import { bind, extend, pick } from 'orange';
+import { bind, extend, pick, deferred } from 'orange';
 import { FileListItemView } from './list-item';
 import { FileCollection, FileInfoModel } from '../collection';
 import { Progress } from './circular-progress';
 import { IProgress } from '../types';
 import { IClient } from 'torsten';
 import { Downloader } from '../download';
+import {Queue} from '../queue';
 
+function toggleClass(elm, str) {
+    const cls = str.split(' ');
+    for (let c of cls) {
+        if (hasClass(elm, c)) removeClass(elm,c);
+        else addClass(elm, c);
+    }
+    return elm;
+}
 
 export interface FileListOptions extends CollectionViewOptions {
     deleteable?: boolean;
@@ -33,6 +42,7 @@ export const FileListEmptyView = View.extend({
 export class FileListView extends CollectionView<HTMLDivElement> {
     private _timer: NodeJS.Timer;
     private _progress: IProgress;
+    private _queue: Queue;
     public options: FileListOptions;
     collection: FileCollection;
     filter?: (model: FileInfoModel) => boolean = () => true
@@ -42,7 +52,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         super(options);
         this.options = options || { client: null };
         this.sort = false;
-
+        this._queue = new Queue(20);
         this._onSroll = throttle(bind(this._onSroll, this), 0);
         extend(this, pick(options, ['filter', 'only']));
     }
@@ -173,39 +183,51 @@ export class FileListView extends CollectionView<HTMLDivElement> {
 
         const loadImage = (img: HTMLImageElement) => {
             var parent = img.parentElement
-            addClass(parent, 'loading')
-            addClass(img, 'loading')
-            img.onload = () => {
+            let defer = deferred<void>();
 
-                removeClass(parent, 'loading');
-                addClass(parent, 'loaded');
-                addClass(img, 'loaded')
-                removeClass(img, 'loading');
+            img.onload = () => {
+                toggleClass(parent, 'loading loaded');
+                toggleClass(img, 'loaded loading');
+                defer.resolve(void 0);
             }
 
-            img.onerror = () => {
-                removeClass(parent, 'loading');
-                addClass(parent, 'load-error');
-                removeClass(img, 'loading');
-                addClass(img, 'load-error')
+            img.onerror = (e) => {
+                toggleClass(img, 'loading load-error');
+                toggleClass(parent, 'loading load-error');
+                defer.reject(e.error);
             }
 
             img.src = this.options.client.endpoint + "/v1" + img.getAttribute('data-src') + '?token=' + this.options.client.token + "&thumbnail=true"
 
+            return defer.promise as Promise<void>;
         }
 
-        let images = this.el.querySelectorAll('img:not(.loaded):not(.loading):not(.load-error)');
-        console.log(images.length)
+        const loadImage2 = (img: HTMLImageElement) => {
+            var parent = img.parentElement
+            addClass(parent, 'loading')
+            addClass(img, 'loading')
+            return () => loadImage(img);
+        } 
 
-        for (let i = 0, ii = Math.min(50, images.length); /*ii = images.length;*/ i < ii; i++) {
+    
+
+        let images = this.el.querySelectorAll('img:not(.loaded):not(.load-error)');
+         
+        for (let i = 0, ii = images.length; /*ii = images.length;*/ i < ii; i++) {
             let img = <HTMLImageElement>images[i];
 
-            if (hasClass(img.parentElement, "loading") || hasClass(img.parentElement, "load-error")) {
-                continue;
-            }
-
-            if (elementInView(img.parentElement, this.el)) {
-                loadImage(img);
+            if (elementInView(img.parentElement, this.el) /* && !hasClass(img.parentElement, 'loading')*/) {
+                let id = img.getAttribute('data-queue');
+                if (id) {
+                    continue;
+                }
+                id = this._queue.enqueue(loadImage2(img));
+                img.setAttribute('data-queue', id);
+            } else if (hasClass(img, 'loading')) {
+                this._queue.dequeue(img.getAttribute('data-queue'));
+                img.removeAttribute('data-queue');
+                removeClass(img, 'loading');
+                removeClass(img.parentElement, 'loading');
             }
         }
     }
