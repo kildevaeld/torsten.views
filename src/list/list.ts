@@ -43,6 +43,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
     private _timer: NodeJS.Timer;
     private _progress: IProgress;
     private _queue: Queue;
+    
     public options: FileListOptions;
     collection: FileCollection;
     filter?: (model: FileInfoModel) => boolean = () => true
@@ -53,6 +54,7 @@ export class FileListView extends CollectionView<HTMLDivElement> {
         this.options = options || { client: null };
         this.sort = false;
         this._queue = new Queue(20);
+
         this._onSroll = throttle(bind(this._onSroll, this), 0);
         extend(this, pick(options, ['filter', 'only']));
     }
