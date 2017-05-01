@@ -13,3 +13,5 @@ export function createClient(options: TorstenClientOptions) {
    
     return new TorstenClient(options);
 }
+
+export const version = "@version@";

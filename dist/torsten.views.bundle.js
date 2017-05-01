@@ -73,6 +73,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return new torsten_1.TorstenClient(options);
 	}
 	exports.createClient = createClient;
+	exports.version = "0.2.14";
 
 /***/ }),
 /* 1 */

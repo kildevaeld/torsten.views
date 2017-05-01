@@ -1,6 +1,6 @@
 {
   "name": "torsten.views",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
@@ -21,8 +21,10 @@
     "gulp-babel": "^6.1.2",
     "gulp-bump": "^2.4.0",
     "gulp-gunzip": "0.0.3",
+    "gulp-if": "^2.0.2",
     "gulp-imagemin": "^3.0.3",
     "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.5.4",
     "gulp-stylus": "^2.5.0",
     "gulp-typescript": "^2.13.6",
     "gulp-untar2": "^0.1.0",

@@ -6,3 +6,4 @@ export * from './modal/index';
 export * from './form/index';
 import { TorstenClient, TorstenClientOptions } from 'torsten';
 export declare function createClient(options: TorstenClientOptions): TorstenClient;
+export declare const version = "@version@";
